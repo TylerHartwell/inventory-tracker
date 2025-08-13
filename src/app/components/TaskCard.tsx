@@ -3,7 +3,7 @@ import { Task } from "./task-manager"
 import Image from "next/image"
 import { supabase } from "@/supabase-client"
 
-export const TaskCard = ({ task, fetchTasks }: { task: Task; fetchTasks: () => Promise<void> }) => {
+export const TaskCard = ({ task }: { task: Task }) => {
   const [description, setDescription] = useState<string>("")
 
   const deleteTask = async (id: number, imageUrl: string) => {
@@ -22,8 +22,6 @@ export const TaskCard = ({ task, fetchTasks }: { task: Task; fetchTasks: () => P
         console.error("Error deleting task:", dbError.message)
         return
       }
-
-      fetchTasks()
     } catch (err) {
       console.error("Unexpected error:", err)
     }
@@ -39,7 +37,6 @@ export const TaskCard = ({ task, fetchTasks }: { task: Task; fetchTasks: () => P
       return
     }
     setDescription("")
-    fetchTasks()
   }
 
   return (
@@ -48,8 +45,8 @@ export const TaskCard = ({ task, fetchTasks }: { task: Task; fetchTasks: () => P
         <h3 className="text-xl font-medium">{task.title}</h3>
         <p className="mb-2">{task.description}</p>
         {task.signedUrl && (
-          <div className="mb-2">
-            <Image src={task.signedUrl} unoptimized alt="Task image" width={300} height={200} className="h-40 w-auto object-cover rounded" />
+          <div className="relative mb-2 h-40 w-auto">
+            <Image src={task.signedUrl} unoptimized alt="Task image" fill className=" object-contain rounded" />
           </div>
         )}
         <div className="space-y-2">
