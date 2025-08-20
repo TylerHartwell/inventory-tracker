@@ -9,6 +9,12 @@ export const TaskInput = ({ session }: { session: Session }) => {
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
 
+  const clearForm = () => {
+    setNewTask({ title: "", description: "" })
+    setTaskImage(null)
+    setResetId(id => id + 1)
+  }
+
   const handleLocalImage = (file: File) => {
     if (file) {
       setTaskImage(file)
@@ -41,9 +47,7 @@ export const TaskInput = ({ session }: { session: Session }) => {
       setLoading(false)
     }
 
-    setNewTask({ title: "", description: "" })
-    setTaskImage(null)
-    setResetId(id => id + 1)
+    clearForm()
   }
 
   return (
@@ -60,14 +64,20 @@ export const TaskInput = ({ session }: { session: Session }) => {
         placeholder="Task Description"
         value={newTask.description}
         onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-        className="w-full p-2 border border-gray-300 rounded"
+        className="w-full p-2 border border-gray-300 rounded min-h-min"
       />
 
       <ImageSelector handleLocalImage={handleLocalImage} key={resetId} />
 
-      <button type="submit" disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
-        Add Task
-      </button>
+      <div className="flex justify-between">
+        <button type="submit" disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
+          Add Task
+        </button>
+        <button type="button" onClick={clearForm} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
+          Clear Form
+        </button>
+      </div>
+
       {loading && (
         <div className="absolute flex items-center justify-center bottom-3 left-1/2 -translate-x-1/2">
           <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>

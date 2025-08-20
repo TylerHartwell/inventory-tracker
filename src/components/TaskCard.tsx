@@ -7,7 +7,7 @@ import { Session } from "@supabase/supabase-js"
 import { deleteTask } from "@/utils/deleteTask"
 import { updateTask } from "@/utils/updateTask"
 
-export const TaskCard = ({ task, session }: { task: Task; session: Session }) => {
+export const TaskCard = ({ task, session, isPriority }: { task: Task; session: Session; isPriority: boolean }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState<string>(task.title)
   const [description, setDescription] = useState<string>(task.description)
@@ -95,12 +95,7 @@ export const TaskCard = ({ task, session }: { task: Task; session: Session }) =>
             />
 
             <div className="flex items-center">
-              <ImageSelector handleLocalImage={handleLocalImage} />
-              {task.signedUrl && (
-                <div className="relative flex-1 mb-2 h-40 w-auto border-2">
-                  <Image src={task.signedUrl} unoptimized alt="Task image" fill className="object-contain rounded" />
-                </div>
-              )}
+              <ImageSelector handleLocalImage={handleLocalImage} signedUrl={task.signedUrl ?? null} />
             </div>
 
             <div className="space-y-2">
@@ -120,7 +115,7 @@ export const TaskCard = ({ task, session }: { task: Task; session: Session }) =>
             <p className="mb-2">{description}</p>
             {task.signedUrl && (
               <div className="relative mb-2 h-40 w-auto">
-                <Image src={task.signedUrl} unoptimized alt="Task image" fill className="object-contain rounded" />
+                <Image src={task.signedUrl} unoptimized alt="Task image" fill priority={isPriority} className="object-contain rounded" />
               </div>
             )}
             <div className="space-y-2">

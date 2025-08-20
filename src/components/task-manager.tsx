@@ -17,7 +17,7 @@ function TaskManager({ session }: { session: Session }) {
   const [tasks, setTasks] = useState<Task[]>([])
 
   const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
-    const { data, error } = await supabase.storage.from("tasks-images").createSignedUrl(filePath, 60 * 5)
+    const { data, error } = await supabase.storage.from("tasks-images").createSignedUrl(filePath, 60 * 20)
 
     if (error || !data) {
       console.error("Signed URL error:", error?.message)
@@ -81,15 +81,13 @@ function TaskManager({ session }: { session: Session }) {
     }
   }, [fetchTasks, generateSignedUrl])
 
-  console.log(tasks)
-
   return (
     <div className="max-w-xl mx-auto p-4">
       <h2 className="text-2xl font-semibold mb-4">Task Manager CRUD</h2>
       <TaskInput session={session} />
       <ul className="list-none p-0">
-        {tasks.map(task => (
-          <TaskCard task={task} key={task.id} session={session} />
+        {tasks.map((task, index) => (
+          <TaskCard task={task} key={task.id} session={session} isPriority={index <= 3} />
         ))}
       </ul>
     </div>

@@ -1,9 +1,11 @@
 import Image from "next/image"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
-function ImageSelector({ handleLocalImage }: { handleLocalImage: (file: File) => void }) {
+function ImageSelector({ handleLocalImage, signedUrl }: { handleLocalImage: (file: File) => void; signedUrl: string | null }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(() => {
+    return signedUrl ? signedUrl : null
+  })
 
   const handleButtonClick = () => {
     fileInputRef.current?.click()
@@ -78,7 +80,14 @@ function ImageSelector({ handleLocalImage }: { handleLocalImage: (file: File) =>
           </div>
 
           <div className="relative flex-1 max-w-lg aspect-[16/9] bg-transparent rounded-md overflow-hidden ">
-            <Image src={previewUrl} alt="Preview" fill className="object-contain" />
+            <Image
+              src={previewUrl}
+              alt="Preview"
+              fill
+              unoptimized
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-contain"
+            />
           </div>
         </div>
       )}
