@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react"
-import { supabase } from "../../supabase-client"
+import { supabase } from "../supabase-client"
 
 export const Auth = () => {
   const [email, setEmail] = useState("")

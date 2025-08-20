@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { supabase } from "../../supabase-client"
+import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 import { TaskInput } from "./TaskInput"
 import { TaskCard } from "./TaskCard"
@@ -89,7 +89,7 @@ function TaskManager({ session }: { session: Session }) {
       <TaskInput session={session} />
       <ul className="list-none p-0">
         {tasks.map(task => (
-          <TaskCard task={task} key={task.id} />
+          <TaskCard task={task} key={task.id} session={session} />
         ))}
       </ul>
     </div>

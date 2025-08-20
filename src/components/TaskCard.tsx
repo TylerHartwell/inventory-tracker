@@ -1,13 +1,23 @@
 import { useState } from "react"
 import { Task } from "./task-manager"
 import Image from "next/image"
-import { supabase } from "@/supabase-client"
-import { Pencil } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
+import ImageSelector from "./ImageSelector"
+import { Session } from "@supabase/supabase-js"
+import { deleteTask } from "@/utils/deleteTask"
+import { updateTask } from "@/utils/updateTask"
 
-export const TaskCard = ({ task }: { task: Task }) => {
+export const TaskCard = ({ task, session }: { task: Task; session: Session }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState<string>(task.title)
   const [description, setDescription] = useState<string>(task.description)
+  const [taskImage, setTaskImage] = useState<File | null>(null)
+
+  const handleLocalImage = (file: File) => {
+    if (file) {
+      setTaskImage(file)
+    }
+  }
 
   const handleCancelEdit = () => {
     setTitle(task.title)
@@ -15,29 +25,26 @@ export const TaskCard = ({ task }: { task: Task }) => {
     setIsEditing(false)
   }
 
-  const deleteTask = async (id: number, imageUrl: string) => {
+  const handleDeleteTask = async () => {
+    if (!session.user) {
+      console.error("Not authenticated")
+      return
+    }
     try {
-      if (imageUrl) {
-        const { error: storageError } = await supabase.storage.from("tasks-images").remove([imageUrl])
-
-        if (storageError) {
-          console.error("Error deleting image:", storageError.message)
-        }
-      }
-
-      const { error: dbError } = await supabase.from("tasks").delete().eq("id", id)
-
-      if (dbError) {
-        console.error("Error deleting task:", dbError.message)
-        return
+      if (window.confirm("Are you sure you want to delete this task?")) {
+        await deleteTask(task, session)
       }
     } catch (err) {
-      console.error("Unexpected error:", err)
+      console.error("Failed to delete task:", err)
     }
   }
 
-  const updateTask = async (id: number) => {
-    const updates: Partial<{ title: string; description: string }> = {}
+  const handleUpdateTask = async () => {
+    if (!session.user) {
+      console.error("Not authenticated")
+      return
+    }
+    const updates: Partial<{ title: string; description: string; taskImage: File }> = {}
 
     if (title.trim() && title !== task.title) {
       updates.title = title.trim()
@@ -47,15 +54,19 @@ export const TaskCard = ({ task }: { task: Task }) => {
       updates.description = description.trim()
     }
 
+    if (taskImage) {
+      updates.taskImage = taskImage
+    }
+
     if (Object.keys(updates).length === 0) {
       setIsEditing(false)
       return
     }
 
-    const { error } = await supabase.from("tasks").update(updates).eq("id", id)
-
-    if (error) {
-      console.error("Error updating task: ", error.message)
+    try {
+      await updateTask(task, session, updates)
+    } catch (err) {
+      console.error("Unexpected error:", err)
       return
     }
 
@@ -82,17 +93,22 @@ export const TaskCard = ({ task }: { task: Task }) => {
               onChange={e => setDescription(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded"
             />
-            {task.signedUrl && (
-              <div className="relative mb-2 h-40 w-auto">
-                <Image src={task.signedUrl} unoptimized alt="Task image" fill className="object-contain rounded" />
-              </div>
-            )}
+
+            <div className="flex items-center">
+              <ImageSelector handleLocalImage={handleLocalImage} />
+              {task.signedUrl && (
+                <div className="relative flex-1 mb-2 h-40 w-auto border-2">
+                  <Image src={task.signedUrl} unoptimized alt="Task image" fill className="object-contain rounded" />
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <div className="grid grid-cols-3 justify-items-center">
                 <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 justify-self-start" onClick={handleCancelEdit}>
                   Cancel Edit
                 </button>
-                <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={() => updateTask(task.id)}>
+                <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleUpdateTask}>
                   Update
                 </button>
               </div>
@@ -112,8 +128,8 @@ export const TaskCard = ({ task }: { task: Task }) => {
                 <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={() => setIsEditing(true)}>
                   <Pencil size={16} />
                 </button>
-                <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={() => deleteTask(task.id, task.image_url)}>
-                  Delete
+                <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={handleDeleteTask}>
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
