@@ -15,10 +15,8 @@ export const TaskInput = ({ session }: { session: Session }) => {
     setResetId(id => id + 1)
   }
 
-  const handleLocalImage = (file: File) => {
-    if (file) {
-      setTaskImage(file)
-    }
+  const handleLocalImage = (file: File | null) => {
+    setTaskImage(file)
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -31,15 +29,15 @@ export const TaskInput = ({ session }: { session: Session }) => {
 
     const { title, description } = newTask
 
-    if (!title.trim() || !description.trim()) {
-      alert("Title and description are required.")
+    if (!title.trim()) {
+      alert("Title is required.")
       return
     }
 
     setLoading(true)
 
     try {
-      await insertTask(session, title, description, taskImage)
+      await insertTask({ session, title, description, taskImage })
     } catch (err) {
       console.error("Failed to insert task:", err)
       return

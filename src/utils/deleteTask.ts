@@ -1,7 +1,7 @@
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import { deleteImage } from "./deleteImage"
-import { Task } from "@/components/task-manager"
+import { Task } from "@/components/TaskManager"
 
 export const deleteTask = async (task: Task, session: Session) => {
   if (!session.user) {

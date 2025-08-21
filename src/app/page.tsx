@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Auth } from "../components/auth"
-import TaskManager from "../components/task-manager"
+import TaskManager from "../components/TaskManager"
 import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 
@@ -12,11 +12,16 @@ function Home() {
 
   useEffect(() => {
     const getSession = async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
-      setSession(session)
-      setLoading(false)
+      try {
+        const {
+          data: { session }
+        } = await supabase.auth.getSession()
+        setSession(session)
+      } catch (error) {
+        console.error("Error fetching session:", error)
+      } finally {
+        setLoading(false)
+      }
     }
     getSession()
 
@@ -27,7 +32,7 @@ function Home() {
     })
 
     return () => {
-      subscription.unsubscribe()
+      subscription?.unsubscribe()
     }
   }, [])
 

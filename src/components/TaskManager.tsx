@@ -9,15 +9,16 @@ export interface Task {
   title: string
   description: string
   created_at: string
-  image_url: string
-  signedUrl?: string | null
+  image_url: string | null
+  signedUrl: string | null
 }
 
 function TaskManager({ session }: { session: Session }) {
   const [tasks, setTasks] = useState<Task[]>([])
 
   const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
-    const { data, error } = await supabase.storage.from("tasks-images").createSignedUrl(filePath, 60 * 20)
+    const expirySeconds = 60 * 20
+    const { data, error } = await supabase.storage.from("tasks-images").createSignedUrl(filePath, expirySeconds)
 
     if (error || !data) {
       console.error("Signed URL error:", error?.message)
@@ -55,18 +56,35 @@ function TaskManager({ session }: { session: Session }) {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "tasks" }, async payload => {
         const newTask = payload.new as Task
         let signedUrl: string | null = null
-        if (newTask.image_url) {
-          signedUrl = await generateSignedUrl(newTask.image_url)
+        try {
+          if (newTask.image_url) {
+            signedUrl = await generateSignedUrl(newTask.image_url)
+          }
+
+          setTasks(prev => [...prev, { ...newTask, signedUrl }])
+        } catch (err) {
+          console.error("Error handling task insert:", err)
         }
-        setTasks(prev => [...prev, { ...newTask, signedUrl }])
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "tasks" }, async payload => {
         const updatedTask = payload.new as Task
         let signedUrl: string | null = null
-        if (updatedTask.image_url) {
-          signedUrl = await generateSignedUrl(updatedTask.image_url)
+
+        try {
+          if (updatedTask.image_url) {
+            signedUrl = await generateSignedUrl(updatedTask.image_url)
+          }
+
+          setTasks(prev =>
+            prev.map(task => {
+              if (task.id !== updatedTask.id) return task
+
+              return { ...updatedTask, signedUrl }
+            })
+          )
+        } catch (err) {
+          console.error("Error handling task update:", err)
         }
-        setTasks(prev => prev.map(task => (task.id === updatedTask.id ? { ...updatedTask, signedUrl } : task)))
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "tasks" }, payload => {
         const deletedId = payload.old.id

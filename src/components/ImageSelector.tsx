@@ -1,7 +1,7 @@
 import Image from "next/image"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
-function ImageSelector({ handleLocalImage, signedUrl }: { handleLocalImage: (file: File) => void; signedUrl: string | null }) {
+function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImage: (file: File | null) => void; signedUrl?: string | null }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(() => {
     return signedUrl ? signedUrl : null
@@ -29,6 +29,7 @@ function ImageSelector({ handleLocalImage, signedUrl }: { handleLocalImage: (fil
   }
 
   const handleRemoveImage = () => {
+    handleLocalImage(null)
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
     }

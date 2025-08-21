@@ -29,9 +29,16 @@ export const Auth = () => {
           text: "Sign-up successful! Please check your email to confirm your account before logging in."
         })
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw new Error(error.message)
-        setMessage({ type: "success", text: "Sign-in successful!" })
+        if (!data.session) {
+          setMessage({
+            type: "error",
+            text: "Please check your email to confirm."
+          })
+        } else {
+          setMessage({ type: "success", text: "Sign-in successful!" })
+        }
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An unknown error occurred."
@@ -43,7 +50,7 @@ export const Auth = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    handleAuth("signIn") // default to sign in
+    handleAuth("signIn")
   }
 
   const inputClass = "w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"

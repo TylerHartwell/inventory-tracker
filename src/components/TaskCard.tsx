@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Task } from "./task-manager"
+import { Task } from "./TaskManager"
 import Image from "next/image"
 import { Pencil, Trash2 } from "lucide-react"
 import ImageSelector from "./ImageSelector"
@@ -12,11 +12,11 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
   const [title, setTitle] = useState<string>(task.title)
   const [description, setDescription] = useState<string>(task.description)
   const [taskImage, setTaskImage] = useState<File | null>(null)
+  const [isImageRemoval, setIsImageRemoval] = useState<boolean>(false)
 
-  const handleLocalImage = (file: File) => {
-    if (file) {
-      setTaskImage(file)
-    }
+  const handleLocalImage = (file: File | null) => {
+    setTaskImage(file)
+    if (!file && task.image_url) setIsImageRemoval(true)
   }
 
   const handleCancelEdit = () => {
@@ -44,7 +44,7 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
       console.error("Not authenticated")
       return
     }
-    const updates: Partial<{ title: string; description: string; taskImage: File }> = {}
+    const updates: Partial<{ title: string; description: string; taskImage: File | null }> = {}
 
     if (title.trim() && title !== task.title) {
       updates.title = title.trim()
@@ -52,6 +52,10 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
 
     if (description.trim() && description !== task.description) {
       updates.description = description.trim()
+    }
+
+    if (isImageRemoval) {
+      updates.taskImage = null
     }
 
     if (taskImage) {
@@ -72,6 +76,8 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
 
     if (updates.title) setTitle(updates.title)
     if (updates.description) setDescription(updates.description)
+    if (taskImage) setTaskImage(null)
+    if (isImageRemoval) setIsImageRemoval(false)
 
     setIsEditing(false)
   }

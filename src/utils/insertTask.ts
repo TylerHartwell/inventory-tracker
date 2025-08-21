@@ -2,14 +2,21 @@ import { Session } from "@supabase/supabase-js"
 import { uploadImage } from "./uploadImage"
 import { supabase } from "@/supabase-client"
 
-export const insertTask = async (session: Session, title: string, description: string, taskImage: File | null) => {
+export interface InsertTaskParams {
+  session: Session
+  title: string
+  description?: string
+  taskImage?: File | null
+}
+
+export const insertTask = async ({ session, title, description = "", taskImage }: InsertTaskParams) => {
   if (!session.user) {
     console.error("Not authenticated")
     return
   }
 
-  if (!title.trim() || !description.trim()) {
-    console.error("Title and description are required.")
+  if (!title.trim()) {
+    console.error("Title is required.")
     return
   }
 
