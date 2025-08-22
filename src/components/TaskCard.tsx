@@ -91,57 +91,66 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
   return (
     <li key={task.id} className="border border-gray-300 rounded p-4 mb-2">
       <div>
-        {isEditing ? (
-          <>
-            <input
-              placeholder="Updated title..."
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
-            <textarea
-              placeholder="Updated description..."
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
+        {/* Title */}
+        <input
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder={isEditing ? "Updated title..." : ""}
+          readOnly={!isEditing}
+          className={`w-full p-2 rounded text-base font-normal
+    ${isEditing ? "border border-gray-300" : "border-none bg-transparent focus:outline-none cursor-default"}`}
+        />
 
-            <div className="flex items-center">
-              <ImageSelector handleLocalImage={handleLocalImage} signedUrl={task.signedUrl ?? null} />
-            </div>
+        {/* Description */}
+        {isEditing || description ? (
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder={isEditing ? "Updated description..." : ""}
+            readOnly={!isEditing}
+            className={`w-full p-2 rounded text-base font-normal whitespace-pre-line h-10
+      ${isEditing ? "border border-gray-300 " : "border-none bg-transparent focus:outline-none cursor-default"}`}
+          />
+        ) : null}
 
-            <div className="space-y-2">
-              <div className="grid grid-cols-3 justify-items-center">
-                <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 justify-self-start" onClick={handleCancelEdit}>
-                  Cancel Edit
+        {/* Image selector only editable when editing */}
+        {isEditing && (
+          <div className="flex items-center mb-2">
+            <ImageSelector handleLocalImage={handleLocalImage} signedUrl={task.signedUrl ?? null} />
+          </div>
+        )}
+
+        {/* Display image */}
+        {task.signedUrl && !isEditing && (
+          <div className="relative mb-2 h-40 w-auto">
+            <Image src={task.signedUrl} unoptimized alt="Task image" fill priority={isPriority} className="object-contain rounded" />
+          </div>
+        )}
+
+        {/* Buttons */}
+        <div className="space-y-2">
+          <div className="flex space-x-2 justify-between">
+            {isEditing ? (
+              <>
+                <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleCancelEdit}>
+                  Cancel
                 </button>
                 <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleUpdateTask}>
                   Update
                 </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <h3 className="text-xl font-medium">{title}</h3>
-            <p className="mb-2">{description}</p>
-            {task.signedUrl && (
-              <div className="relative mb-2 h-40 w-auto">
-                <Image src={task.signedUrl} unoptimized alt="Task image" fill priority={isPriority} className="object-contain rounded" />
-              </div>
-            )}
-            <div className="space-y-2">
-              <div className="flex space-x-2 justify-between">
+              </>
+            ) : (
+              <>
                 <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={() => setIsEditing(true)}>
                   <Pencil size={16} />
                 </button>
                 <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={handleDeleteTask}>
                   <Trash2 size={16} />
                 </button>
-              </div>
-            </div>
-          </>
-        )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </li>
   )
