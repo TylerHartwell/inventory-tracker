@@ -44,13 +44,19 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
       console.error("Not authenticated")
       return
     }
+
+    if (!title.trim()) {
+      alert("Title is required")
+      return
+    }
+
     const updates: Partial<{ title: string; description: string; taskImage: File | null }> = {}
 
     if (title.trim() && title !== task.title) {
       updates.title = title.trim()
     }
 
-    if (description.trim() && description !== task.description) {
+    if (description.trim() !== task.description) {
       updates.description = description.trim()
     }
 

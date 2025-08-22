@@ -15,6 +15,7 @@ export interface Task {
 
 function TaskManager({ session }: { session: Session }) {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
 
   const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
     const expirySeconds = 60 * 20
@@ -29,10 +30,12 @@ function TaskManager({ session }: { session: Session }) {
   }, [])
 
   const fetchTasks = useCallback(async () => {
+    setLoading(true)
     const { error, data } = await supabase.from("tasks").select("*").order("created_at", { ascending: true })
 
     if (error) {
       console.error("Error reading task: ", error.message)
+      setLoading(false)
       return
     }
 
@@ -45,6 +48,7 @@ function TaskManager({ session }: { session: Session }) {
     )
 
     setTasks(withSignedUrls)
+    setLoading(false)
   }, [generateSignedUrl])
 
   useEffect(() => {
@@ -104,9 +108,14 @@ function TaskManager({ session }: { session: Session }) {
       <h2 className="text-2xl font-semibold mb-4">Task Manager CRUD</h2>
       <TaskInput session={session} />
       <ul className="list-none p-0">
-        {tasks.map((task, index) => (
-          <TaskCard task={task} key={task.id} session={session} isPriority={index <= 3} />
-        ))}
+        {loading
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <li key={i} className="border border-gray-300 rounded p-4 mb-2 animate-pulse">
+                <div className="h-8 w-3/4 bg-gray-900 rounded mb-2"></div>
+                <div className="h-8 w-1/2 bg-gray-900 rounded"></div>
+              </li>
+            ))
+          : tasks.map((task, index) => <TaskCard task={task} key={task.id} session={session} isPriority={index <= 3} />)}
       </ul>
     </div>
   )
