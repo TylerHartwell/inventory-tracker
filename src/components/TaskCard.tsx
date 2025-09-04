@@ -92,25 +92,27 @@ export const TaskCard = ({ task, session, isPriority }: { task: Task; session: S
     <li key={task.id} className="border border-gray-300 rounded p-4 mb-2">
       <div>
         {/* Title */}
-        <input
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          placeholder={isEditing ? "Updated title..." : ""}
-          readOnly={!isEditing}
-          className={`w-full p-2 rounded text-base font-normal
-    ${isEditing ? "border border-gray-300" : "border-none bg-transparent focus:outline-none cursor-default"}`}
-        />
+        {isEditing ? (
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Updated title..."
+            className="w-full p-2 rounded text-base font-normal border border-gray-300"
+          />
+        ) : (
+          <p className="w-full p-2 text-base font-normal">{title}</p>
+        )}
 
         {/* Description */}
-        {isEditing || description ? (
+        {isEditing ? (
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder={isEditing ? "Updated description..." : ""}
-            readOnly={!isEditing}
-            className={`w-full p-2 rounded text-base font-normal whitespace-pre-line h-10
-      ${isEditing ? "border border-gray-300 " : "border-none bg-transparent focus:outline-none cursor-default"}`}
+            placeholder={"Updated description..."}
+            className={"w-full p-2 rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"}
           />
+        ) : description ? (
+          <p className="w-full p-2 text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{description}</p>
         ) : null}
 
         {/* Image selector only editable when editing */}

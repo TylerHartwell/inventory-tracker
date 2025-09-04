@@ -3,7 +3,7 @@ import { Session } from "@supabase/supabase-js"
 import ImageSelector from "./ImageSelector"
 import { insertTask } from "@/utils/insertTask"
 
-export const TaskInput = ({ session }: { session: Session }) => {
+export const TaskInput = ({ session, refresh }: { session: Session; refresh: () => Promise<void> }) => {
   const [newTask, setNewTask] = useState({ title: "", description: "" })
   const [taskImage, setTaskImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -38,6 +38,7 @@ export const TaskInput = ({ session }: { session: Session }) => {
 
     try {
       await insertTask({ session, title, description, taskImage })
+      await refresh()
     } catch (err) {
       console.error("Failed to insert task:", err)
       return
