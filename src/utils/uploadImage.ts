@@ -15,7 +15,7 @@ export const uploadImage = async (session: Session, file: File): Promise<string 
   const filePath = `${session.user.id}/${Date.now()}-${file.name}`
 
   try {
-    const { error: uploadError } = await supabase.storage.from("tasks-images").upload(filePath, file)
+    const { error: uploadError } = await supabase.storage.from("images").upload(filePath, file)
 
     if (uploadError) {
       console.error("Error uploading image:", uploadError.message)

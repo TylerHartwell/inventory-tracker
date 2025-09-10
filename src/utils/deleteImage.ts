@@ -8,7 +8,7 @@ export const deleteImage = async (session: Session, imageUrl: string) => {
   }
   try {
     if (imageUrl) {
-      const { error: storageError } = await supabase.storage.from("tasks-images").remove([imageUrl])
+      const { error: storageError } = await supabase.storage.from("images").remove([imageUrl])
 
       if (storageError) {
         console.error("Error deleting image:", storageError.message)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Auth } from "../components/auth"
-import TaskManager from "../components/TaskManager"
+import ItemManager from "../components/ItemManager"
 import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 
@@ -49,7 +49,7 @@ function Home() {
           <button onClick={logout} className="mb-4 rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors">
             Log Out
           </button>
-          <TaskManager session={session} />
+          <ItemManager session={session} />
         </>
       ) : (
         <Auth />

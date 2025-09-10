@@ -1,22 +1,22 @@
 import { FormEvent, useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import ImageSelector from "./ImageSelector"
-import { insertTask } from "@/utils/insertTask"
+import { insertItem } from "@/utils/insertItem"
 
-export const TaskInput = ({ session, refresh }: { session: Session; refresh: () => Promise<void> }) => {
-  const [newTask, setNewTask] = useState({ title: "", description: "" })
-  const [taskImage, setTaskImage] = useState<File | null>(null)
+export const ItemInput = ({ session, refresh }: { session: Session; refresh: () => Promise<void> }) => {
+  const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
+  const [itemImage, setItemImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
 
   const clearForm = () => {
-    setNewTask({ title: "", description: "" })
-    setTaskImage(null)
+    setNewItem({ itemName: "", extraDetails: "" })
+    setItemImage(null)
     setResetId(id => id + 1)
   }
 
   const handleLocalImage = (file: File | null) => {
-    setTaskImage(file)
+    setItemImage(file)
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -27,20 +27,20 @@ export const TaskInput = ({ session, refresh }: { session: Session; refresh: () 
       return
     }
 
-    const { title, description } = newTask
+    const { itemName, extraDetails } = newItem
 
-    if (!title.trim()) {
-      alert("Title is required.")
+    if (!itemName.trim()) {
+      alert("Item Name is required.")
       return
     }
 
     setLoading(true)
 
     try {
-      await insertTask({ session, title, description, taskImage })
+      await insertItem({ session, itemName, extraDetails, itemImage })
       await refresh()
     } catch (err) {
-      console.error("Failed to insert task:", err)
+      console.error("Failed to insert item:", err)
       return
     } finally {
       setLoading(false)
@@ -53,16 +53,16 @@ export const TaskInput = ({ session, refresh }: { session: Session; refresh: () 
     <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-2 p-2 relative border-2">
       <input
         type="text"
-        placeholder="Task Title"
-        name="title"
-        value={newTask.title}
-        onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+        placeholder="Item Name"
+        name="itemName"
+        value={newItem.itemName}
+        onChange={e => setNewItem(prev => ({ ...prev, itemName: e.target.value }))}
         className="w-full p-2 border border-gray-300 rounded"
       />
       <textarea
-        placeholder="Task Description"
-        value={newTask.description}
-        onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+        placeholder="Extra Details"
+        value={newItem.extraDetails}
+        onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
         className="w-full p-2 border border-gray-300 rounded min-h-min"
       />
 
@@ -70,7 +70,7 @@ export const TaskInput = ({ session, refresh }: { session: Session; refresh: () 
 
       <div className="flex justify-between">
         <button type="submit" disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
-          Add Task
+          Add Item
         </button>
         <button type="button" onClick={clearForm} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
           Clear Form
