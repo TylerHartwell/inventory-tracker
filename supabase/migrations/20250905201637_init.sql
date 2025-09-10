@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS public.items (
     created_at timestamptz DEFAULT now()
 );
 
+ALTER TABLE items REPLICA IDENTITY FULL;
+
 CREATE INDEX IF NOT EXISTS idx_items_user_id
   ON public.items(user_id);
 
