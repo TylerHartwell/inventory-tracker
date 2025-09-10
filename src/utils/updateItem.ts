@@ -8,10 +8,10 @@ export const updateItem = async (
   item: Item,
   session: Session,
   updates: Partial<{ itemName: string; extraDetails: string; itemImage: File | null }>
-) => {
+): Promise<Item | null> => {
   if (!session.user) {
     console.error("Not authenticated")
-    return
+    return null
   }
 
   try {
@@ -37,13 +37,23 @@ export const updateItem = async (
       mappedUpdates.image_url = isRemovingImage ? null : imageUrl
     }
 
-    const { error } = await supabase.from("items").update(mappedUpdates).eq("id", item.id)
+    const { data, error } = await supabase.from("items").update(mappedUpdates).eq("id", item.id).select("*").single()
 
     if (error) {
       console.error("Error updating item: ", error.message)
-      return
+      return null
+    }
+
+    return {
+      id: data.id,
+      itemName: data.item_name,
+      extraDetails: data.extra_details,
+      created_at: data.created_at,
+      image_url: data.image_url,
+      signedUrl: item.signedUrl
     }
   } catch (err) {
     console.error("Unexpected error:", err)
+    return null
   }
 }

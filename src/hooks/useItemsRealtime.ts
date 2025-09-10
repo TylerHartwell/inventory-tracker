@@ -11,14 +11,22 @@ export interface Item {
   signedUrl: string | null
 }
 
+interface DbItemPayload {
+  id: string
+  item_name: string
+  extra_details: string | null
+  created_at: string
+  image_url: string | null
+}
+
 export function useItemsRealtime(session: Session) {
-  const [items, setItems] = useState<Item[]>([])
+  const [itemsMap, setItemsMap] = useState<Map<string, Item>>(new Map())
   const [loading, setLoading] = useState(true)
-  const itemsRef = useRef<Item[]>([]) // Keep ref for interval
+  const itemsRef = useRef<Map<string, Item>>(itemsMap) // Keep ref for interval
 
   useEffect(() => {
-    itemsRef.current = items
-  }, [items])
+    itemsRef.current = itemsMap
+  }, [itemsMap])
 
   // Generate signed URL for a file
   const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
@@ -43,7 +51,7 @@ export function useItemsRealtime(session: Session) {
       return
     }
 
-    const withSignedUrls = await Promise.all(
+    const itemsWithSignedUrls = await Promise.all(
       data.map(async item => ({
         id: item.id,
         itemName: item.item_name,
@@ -54,7 +62,9 @@ export function useItemsRealtime(session: Session) {
       }))
     )
 
-    setItems(withSignedUrls)
+    const newMap = new Map<string, Item>()
+    itemsWithSignedUrls.forEach(item => newMap.set(item.id, item))
+    setItemsMap(newMap)
     setLoading(false)
   }, [generateSignedUrl])
 
@@ -62,27 +72,54 @@ export function useItemsRealtime(session: Session) {
   useEffect(() => {
     fetchItems()
 
+    const handleUpsert = async (dbItem: DbItemPayload) => {
+      let signedUrl: string | null = null
+      try {
+        signedUrl = dbItem.image_url ? await generateSignedUrl(dbItem.image_url) : null
+      } catch (e) {
+        console.error("Failed to generate signed URL:", e)
+      }
+
+      const item: Item = {
+        id: dbItem.id,
+        itemName: dbItem.item_name,
+        extraDetails: dbItem.extra_details ?? "",
+        created_at: dbItem.created_at,
+        image_url: dbItem.image_url,
+        signedUrl
+      }
+
+      setItemsMap(prev => {
+        const newMap = new Map(prev)
+        newMap.set(item.id, item)
+        return newMap
+      })
+    }
+
+    const handleDelete = (deletedId: string) => {
+      setItemsMap(prev => {
+        if (!prev.has(deletedId)) return prev
+        const newMap = new Map(prev)
+        newMap.delete(deletedId)
+        return newMap
+      })
+    }
+
     const channel = supabase.channel(`items-${session.user.id}`)
 
+    // For items owned by the user
     channel
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "items" }, async payload => {
-        const newItem = payload.new as Item
-        const signedUrl = newItem.image_url ? await generateSignedUrl(newItem.image_url) : null
-        setItems(prev => {
-          if (prev.some(item => item.id === newItem.id)) return prev
-          return [...prev, { ...newItem, signedUrl }]
-        })
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "items" }, async payload => {
-        const updatedItem = payload.new as Item
-        const signedUrl = updatedItem.image_url ? await generateSignedUrl(updatedItem.image_url) : null
-        setItems(prev => prev.map(item => (item.id === updatedItem.id ? { ...updatedItem, signedUrl } : item)))
-      })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "items" }, payload => {
-        const deletedId = payload.old.id
-        setItems(prev => prev.filter(item => item.id !== deletedId))
-      })
-      .subscribe()
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
+        handleUpsert(payload.new as DbItemPayload)
+      )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
+        handleUpsert(payload.new as DbItemPayload)
+      )
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
+        handleDelete(payload.old.id)
+      )
+
+    channel.subscribe()
 
     return () => {
       channel.unsubscribe()
@@ -92,18 +129,18 @@ export function useItemsRealtime(session: Session) {
   // Auto-refresh only items that have image_url
   useEffect(() => {
     const interval = setInterval(async () => {
-      const refreshedItems = await Promise.all(
-        itemsRef.current.map(async item => {
-          if (!item.image_url) return item // skip items without images
+      const refreshed = await Promise.all(
+        Array.from(itemsRef.current.values()).map(async item => {
+          if (!item.image_url) return item
           const signedUrl = await generateSignedUrl(item.image_url)
           return { ...item, signedUrl }
         })
       )
-      setItems(refreshedItems)
+      setItemsMap(new Map(refreshed.map(item => [item.id, item])))
     }, 1000 * 60 * 15) // 15 minutes
 
     return () => clearInterval(interval)
   }, [generateSignedUrl])
 
-  return { items, loading, refresh: fetchItems }
+  return { items: Array.from(itemsMap.values()), loading, refresh: fetchItems }
 }
