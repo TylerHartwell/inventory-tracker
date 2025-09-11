@@ -4,7 +4,7 @@
 
 -- 1. Lists table
 CREATE TABLE IF NOT EXISTS public.lists (
-    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     owner_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name text NOT NULL,
     created_at timestamptz DEFAULT now()
@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_lists_owner_id
 
 -- 2. List users table
 CREATE TABLE IF NOT EXISTS public.list_users (
-    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     list_id uuid REFERENCES public.lists(id) ON DELETE CASCADE,
     user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     role text NOT NULL CHECK (role = ANY (ARRAY['owner','editor','viewer'])),
@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_list_users_user_id
 
 -- 3. Items table
 CREATE TABLE IF NOT EXISTS public.items (
-    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
     list_id uuid REFERENCES public.lists(id) ON DELETE SET NULL,
     item_name text NOT NULL,
