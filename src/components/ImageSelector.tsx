@@ -49,7 +49,7 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
 
   return (
     <div className="w-full">
-      <input type="file" accept="image/*" capture="environment" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
       {!previewUrl ? (
         <div className="flex items-center justify-center">
