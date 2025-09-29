@@ -40,7 +40,9 @@ function Home() {
     await supabase.auth.signOut()
   }
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center text-lg">Loading...</div>
+  }
 
   return (
     <>

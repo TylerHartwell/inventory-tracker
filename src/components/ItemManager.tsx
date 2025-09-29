@@ -17,7 +17,7 @@ function ItemManager({ session }: { session: Session }) {
 
   return (
     <div className="max-w-xl mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4">Item Manager CRUD</h2>
+      <h2 className="text-2xl font-semibold mb-4">Inventory Tracker</h2>
       <ItemInput session={session} refresh={refresh} />
       <ul className="list-none p-0">
         {loading
