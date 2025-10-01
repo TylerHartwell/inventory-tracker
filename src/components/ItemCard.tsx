@@ -6,6 +6,7 @@ import ImageSelector from "./ImageSelector"
 import { Session } from "@supabase/supabase-js"
 import { deleteItem } from "@/utils/deleteItem"
 import { updateItem } from "@/utils/updateItem"
+import isEqual from "lodash.isequal"
 
 interface ItemCardProps {
   item: Item
@@ -171,13 +172,7 @@ export const ItemCard = memo(
   },
   (prevProps, nextProps) => {
     // Only re-render if the item's relevant fields changed
-    return (
-      prevProps.item.id === nextProps.item.id &&
-      prevProps.item.itemName === nextProps.item.itemName &&
-      prevProps.item.extraDetails === nextProps.item.extraDetails &&
-      prevProps.item.signedUrl === nextProps.item.signedUrl &&
-      prevProps.isPriority === nextProps.isPriority
-    )
+    return prevProps.isPriority === nextProps.isPriority && isEqual(prevProps.item, nextProps.item)
   }
 )
 
