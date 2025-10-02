@@ -41,32 +41,55 @@ export function useItemsRealtime(session: Session) {
   }, [])
 
   // Fetch items from Supabase
-  const fetchItems = useCallback(async () => {
-    setLoading(true)
-    const { data, error } = await supabase.from("items").select("*").order("created_at", { ascending: true })
+  const fetchItems = useCallback(
+    async (selectedLists: (string | null)[] = []) => {
+      setLoading(true)
+      try {
+        const lists = selectedLists.length === 0 ? [null] : selectedLists
 
-    if (error || !data) {
-      console.error("Error fetching items:", error?.message)
-      setLoading(false)
-      return
-    }
+        let query = supabase.from("items").select("*")
 
-    const itemsWithSignedUrls = await Promise.all(
-      data.map(async item => ({
-        id: item.id,
-        itemName: item.item_name,
-        extraDetails: item.extra_details,
-        created_at: item.created_at,
-        image_url: item.image_url,
-        signedUrl: item.image_url ? await generateSignedUrl(item.image_url) : null
-      }))
-    )
+        const orConditions: string[] = []
 
-    const newMap = new Map<string, Item>()
-    itemsWithSignedUrls.forEach(item => newMap.set(item.id, item))
-    setItemsMap(newMap)
-    setLoading(false)
-  }, [generateSignedUrl])
+        if (lists.includes(null)) {
+          orConditions.push(`and(list_id.is.null,user_id.eq.${session.user.id})`)
+        }
+
+        const listIds = selectedLists.filter((id): id is string => id !== null)
+        if (listIds.length > 0) {
+          orConditions.push(`list_id.in.(${listIds.join(",")})`)
+        }
+
+        if (orConditions.length > 0) {
+          query = query.or(orConditions.join(","))
+        }
+
+        const { data, error } = await query.order("created_at", { ascending: true })
+
+        if (error) throw error
+
+        const itemsWithSignedUrls = await Promise.all(
+          data.map(async item => ({
+            id: item.id,
+            itemName: item.item_name,
+            extraDetails: item.extra_details,
+            created_at: item.created_at,
+            image_url: item.image_url,
+            signedUrl: item.image_url ? await generateSignedUrl(item.image_url) : null
+          }))
+        )
+
+        const newMap = new Map<string, Item>()
+        itemsWithSignedUrls.forEach(item => newMap.set(item.id, item))
+        setItemsMap(newMap)
+      } catch (error) {
+        console.error("Error fetching items:", error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [generateSignedUrl, session.user.id]
+  )
 
   // Realtime subscription
   useEffect(() => {
