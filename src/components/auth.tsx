@@ -69,6 +69,8 @@ export const Auth = () => {
         <input
           type="email"
           placeholder="Email"
+          name="email"
+          autoComplete="on"
           value={email}
           onChange={e => {
             setEmail(e.target.value)
@@ -79,6 +81,7 @@ export const Auth = () => {
         <input
           type="password"
           placeholder="Password"
+          name="password"
           value={password}
           onChange={e => {
             setPassword(e.target.value)

@@ -4,6 +4,7 @@ import { ItemCard } from "./ItemCard"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
 import { useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
+import { ListSelect } from "./ListSelect"
 
 export interface Item {
   id: string
@@ -15,7 +16,9 @@ export interface Item {
 }
 
 function ItemManager({ session }: { session: Session }) {
-  const { items, loading, refresh } = useItemsRealtime(session)
+  const [selectedLists, setSelectedLists] = useState<(string | null)[]>([null])
+
+  const { items, loading, refresh } = useItemsRealtime(session, selectedLists)
   const [sortAsc, setSortAsc] = useState(false)
 
   const sortedItems = [...items].sort((a, b) => {
@@ -27,6 +30,7 @@ function ItemManager({ session }: { session: Session }) {
   return (
     <div className="max-w-xl mx-auto p-4 flex flex-col">
       <h2 className="text-2xl font-semibold mb-4">Inventory Tracker</h2>
+      <ListSelect userId={session.user.id} value={selectedLists} onChange={setSelectedLists} />
       <ItemInput session={session} refresh={refresh} />
       <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       <ul className="list-none p-0">
