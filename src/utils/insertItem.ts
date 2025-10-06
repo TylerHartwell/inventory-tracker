@@ -3,7 +3,7 @@ import { uploadImage } from "./uploadImage"
 import { supabase } from "@/supabase-client"
 
 interface Item {
-  id: number
+  id: string
   itemName: string
   extraDetails: string
   image_url: string | null

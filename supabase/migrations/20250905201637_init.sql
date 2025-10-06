@@ -5,7 +5,7 @@
 -- 1. Lists table
 CREATE TABLE IF NOT EXISTS public.lists (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    owner_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    owner_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
     name text NOT NULL,
     created_at timestamptz DEFAULT now()
 );
@@ -60,7 +60,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.items;
 CREATE OR REPLACE FUNCTION public.tf_add_list_creator_as_owner()
 RETURNS trigger LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
-  INSERT INTO list_users(list_id, user_id, role)
+  INSERT INTO public.list_users(list_id, user_id, role)
   VALUES (NEW.id, NEW.owner_id, 'owner');
   RETURN NEW;
 END;
@@ -72,7 +72,7 @@ RETURNS trigger LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
   IF OLD.role = 'owner' THEN
     IF NOT EXISTS (
-      SELECT 1 FROM list_users
+      SELECT 1 FROM public.list_users
       WHERE list_id = OLD.list_id
         AND user_id != OLD.user_id
         AND role = 'owner'
@@ -82,6 +82,22 @@ BEGIN
   END IF;
   RETURN OLD;
 END;
+$$;
+
+-- Helper function to check if the current user is an owner of a list
+CREATE OR REPLACE FUNCTION public.fn_user_is_owner_of_list(_list_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.list_users
+    WHERE list_id = _list_id
+      AND user_id = auth.uid()
+      AND role = 'owner'
+  );
 $$;
 
 -- ============================================
@@ -162,7 +178,7 @@ WITH CHECK (owner_id = (SELECT auth.uid()));
 
 CREATE POLICY "Users can view lists" 
 ON public.lists FOR SELECT TO authenticated
-USING (EXISTS (
+USING ( owner_id = (SELECT auth.uid()) OR EXISTS (
   SELECT 1 FROM public.list_users
   WHERE list_users.list_id = lists.id
     AND list_users.user_id = (SELECT auth.uid())
@@ -189,36 +205,41 @@ USING (EXISTS (
 -- List Users
 CREATE POLICY "Owners can add users" 
 ON public.list_users FOR INSERT TO authenticated
-WITH CHECK (EXISTS (
-  SELECT 1 FROM public.list_users lu
-  WHERE lu.list_id = list_users.list_id
-    AND lu.user_id = (SELECT auth.uid())
-    AND lu.role = 'owner'
-));
+WITH CHECK 
+(
+  public.fn_user_is_owner_of_list(list_users.list_id)
+  OR
+  (NOT EXISTS 
+    (
+      SELECT 1 FROM public.list_users lu
+      WHERE lu.list_id = list_users.list_id
+    )
+    AND user_id = auth.uid()
+    AND role = 'owner'
+  )
+);
 
 CREATE POLICY "Owners or self can remove membership" 
 ON public.list_users FOR DELETE TO authenticated
 USING (
-  (user_id = (SELECT auth.uid()) AND role <> 'owner') OR
-  EXISTS (
-    SELECT 1 FROM public.list_users lu
-    WHERE lu.list_id = list_users.list_id
-      AND lu.user_id = (SELECT auth.uid())
-      AND lu.role = 'owner'
-      AND list_users.role <> 'owner'
+  (user_id = auth.uid() AND role <> 'owner')
+  OR (
+    public.fn_user_is_owner_of_list(list_users.list_id)
+    AND role <> 'owner'
   )
 );
 
 CREATE POLICY "Owners can update roles" 
 ON public.list_users FOR UPDATE TO authenticated
-USING (EXISTS (
-  SELECT 1 FROM public.list_users lu
-  WHERE lu.list_id = list_users.list_id
-    AND lu.user_id = (SELECT auth.uid())
-    AND lu.role = 'owner'
-))
+USING (
+  public.fn_user_is_owner_of_list(list_users.list_id)
+)
 WITH CHECK (role <> 'owner');
 
-CREATE POLICY "Users can view their own list memberships" 
-ON public.list_users FOR SELECT TO authenticated
-USING (user_id = (SELECT auth.uid()));
+CREATE POLICY "Users and owners can view list memberships"
+ON public.list_users
+FOR SELECT TO authenticated
+USING (
+  user_id = auth.uid()
+  OR public.fn_user_is_owner_of_list(list_users.list_id)
+);

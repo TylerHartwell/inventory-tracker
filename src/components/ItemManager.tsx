@@ -5,6 +5,7 @@ import { useItemsRealtime } from "@/hooks/useItemsRealtime"
 import { useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListSelect } from "./ListSelect"
+import { ListInput } from "./ListInput"
 
 export interface Item {
   id: string
@@ -30,6 +31,7 @@ function ItemManager({ session }: { session: Session }) {
   return (
     <div className="max-w-xl mx-auto p-4 flex flex-col">
       <h2 className="text-2xl font-semibold mb-4">Inventory Tracker</h2>
+      <ListInput session={session} />
       <ListSelect userId={session.user.id} value={selectedLists} onChange={setSelectedLists} />
       <ItemInput session={session} refresh={refresh} />
       <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
