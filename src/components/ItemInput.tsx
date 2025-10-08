@@ -3,7 +3,7 @@ import { Session } from "@supabase/supabase-js"
 import ImageSelector from "./ImageSelector"
 import { insertItem } from "@/utils/insertItem"
 
-export const ItemInput = ({ session, refresh }: { session: Session; refresh: () => Promise<void> }) => {
+export const ItemInput = ({ session, refresh, selectedList }: { session: Session; refresh: () => Promise<void>; selectedList: string | null }) => {
   const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
   const [itemImage, setItemImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -37,7 +37,7 @@ export const ItemInput = ({ session, refresh }: { session: Session; refresh: () 
     setLoading(true)
 
     try {
-      await insertItem({ session, itemName, extraDetails, itemImage })
+      await insertItem({ session, itemName, extraDetails, itemImage, selectedList })
       await refresh()
     } catch (err) {
       console.error("Failed to insert item:", err)

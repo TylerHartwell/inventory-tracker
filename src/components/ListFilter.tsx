@@ -1,18 +1,18 @@
 import { useUserLists } from "@/hooks/useUserLists"
 
-interface ListSelectProps {
+interface ListFilterProps {
   userId: string
   value: (string | null)[]
   onChange: (lists: (string | null)[]) => void
 }
 
-export function ListSelect({ userId, value, onChange }: ListSelectProps) {
+export function ListFilter({ userId, value, onChange }: ListFilterProps) {
   const { lists, loading, error } = useUserLists(userId)
 
   const handleToggle = (id: string | null) => {
     if (value.includes(id)) {
       if (id === null && value.filter(v => v !== null).length === 0) {
-        // prevent unchecking Default if no other lists are selected
+        // prevent unchecking Default if no other lists are filtered
         return
       }
       onChange(value.filter(v => v !== id))
@@ -21,11 +21,11 @@ export function ListSelect({ userId, value, onChange }: ListSelectProps) {
     }
   }
 
-  const handleSelectAll = () => {
+  const handleFilterAll = () => {
     const allIds = [null, ...lists.map(l => l.id)]
-    const allSelected = allIds.every(id => value.includes(id))
+    const allFiltered = allIds.every(id => value.includes(id))
 
-    onChange(allSelected ? [] : allIds)
+    onChange(allFiltered ? [] : allIds)
   }
 
   return (
@@ -52,13 +52,13 @@ export function ListSelect({ userId, value, onChange }: ListSelectProps) {
 
           <button
             type="button"
-            onClick={handleSelectAll}
+            onClick={handleFilterAll}
             className="mt-2 self-start border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
           >
             {(() => {
               const allIds = [null, ...lists.map(l => l.id)]
-              const allSelected = allIds.length > 0 && allIds.every(id => value.includes(id))
-              return allSelected ? "Clear All" : "Select All"
+              const allFiltered = allIds.length > 0 && allIds.every(id => value.includes(id))
+              return allFiltered ? "Clear All" : "Include All"
             })()}
           </button>
         </div>

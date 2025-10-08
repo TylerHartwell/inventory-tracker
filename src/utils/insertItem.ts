@@ -16,9 +16,10 @@ export interface InsertItemParams {
   itemName: string
   extraDetails?: string
   itemImage?: File | null
+  selectedList: string | null
 }
 
-export const insertItem = async ({ session, itemName, extraDetails = "", itemImage }: InsertItemParams): Promise<Item | null> => {
+export const insertItem = async ({ session, itemName, extraDetails = "", itemImage, selectedList }: InsertItemParams): Promise<Item | null> => {
   if (!session.user) {
     console.error("Not authenticated")
     return null
@@ -38,7 +39,7 @@ export const insertItem = async ({ session, itemName, extraDetails = "", itemIma
 
     const { data: insertedItem, error } = await supabase
       .from("items")
-      .insert({ item_name: itemName, extra_details: extraDetails, image_url: imageUrl ?? "" })
+      .insert({ item_name: itemName, extra_details: extraDetails, image_url: imageUrl ?? "", list_id: selectedList })
       .select("*")
       .single()
 

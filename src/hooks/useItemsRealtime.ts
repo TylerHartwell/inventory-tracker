@@ -20,7 +20,7 @@ interface DbItemPayload {
   image_url: string | null
 }
 
-export function useItemsRealtime(session: Session, selectedLists: (string | null)[] = []) {
+export function useItemsRealtime(session: Session, filteredLists: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, Item>>(new Map())
   const [loading, setLoading] = useState(true)
   const itemsRef = useRef<Map<string, Item>>(itemsMap) // Keep ref for interval
@@ -29,11 +29,11 @@ export function useItemsRealtime(session: Session, selectedLists: (string | null
     itemsRef.current = itemsMap
   }, [itemsMap])
 
-  const stableSelectedLists = useDeepCompareRef(selectedLists)
+  const stableFilteredLists = useDeepCompareRef(filteredLists)
 
   useEffect(() => {
-    console.log("Selected lists changed:", stableSelectedLists)
-  }, [stableSelectedLists])
+    console.log("Filtered lists changed:", stableFilteredLists)
+  }, [stableFilteredLists])
 
   // Generate signed URL for a file
   const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
@@ -51,7 +51,7 @@ export function useItemsRealtime(session: Session, selectedLists: (string | null
   const fetchItems = useCallback(async () => {
     setLoading(true)
     try {
-      const lists = stableSelectedLists.length === 0 ? [null] : stableSelectedLists
+      const lists = stableFilteredLists.length === 0 ? [null] : stableFilteredLists
 
       let query = supabase.from("items").select("*")
 
@@ -61,7 +61,7 @@ export function useItemsRealtime(session: Session, selectedLists: (string | null
         orConditions.push(`and(list_id.is.null,user_id.eq.${session.user.id})`)
       }
 
-      const listIds = stableSelectedLists.filter((id): id is string => id !== null)
+      const listIds = stableFilteredLists.filter((id): id is string => id !== null)
       if (listIds.length > 0) {
         orConditions.push(`list_id.in.(${listIds.join(",")})`)
       }
@@ -93,7 +93,7 @@ export function useItemsRealtime(session: Session, selectedLists: (string | null
     } finally {
       setLoading(false)
     }
-  }, [generateSignedUrl, session.user.id, stableSelectedLists])
+  }, [generateSignedUrl, session.user.id, stableFilteredLists])
 
   // Realtime subscription
   useEffect(() => {
