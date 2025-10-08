@@ -6,7 +6,6 @@ import { useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
 import { ListInput } from "./ListInput"
-import { ListSelector } from "./ListSelector"
 
 export interface Item {
   id: string
@@ -34,9 +33,10 @@ function ItemManager({ session }: { session: Session }) {
     <div className="max-w-xl mx-auto p-4 flex flex-col">
       <h2 className="text-2xl font-semibold mb-4">Inventory Tracker</h2>
       <ListInput session={session} />
+
+      <ItemInput session={session} refresh={refresh} selectedList={selectedList} onListChange={setSelectedList} />
       <ListFilter userId={session.user.id} value={filteredLists} onChange={setFilteredLists} />
-      <ListSelector userId={session.user.id} value={selectedList} onChange={setSelectedList} />
-      <ItemInput session={session} refresh={refresh} selectedList={selectedList} />
+
       <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       <ul className="list-none p-0">
         {loading

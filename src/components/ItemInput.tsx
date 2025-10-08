@@ -2,8 +2,19 @@ import { FormEvent, useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import ImageSelector from "./ImageSelector"
 import { insertItem } from "@/utils/insertItem"
+import { ListSelector } from "./ListSelector"
 
-export const ItemInput = ({ session, refresh, selectedList }: { session: Session; refresh: () => Promise<void>; selectedList: string | null }) => {
+export const ItemInput = ({
+  session,
+  refresh,
+  selectedList,
+  onListChange
+}: {
+  session: Session
+  refresh: () => Promise<void>
+  selectedList: string | null
+  onListChange: (listId: string | null) => void
+}) => {
   const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
   const [itemImage, setItemImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -51,6 +62,7 @@ export const ItemInput = ({ session, refresh, selectedList }: { session: Session
 
   return (
     <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-2 p-2 relative border-2">
+      <ListSelector value={selectedList} onChange={onListChange} session={session} />
       <input
         type="text"
         placeholder="Item Name"
