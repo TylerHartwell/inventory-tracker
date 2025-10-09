@@ -48,10 +48,7 @@ function Home() {
     <>
       {session ? (
         <>
-          <button onClick={logout} className="mb-4 rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 transition-colors">
-            Log Out
-          </button>
-          <ItemManager session={session} />
+          <ItemManager session={session} logout={logout} />
         </>
       ) : (
         <Auth />

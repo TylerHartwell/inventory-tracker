@@ -89,7 +89,7 @@ CREATE OR REPLACE FUNCTION public.fn_user_is_owner_of_list(_list_id uuid)
 RETURNS boolean
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
   SELECT EXISTS (
     SELECT 1

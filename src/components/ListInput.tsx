@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import { insertList } from "@/utils/insertList"
 
-export const ListInput = ({ session, onListCreated }: { session: Session; onListCreated?: (newListId: string) => void }) => {
+export const ListInput = ({ session, onListCreated }: { session: Session; onListCreated?: (newListId: string, name: string) => void }) => {
   const [newList, setNewList] = useState({ listName: "" })
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +31,7 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
       const newList = await insertList({ session, listName })
       clearForm()
       if (newList) {
-        onListCreated?.(newList.id)
+        onListCreated?.(newList.id, newList.name)
       }
     } catch (err) {
       console.error("Failed to insert list:", err)

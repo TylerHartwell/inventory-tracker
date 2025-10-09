@@ -15,7 +15,7 @@ export interface Item {
   signedUrl: string | null
 }
 
-function ItemManager({ session }: { session: Session }) {
+function ItemManager({ session, logout }: { session: Session; logout: () => Promise<void> }) {
   const [filteredLists, setFilteredLists] = useState<(string | null)[]>([null])
   const [selectedList, setSelectedList] = useState<string | null>(null)
 
@@ -29,8 +29,17 @@ function ItemManager({ session }: { session: Session }) {
   })
 
   return (
-    <div className="max-w-xl mx-auto p-4 flex flex-col gap-2">
-      <h2 className="text-2xl font-semibold">Inventory Tracker</h2>
+    <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
+      <div className="flex justify-between items-baseline">
+        <h2 className="text-2xl font-semibold">Inventory Tracker</h2>
+        <span className="flex items-baseline gap-4">
+          <span>{session.user.email}</span>
+          <button onClick={logout} className="rounded-lg bg-red-500 px-2 py-1 text-sm text-white hover:bg-red-600 transition-colors">
+            Log Out
+          </button>
+        </span>
+      </div>
+
       <ItemInput session={session} refresh={refresh} selectedList={selectedList} onListChange={setSelectedList} />
       <div className="flex justify-end items-start gap-2">
         <ListFilter userId={session.user.id} filteredLists={filteredLists} onChange={setFilteredLists} />
