@@ -6,11 +6,10 @@ import { ListInput } from "./ListInput"
 interface ListSelectorProps {
   value: string | null
   onChange: (listId: string | null) => void
-  label?: string
   session: Session
 }
 
-export function ListSelector({ value, onChange, label = "Select List", session }: ListSelectorProps) {
+export function ListSelector({ value, onChange, session }: ListSelectorProps) {
   const { lists, loading, error } = useUserLists(session.user.id)
   const [creatingNew, setCreatingNew] = useState(false)
 
@@ -26,45 +25,44 @@ export function ListSelector({ value, onChange, label = "Select List", session }
   }
 
   const handleListCreated = async (newListId: string) => {
-    /////////////// reload lists?
     onChange(newListId)
     setCreatingNew(false)
   }
 
   return (
-    <div className="mb-4">
-      {label && <div className="block font-medium mb-2">{label}</div>}
-
-      {loading ? (
-        <div className="text-gray-500">Loading lists...</div>
-      ) : error ? (
-        <div className="text-red-600">Error: {error}</div>
-      ) : (
-        <>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <label htmlFor="list" className="font-medium whitespace-nowrap">
+          List:
+        </label>
+        {loading ? (
+          <div className="text-gray-500">Loading lists...</div>
+        ) : error ? (
+          <div className="text-red-600">Error: {error}</div>
+        ) : (
           <select
             value={value ?? ""}
+            name="list"
+            id="list"
             onChange={handleChange}
-            className="border border-gray-300 rounded px-3 py-2 text-sm w-full focus:ring focus:ring-blue-100 focus:border-blue-400"
+            className="border border-gray-300 text-white rounded px-1 py-1 text-sm flex-1 focus:ring focus:ring-blue-100 focus:border-blue-400"
           >
-            <option value="" className="bg-gray-100 text-gray-700">
-              No List
+            <option value="" className="bg-black">
+              Personal (Default)
             </option>
             {lists.map(list => (
-              <option key={list.id} value={list.id} className="bg-white text-gray-800 hover:bg-blue-50">
+              <option key={list.id} value={list.id} className="bg-black hover:bg-blue-50">
                 {list.name}
               </option>
             ))}
-            <option value="new" className="font-semibold text-blue-700">
-              ➕ Create New List
+            <option value="new" className="bg-black font-semibold ">
+              + Create New List
             </option>
           </select>
-          {creatingNew && session && (
-            <div className="mt-3 border border-gray-300 rounded-lg p-2">
-              <ListInput session={session} onListCreated={handleListCreated} />
-            </div>
-          )}
-        </>
-      )}
+        )}
+      </div>
+
+      {creatingNew && <ListInput session={session} onListCreated={handleListCreated} />}
     </div>
   )
 }

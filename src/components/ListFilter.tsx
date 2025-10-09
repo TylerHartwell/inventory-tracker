@@ -1,42 +1,38 @@
 import { useUserLists } from "@/hooks/useUserLists"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 
 interface ListFilterProps {
   userId: string
-  value: (string | null)[]
+  filteredLists: (string | null)[]
   onChange: (lists: (string | null)[]) => void
 }
 
-export function ListFilter({ userId, value, onChange }: ListFilterProps) {
+export function ListFilter({ userId, filteredLists, onChange }: ListFilterProps) {
   const { lists, loading, error } = useUserLists(userId)
   const [expanded, setExpanded] = useState(false)
 
   const handleToggle = (id: string | null) => {
-    if (value.includes(id)) {
-      if (id === null && value.filter(v => v !== null).length === 0) {
-        // prevent unchecking Default if no other lists are filtered
-        return
-      }
-      onChange(value.filter(v => v !== id))
-    } else {
-      onChange([...value, id])
-    }
+    const isSelected = filteredLists.includes(id)
+
+    const nextLists = isSelected ? filteredLists.filter(v => v !== id) : [...filteredLists, id]
+
+    onChange(nextLists.length === 0 ? [null] : nextLists)
   }
 
   const handleFilterAll = () => {
     const allIds = [null, ...lists.map(l => l.id)]
-    const allFiltered = allIds.every(id => value.includes(id))
+    const allFiltered = allIds.every(id => filteredLists.includes(id))
 
-    onChange(allFiltered ? [] : allIds)
+    onChange(allFiltered ? [null] : allIds)
   }
 
   return (
-    <div className="mb-4 border border-gray-200 rounded-lg">
+    <div className="border border-gray-200 rounded-lg flex-1 text-sm">
       {/* Header */}
-      <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full px-3 py-2  rounded-t-lg">
-        <span className="font-medium ">Filter by Lists</span>
-        {expanded ? <ChevronDown className="w-5 h-5 text-gray-500" /> : <ChevronRight className="w-5 h-5 text-gray-500" />}
+      <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full px-1 py-1">
+        <span className="font-medium ml-2">{expanded ? "Showing Lists:" : "Filter"}</span>
+        {expanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
       </button>
 
       {/* Collapsible Content (no animation) */}
@@ -47,15 +43,15 @@ export function ListFilter({ userId, value, onChange }: ListFilterProps) {
           ) : error ? (
             <div className="text-red-600 mt-2">Error: {error}</div>
           ) : (
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2">
-                <input type="checkbox" checked={value.includes(null)} onChange={() => handleToggle(null)} />
-                <span>Default</span>
+                <input type="checkbox" checked={filteredLists.includes(null)} onChange={() => handleToggle(null)} />
+                <span>Personal (Default)</span>
               </label>
 
               {lists.map(list => (
                 <label key={list.id} className="flex items-center gap-2">
-                  <input type="checkbox" checked={value.includes(list.id)} onChange={() => handleToggle(list.id)} />
+                  <input type="checkbox" checked={filteredLists.includes(list.id)} onChange={() => handleToggle(list.id)} />
                   <span>{list.name}</span>
                 </label>
               ))}
@@ -63,11 +59,11 @@ export function ListFilter({ userId, value, onChange }: ListFilterProps) {
               <button
                 type="button"
                 onClick={handleFilterAll}
-                className="mt-2 self-start border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
+                className="self-start border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
               >
                 {(() => {
                   const allIds = [null, ...lists.map(l => l.id)]
-                  const allFiltered = allIds.length > 0 && allIds.every(id => value.includes(id))
+                  const allFiltered = allIds.length > 0 && allIds.every(id => filteredLists.includes(id))
                   return allFiltered ? "Clear All" : "Include All"
                 })()}
               </button>

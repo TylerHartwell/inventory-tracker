@@ -44,7 +44,7 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-2 p-2 relative border-2">
+    <div className="flex flex-col gap-2 p-2 relative border-2">
       <input
         type="text"
         placeholder="List Name"
@@ -56,11 +56,16 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
 
       {newList.listName && (
         <div className="flex justify-between">
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit"
+          >
             Add List
           </button>
           <button type="button" onClick={clearForm} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
-            Clear Form
+            Clear
           </button>
         </div>
       )}
@@ -70,6 +75,6 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
           <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-    </form>
+    </div>
   )
 }

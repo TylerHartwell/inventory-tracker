@@ -5,16 +5,11 @@ interface SortOrderSelectProps {
 
 export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => {
   return (
-    <div className="mb-4 self-center">
-      <label htmlFor="sortOrder" className="mr-2 font-medium text-sm">
-        Order by Date:
+    <div className="flex items-center text-sm">
+      <label htmlFor="sortOrder" className="mr-1 font-medium whitespace-nowrap">
+        Order by:
       </label>
-      <select
-        id="sortOrder"
-        className="px-2 py-1 border rounded text-sm"
-        value={sortAsc ? "asc" : "desc"}
-        onChange={e => onChange(e.target.value === "asc")}
-      >
+      <select id="sortOrder" className="px-1 py-1 border rounded" value={sortAsc ? "asc" : "desc"} onChange={e => onChange(e.target.value === "asc")}>
         <option value="desc" className="text-black">
           Newest First
         </option>

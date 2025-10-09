@@ -61,7 +61,7 @@ export const ItemInput = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-2 p-2 relative border-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-2 relative border-2">
       <ListSelector value={selectedList} onChange={onListChange} session={session} />
       <input
         type="text"
@@ -69,14 +69,14 @@ export const ItemInput = ({
         name="itemName"
         value={newItem.itemName}
         onChange={e => setNewItem(prev => ({ ...prev, itemName: e.target.value }))}
-        className="w-full p-2 border border-gray-300 rounded"
+        className="w-full p-1 border border-gray-300 rounded"
       />
       <textarea
         placeholder="Extra Details"
         name="extraDetails"
         value={newItem.extraDetails}
         onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
-        className="w-full p-2 border border-gray-300 rounded min-h-min"
+        className="w-full p-1 border border-gray-300 rounded min-h-min"
       />
 
       <ImageSelector handleLocalImage={handleLocalImage} key={resetId} />
