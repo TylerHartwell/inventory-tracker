@@ -1,6 +1,5 @@
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
-import { deleteImage } from "./deleteImage"
 import { Item } from "@/components/ItemManager"
 
 export const deleteItem = async (item: Item, session: Session) => {
@@ -9,10 +8,6 @@ export const deleteItem = async (item: Item, session: Session) => {
     return
   }
   try {
-    if (item.image_url) {
-      await deleteImage(session, item.image_url)
-    }
-
     const { error: dbError } = await supabase.from("items").delete().eq("id", item.id)
 
     if (dbError) {

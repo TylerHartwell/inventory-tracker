@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_list_users_user_id
 CREATE TABLE IF NOT EXISTS public.items (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
-    list_id uuid REFERENCES public.lists(id) ON DELETE SET NULL,
+    list_id uuid REFERENCES public.lists(id) ON DELETE CASCADE,
     item_name text NOT NULL,
     extra_details text,
     image_url text,
@@ -100,6 +100,20 @@ AS $$
   );
 $$;
 
+-- Delete image if item is deleted
+CREATE OR REPLACE FUNCTION public.tf_delete_item_image()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF OLD.image_url IS NOT NULL THEN
+        PERFORM storage.remove('images', OLD.image_url);
+    END IF;
+    RETURN OLD;
+END;
+$$;
+
+
 -- ============================================
 -- TRIGGERS
 -- ============================================
@@ -113,6 +127,11 @@ CREATE TRIGGER tr_prevent_ownerless_list
 BEFORE DELETE ON public.list_users
 FOR EACH ROW
 EXECUTE FUNCTION public.tf_prevent_ownerless_list();
+
+CREATE TRIGGER tr_delete_item_image
+BEFORE DELETE ON public.items
+FOR EACH ROW
+EXECUTE FUNCTION public.tf_delete_item_image();
 
 -- ============================================
 -- ENABLE ROW LEVEL SECURITY
