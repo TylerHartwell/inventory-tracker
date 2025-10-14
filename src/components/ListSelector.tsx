@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ListInput } from "./ListInput"
 import { ChevronDown, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
+import { deleteList } from "@/utils/deleteList"
 
 interface ListSelectorProps {
   value: string | null
@@ -32,6 +33,17 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
     onChange(newListId)
     setNewListName(name)
     setCreatingNew(false)
+  }
+
+  const handleDelete = async (listId: string) => {
+    try {
+      await deleteList(listId, session)
+      alert("List deleted successfully!")
+      // Optionally: refresh data or navigate away
+    } catch (error: unknown) {
+      console.error(error)
+      alert(`Failed to delete list: ${(error as Error)?.message}`)
+    }
   }
 
   const getTriggerLabel = () => {
@@ -78,7 +90,7 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
                     e.stopPropagation()
                     setOpen(false)
                     handleValueChange(nullListName)
-                    setOpenConfigFor(nullListName)
+                    setOpenConfigFor(null)
                   }}
                   className="py-1 hover:text-blue-400 px-2 flex justify-end"
                 >
@@ -126,7 +138,7 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
           >
             <h2 className="text-lg font-semibold mb-3">Configure List</h2>
             <p className="text-sm text-gray-400 mb-4">
-              Managing: <strong>{openConfigFor === "personal" ? "Personal (Default)" : lists.find(l => l.id === openConfigFor)?.name}</strong>
+              Managing: <strong>{openConfigFor ? lists.find(l => l.id === openConfigFor)?.name : "Personal (Default)"}</strong>
             </p>
 
             <div className="space-y-2">
@@ -136,9 +148,15 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
               <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">
                 👥 Manage Users
               </button>
-              <button type="button" className="w-full text-left bg-red-700 px-2 py-1 rounded hover:bg-red-600">
-                🗑️ Delete List
-              </button>
+              {openConfigFor !== "personal" && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(openConfigFor)}
+                  className="w-full text-left bg-red-700 px-2 py-1 rounded hover:bg-red-600"
+                >
+                  🗑️ Delete List
+                </button>
+              )}
             </div>
 
             <div className="flex justify-end mt-4">

@@ -1,34 +1,26 @@
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
+import { tryCatch } from "./tryCatch"
 
-export const uploadImage = async (session: Session, file: File): Promise<string | null> => {
+export const uploadImage = async (session: Session, file: File) => {
   if (!session.user) {
-    console.error("Not authenticated")
-    return null
+    return { data: null, error: "Not authenticated" }
   }
 
   if (!file.type.startsWith("image/")) {
-    console.error("File is not an image")
-    return null
+    return { data: null, error: "File is not an image" }
   }
 
   const filePath = `${session.user.id}/${Date.now()}-${file.name}`
 
-  try {
-    const { error: uploadError } = await supabase.storage.from("images").upload(filePath, file)
+  const { data, error } = await tryCatch(supabase.storage.from("images").upload(filePath, file))
 
-    if (uploadError) {
-      console.error("Error uploading image:", uploadError.message)
-      return null
-    }
-
-    return filePath
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error("Unexpected error:", err.message)
-    } else {
-      console.error("Unexpected error:", err)
-    }
-    return null
+  if (error) {
+    return { data: null, error: `Unexpected error: ${error.message}` }
   }
+  if (data.error) {
+    return { data: null, error: data.error.message }
+  }
+
+  return { data: filePath, error: null }
 }

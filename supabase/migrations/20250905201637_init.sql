@@ -100,19 +100,6 @@ AS $$
   );
 $$;
 
--- Delete image if item is deleted
-CREATE OR REPLACE FUNCTION public.tf_delete_item_image()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    IF OLD.image_url IS NOT NULL THEN
-        PERFORM storage.remove('images', OLD.image_url);
-    END IF;
-    RETURN OLD;
-END;
-$$;
-
 
 -- ============================================
 -- TRIGGERS
@@ -127,11 +114,6 @@ CREATE TRIGGER tr_prevent_ownerless_list
 BEFORE DELETE ON public.list_users
 FOR EACH ROW
 EXECUTE FUNCTION public.tf_prevent_ownerless_list();
-
-CREATE TRIGGER tr_delete_item_image
-BEFORE DELETE ON public.items
-FOR EACH ROW
-EXECUTE FUNCTION public.tf_delete_item_image();
 
 -- ============================================
 -- ENABLE ROW LEVEL SECURITY
