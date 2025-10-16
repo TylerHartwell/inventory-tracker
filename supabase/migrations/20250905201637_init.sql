@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS idx_lists_owner_id
 -- 2. List users table
 CREATE TABLE IF NOT EXISTS public.list_users (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    list_id uuid REFERENCES public.lists(id) ON DELETE CASCADE,
+    list_id uuid NOT NULL REFERENCES public.lists(id) ON DELETE CASCADE,
     user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     role text NOT NULL CHECK (role = ANY (ARRAY['owner','editor','viewer'])),
     UNIQUE (list_id, user_id)
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.items (
     image_url text,
     expiration_date date,
     category text,
-    created_at timestamptz DEFAULT now()
+    created_at timestamptz NOT NULL DEFAULT now()
 );
 
 ALTER TABLE items REPLICA IDENTITY FULL;
