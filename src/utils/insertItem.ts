@@ -1,63 +1,70 @@
 import { Session } from "@supabase/supabase-js"
 import { uploadImage } from "./uploadImage"
 import { supabase } from "@/supabase-client"
+import { LocalItem } from "@/components/ItemManager"
 
-interface Item {
-  id: string
-  itemName: string
-  extraDetails: string
-  image_url: string | null
-  signedUrl: string | null
-  created_at: string
-}
-
-export interface InsertItemParams {
+interface InsertItemParams {
   session: Session
-  itemName: string
-  extraDetails?: string
+  itemName: LocalItem["item_name"]
+  extraDetails?: LocalItem["extra_details"]
   itemImage?: File | null
   selectedList: string | null
 }
 
-export const insertItem = async ({ session, itemName, extraDetails = "", itemImage, selectedList }: InsertItemParams): Promise<Item | null> => {
+export const insertItem = async ({
+  session,
+  itemName,
+  extraDetails = "",
+  itemImage,
+  selectedList
+}: InsertItemParams): Promise<
+  | { data: LocalItem; error: null }
+  | {
+      data: null
+      error: string
+    }
+> => {
   if (!session.user) {
-    console.error("Not authenticated")
-    return null
+    return { data: null, error: "Not authenticated" }
   }
 
   if (!itemName.trim()) {
-    console.error("Item Name is required.")
-    return null
+    return { data: null, error: "Item name is required." }
   }
 
-  try {
-    let imageUrl: string | null = null
+  let imageUrl: string | null = null
 
-    if (itemImage) {
-      imageUrl = await uploadImage(session, itemImage)
+  if (itemImage) {
+    const { data, error } = await uploadImage({ session, file: itemImage })
+
+    if (error) {
+      return { data: null, error: error }
     }
 
-    const { data: insertedItem, error } = await supabase
-      .from("items")
-      .insert({ item_name: itemName, extra_details: extraDetails, image_url: imageUrl ?? "", list_id: selectedList })
-      .select("*")
-      .single()
-
-    if (error || !insertedItem) {
-      console.error("Error adding item: ", error?.message, session)
-      return null
-    }
-
-    // Generate signed URL if image exists
-    let signedUrl: string | null = null
-    if (insertedItem.image_url) {
-      const { data, error } = await supabase.storage.from("images").createSignedUrl(insertedItem.image_url, 60 * 20)
-      if (!error && data) signedUrl = data.signedUrl
-    }
-
-    return { ...insertedItem, signedUrl }
-  } catch (err) {
-    console.error("Unexpected error:", err)
-    return null
+    imageUrl = data
   }
+
+  const { data: insertedItem, error } = await supabase
+    .from("items")
+    .insert({ item_name: itemName, extra_details: extraDetails, image_url: imageUrl ?? "", list_id: selectedList })
+    .select("*")
+    .single()
+
+  if (error) {
+    return { data: null, error: error.message }
+  }
+
+  // Generate signed URL if image exists
+  let signedUrl: string | null = null
+  if (insertedItem.image_url) {
+    const { data, error } = await supabase.storage.from("images").createSignedUrl(insertedItem.image_url, 60 * 20)
+
+    if (error) {
+      return { data: null, error: error.message }
+    }
+
+    signedUrl = data.signedUrl
+  }
+
+  return { data: { ...insertedItem, signedUrl }, error: null }
 }

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.lists (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     owner_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
     name text NOT NULL,
-    created_at timestamptz DEFAULT now()
+    created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_lists_owner_id

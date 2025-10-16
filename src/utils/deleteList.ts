@@ -1,27 +1,39 @@
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import { deleteItem } from "./deleteItem"
+import { List } from "@/components/ItemManager"
 
-export const deleteList = async (listId: string, session: Session) => {
+interface DeleteList {
+  listId: List["id"]
+  session: Session
+}
+
+export const deleteList = async ({ listId, session }: DeleteList) => {
   if (!session.user) {
-    throw new Error("Not authenticated")
+    return { data: null, error: "Not authenticated" }
   }
 
   const { data: items, error: fetchError } = await supabase.from("items").select("*").eq("list_id", listId)
 
   if (fetchError) {
-    throw new Error(`Failed to fetch items: ${fetchError.message}`)
+    return { data: null, error: fetchError.message }
   }
 
   for (const item of items || []) {
-    await deleteItem(item, session)
+    const { error } = await deleteItem({ item, session })
+
+    if (error) {
+      return { data: null, error: error }
+    }
   }
 
-  const { error: listError } = await supabase.from("lists").delete().eq("id", listId)
+  const { data, error: listError } = await supabase.from("lists").delete().eq("id", listId)
 
   if (listError) {
-    throw new Error(`Failed to delete list: ${listError.message}`)
+    return { data: null, error: listError.message }
   }
 
   console.log(`✅ Successfully deleted list ${listId} and all associated items/images`)
+
+  return { data: data, error: null }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react"
-import { Item } from "./ItemManager"
+import { LocalItem } from "./ItemManager"
 import Image from "next/image"
 import { Pencil, Trash2 } from "lucide-react"
 import ImageSelector from "./ImageSelector"
@@ -9,7 +9,7 @@ import { updateItem } from "@/utils/updateItem"
 import isEqual from "lodash.isequal"
 
 interface ItemCardProps {
-  item: Item
+  item: LocalItem
   session: Session
   isPriority: boolean
 }
@@ -20,8 +20,8 @@ export const ItemCard = memo(
 
     // Single state object for all editable fields
     const [editData, setEditData] = useState({
-      itemName: item.itemName,
-      extraDetails: item.extraDetails,
+      itemName: item.item_name,
+      extraDetails: item.extra_details,
       itemImage: null as File | null,
       isImageRemoval: false
     })
@@ -29,12 +29,12 @@ export const ItemCard = memo(
     // Sync editData whenever item prop changes
     useEffect(() => {
       setEditData({
-        itemName: item.itemName,
-        extraDetails: item.extraDetails,
+        itemName: item.item_name,
+        extraDetails: item.extra_details,
         itemImage: null,
         isImageRemoval: false
       })
-    }, [item.itemName, item.extraDetails, item.signedUrl])
+    }, [item.item_name, item.extra_details, item.signedUrl])
 
     const handleLocalImage = (file: File | null) => {
       setEditData(prev => ({
@@ -46,8 +46,8 @@ export const ItemCard = memo(
 
     const handleCancelEdit = () => {
       setEditData({
-        itemName: item.itemName,
-        extraDetails: item.extraDetails,
+        itemName: item.item_name,
+        extraDetails: item.extra_details,
         itemImage: null,
         isImageRemoval: false
       })
@@ -78,8 +78,8 @@ export const ItemCard = memo(
         itemImage: File | null
       }> = {}
 
-      if (editData.itemName.trim() !== item.itemName) updates.itemName = editData.itemName.trim()
-      if (editData.extraDetails.trim() !== item.extraDetails) updates.extraDetails = editData.extraDetails.trim()
+      if (editData.itemName.trim() !== item.item_name) updates.itemName = editData.itemName.trim()
+      if (editData.extraDetails && editData.extraDetails.trim() !== item.extra_details) updates.extraDetails = editData.extraDetails.trim()
       if (editData.isImageRemoval) updates.itemImage = null
       if (editData.itemImage) updates.itemImage = editData.itemImage
 
@@ -88,20 +88,19 @@ export const ItemCard = memo(
         return
       }
 
-      try {
-        const updatedItem = await updateItem(item, session, updates)
-        if (updatedItem) {
-          setEditData(prev => ({
-            ...prev,
-            itemName: updatedItem.itemName,
-            extraDetails: updatedItem.extraDetails,
-            itemImage: null,
-            isImageRemoval: false
-          }))
-          setIsEditing(false)
-        }
-      } catch (err) {
-        console.error("Update failed:", err)
+      const { data: updatedItem, error } = await updateItem(item, session, updates)
+      if (error) {
+        return
+      }
+      if (updatedItem) {
+        setEditData(prev => ({
+          ...prev,
+          itemName: updatedItem.item_name,
+          extraDetails: updatedItem.extra_details,
+          itemImage: null,
+          isImageRemoval: false
+        }))
+        setIsEditing(false)
       }
     }
 
@@ -116,19 +115,19 @@ export const ItemCard = memo(
             className="w-full p-2 rounded text-base font-normal border border-gray-300"
           />
         ) : (
-          <p className="w-full p-2 text-base font-normal">{item.itemName}</p>
+          <p className="w-full p-2 text-base font-normal">{item.item_name}</p>
         )}
 
         {/* Extra Details */}
         {isEditing ? (
           <textarea
-            value={editData.extraDetails}
+            value={editData.extraDetails ?? ""}
             onChange={e => setEditData(prev => ({ ...prev, extraDetails: e.target.value }))}
             placeholder="Extra Details"
             className="w-full p-2 rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
           />
-        ) : item.extraDetails ? (
-          <p className="w-full p-2 text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{item.extraDetails}</p>
+        ) : item.extra_details ? (
+          <p className="w-full p-2 text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{item.extra_details}</p>
         ) : null}
 
         {/* Image Selector */}

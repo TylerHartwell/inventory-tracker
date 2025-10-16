@@ -5,13 +5,12 @@ import { useItemsRealtime } from "@/hooks/useItemsRealtime"
 import { useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
+import { Database } from "@/types/supabase"
 
-export interface Item {
-  id: string
-  itemName: string
-  extraDetails: string
-  created_at: string
-  image_url: string | null
+export type List = Database["public"]["Tables"]["lists"]["Row"]
+export type Item = Database["public"]["Tables"]["items"]["Row"]
+
+export type LocalItem = Item & {
   signedUrl: string | null
 }
 

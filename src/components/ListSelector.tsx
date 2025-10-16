@@ -37,7 +37,7 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
 
   const handleDelete = async (listId: string) => {
     try {
-      await deleteList(listId, session)
+      await deleteList({ listId, session })
       alert("List deleted successfully!")
       // Optionally: refresh data or navigate away
     } catch (error: unknown) {

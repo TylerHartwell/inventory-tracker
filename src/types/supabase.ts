@@ -31,7 +31,7 @@ export type Database = {
       items: {
         Row: {
           category: string | null
-          created_at: string | null
+          created_at: string
           expiration_date: string | null
           extra_details: string | null
           id: string

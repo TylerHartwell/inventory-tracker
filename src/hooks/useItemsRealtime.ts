@@ -2,28 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 import useDeepCompareRef from "./useDeepCompareRef"
-
-export interface Item {
-  id: string
-  itemName: string
-  extraDetails: string
-  created_at: string
-  image_url: string | null
-  signedUrl: string | null
-}
-
-interface DbItemPayload {
-  id: string
-  item_name: string
-  extra_details: string | null
-  created_at: string
-  image_url: string | null
-}
+import { Item, LocalItem } from "@/components/ItemManager"
 
 export function useItemsRealtime(session: Session, filteredLists: (string | null)[] = []) {
-  const [itemsMap, setItemsMap] = useState<Map<string, Item>>(new Map())
+  const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
-  const itemsRef = useRef<Map<string, Item>>(itemsMap) // Keep ref for interval
+  const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
 
   useEffect(() => {
     itemsRef.current = itemsMap
@@ -76,16 +60,12 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
 
       const itemsWithSignedUrls = await Promise.all(
         data.map(async item => ({
-          id: item.id,
-          itemName: item.item_name,
-          extraDetails: item.extra_details,
-          created_at: item.created_at,
-          image_url: item.image_url,
+          ...item,
           signedUrl: item.image_url ? await generateSignedUrl(item.image_url) : null
         }))
       )
 
-      const newMap = new Map<string, Item>()
+      const newMap = new Map<string, LocalItem>()
       itemsWithSignedUrls.forEach(item => newMap.set(item.id, item))
       setItemsMap(newMap)
     } catch (error) {
@@ -99,7 +79,7 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
   useEffect(() => {
     fetchItems()
 
-    const handleUpsert = async (dbItem: DbItemPayload) => {
+    const handleUpsert = async (dbItem: Item) => {
       let signedUrl: string | null = null
       try {
         signedUrl = dbItem.image_url ? await generateSignedUrl(dbItem.image_url) : null
@@ -107,12 +87,8 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
         console.error("Failed to generate signed URL:", e)
       }
 
-      const item: Item = {
-        id: dbItem.id,
-        itemName: dbItem.item_name,
-        extraDetails: dbItem.extra_details ?? "",
-        created_at: dbItem.created_at,
-        image_url: dbItem.image_url,
+      const item: LocalItem = {
+        ...dbItem,
         signedUrl
       }
 
@@ -137,10 +113,10 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
     // For items owned by the user
     channel
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
-        handleUpsert(payload.new as DbItemPayload)
+        handleUpsert(payload.new as Item)
       )
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
-        handleUpsert(payload.new as DbItemPayload)
+        handleUpsert(payload.new as Item)
       )
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
         handleDelete(payload.old.id)

@@ -1,21 +1,27 @@
+import { LocalItem } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
-import { tryCatch } from "./tryCatch"
 
-export const deleteImage = async (session: Session, imageUrl: string) => {
+interface DeleteImageProps {
+  session: Session
+  imageUrl: LocalItem["image_url"]
+}
+
+export const deleteImage = async ({ session, imageUrl }: DeleteImageProps) => {
   if (!session.user) {
     return { data: null, error: "Not authenticated" }
   }
 
+  if (!imageUrl) {
+    return { data: null, error: "Missing image url" }
+  }
+
   const path = imageUrl.replace(/^\/+/, "") // remove leading slashes
-  const { data, error } = await tryCatch(supabase.storage.from("images").remove([path]))
+  const { error, data } = await supabase.storage.from("images").remove([path])
 
   if (error) {
-    return { data: null, error: `Unexpected error: ${error.message}` }
-  }
-  if (data.error) {
-    return { data: null, error: `Failed to delete image: ${data.error.message}` }
+    return { data: null, error: `Failed to remove image: ${error.message}` }
   }
 
-  return { data, error }
+  return { data: data, error: null }
 }
