@@ -70,6 +70,9 @@ $$;
 CREATE OR REPLACE FUNCTION public.tf_prevent_ownerless_list()
 RETURNS trigger LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.lists WHERE id = OLD.list_id) THEN
+    RETURN OLD;
+  END IF;
   IF OLD.role = 'owner' THEN
     IF NOT EXISTS (
       SELECT 1 FROM public.list_users

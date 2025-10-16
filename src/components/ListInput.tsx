@@ -28,7 +28,10 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
     setLoading(true)
 
     try {
-      const newList = await insertList({ session, listName })
+      const { data: newList, error } = await insertList({ session, listName })
+      if (error) {
+        return
+      }
       clearForm()
       if (newList) {
         onListCreated?.(newList.id, newList.name)

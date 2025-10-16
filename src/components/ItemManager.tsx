@@ -9,6 +9,7 @@ import { Database } from "@/types/supabase"
 
 export type List = Database["public"]["Tables"]["lists"]["Row"]
 export type Item = Database["public"]["Tables"]["items"]["Row"]
+export type ListUser = Database["public"]["Tables"]["list_users"]["Row"]
 
 export type LocalItem = Item & {
   signedUrl: string | null

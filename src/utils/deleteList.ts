@@ -33,7 +33,5 @@ export const deleteList = async ({ listId, session }: DeleteList) => {
     return { data: null, error: listError.message }
   }
 
-  console.log(`✅ Successfully deleted list ${listId} and all associated items/images`)
-
   return { data: data, error: null }
 }

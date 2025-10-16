@@ -15,10 +15,6 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
 
   const stableFilteredLists = useDeepCompareRef(filteredLists)
 
-  useEffect(() => {
-    console.log("Filtered lists changed:", stableFilteredLists)
-  }, [stableFilteredLists])
-
   // Generate signed URL for a file
   const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
     if (!filePath) return null

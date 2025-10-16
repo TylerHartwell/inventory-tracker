@@ -59,7 +59,7 @@ export const ItemCard = memo(
       if (!window.confirm("Are you sure you want to delete this item?")) return
 
       try {
-        await deleteItem(item, session)
+        await deleteItem({ item, session })
       } catch (err) {
         console.error("Failed to delete item:", err)
       }
@@ -88,7 +88,7 @@ export const ItemCard = memo(
         return
       }
 
-      const { data: updatedItem, error } = await updateItem(item, session, updates)
+      const { data: updatedItem, error } = await updateItem({ item, session, updates })
       if (error) {
         return
       }
