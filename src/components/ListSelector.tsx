@@ -1,41 +1,43 @@
 import { UserLists } from "@/hooks/useUserLists"
 import { Session } from "@supabase/supabase-js"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ListInput } from "./ListInput"
 import { ChevronDown, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { deleteList } from "@/utils/deleteList"
 
 interface ListSelectorProps {
-  value: string | null
-  onChange: (listId: string | null) => void
+  selectedList: string | null
+  onListChange: (listId: string | null) => void
   onListCreated: (newListId: string) => void
   session: Session
   userLists: UserLists
 }
 
-export function ListSelector({ value, onChange, onListCreated, session, userLists }: ListSelectorProps) {
-  const [creatingNew, setCreatingNew] = useState(false)
+export function ListSelector({ selectedList, onListChange, onListCreated, session, userLists }: ListSelectorProps) {
+  const [isCreating, setIsCreating] = useState(false)
   const [openConfigFor, setOpenConfigFor] = useState<string | null>(null)
   const nullListName = "Personal"
-  const [newListName, setNewListName] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
+
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isCreating) {
+      inputRef.current?.focus()
+    }
+  }, [isCreating])
 
   const { lists, loading, error, fetchLists } = userLists
 
-  const handleValueChange = (selectedValue: string) => {
-    if (selectedValue === "new") {
-      setCreatingNew(true)
-    } else {
-      setCreatingNew(false)
-      onChange(selectedValue === nullListName ? null : selectedValue)
-    }
+  const handleValueChange = (selectedValue: string | null) => {
+    setIsCreating(false)
+    onListChange(selectedValue)
   }
 
-  const handleListCreated = async (newListId: string, name: string) => {
-    onChange(newListId)
-    setNewListName(name)
-    setCreatingNew(false)
+  const handleListCreated = async (newListId: string) => {
+    onListChange(newListId)
+    setIsCreating(false)
     onListCreated(newListId)
     fetchLists()
   }
@@ -43,17 +45,18 @@ export function ListSelector({ value, onChange, onListCreated, session, userList
   const handleDelete = async (listId: string) => {
     const { error } = await deleteList({ listId, session })
     if (error) {
-      console.log(error)
+      console.error(error)
       return
     }
     alert("List deleted successfully!")
-    // Optionally: refresh data or navigate away
+    handleValueChange(null)
+    setOpenConfigFor(null)
+    fetchLists()
   }
 
   const getTriggerLabel = () => {
-    if (newListName) return newListName
-    if (!value) return nullListName
-    return lists.find(list => list.id === value)?.name ?? value
+    if (!selectedList) return nullListName
+    return lists.find(list => list.id === selectedList)?.name ?? selectedList
   }
 
   return (
@@ -65,7 +68,16 @@ export function ListSelector({ value, onChange, onListCreated, session, userList
         ) : error ? (
           <div className="text-red-600">Error: {error}</div>
         ) : (
-          <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
+          <DropdownMenu.Root
+            open={open}
+            onOpenChange={nextOpen => {
+              setOpen(nextOpen)
+              if (!nextOpen) {
+                setIsCreating(false)
+              }
+            }}
+            modal={false}
+          >
             <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full flex justify-between items-center">
               {getTriggerLabel()}
               <ChevronDown className="mx-1" />
@@ -75,17 +87,25 @@ export function ListSelector({ value, onChange, onListCreated, session, userList
               align="start"
               className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
             >
-              <DropdownMenu.Item
-                onSelect={() => handleValueChange("new")}
-                className="flex justify-between items-center font-bold px-2 py-1 hover:bg-gray-800"
-              >
-                + Create New List
-              </DropdownMenu.Item>
+              {isCreating ? (
+                <DropdownMenu.Item asChild>
+                  <ListInput session={session} onListCreated={handleListCreated} onCancel={() => setIsCreating(false)} />
+                </DropdownMenu.Item>
+              ) : (
+                <DropdownMenu.Item
+                  onSelect={e => {
+                    e.preventDefault()
+                    setIsCreating(true)
+                  }}
+                  className="flex justify-between items-baseline font-bold px-2 py-1 hover:bg-gray-800"
+                >
+                  + Create New List
+                </DropdownMenu.Item>
+              )}
 
-              <DropdownMenu.Item
-                onSelect={() => handleValueChange(nullListName)}
-                className="flex justify-between items-center px-2 py-1 hover:bg-gray-800"
-              >
+              <DropdownMenu.Separator className="h-px bg-gray-700" />
+
+              <DropdownMenu.Item onSelect={() => handleValueChange(null)} className="flex justify-between items-baseline px-2 py-1 hover:bg-gray-800">
                 <span>{nullListName} (Default)</span>
                 <button
                   type="button"
@@ -93,7 +113,7 @@ export function ListSelector({ value, onChange, onListCreated, session, userList
                     e.preventDefault()
                     e.stopPropagation()
                     setOpen(false)
-                    handleValueChange(nullListName)
+                    handleValueChange(null)
                     setOpenConfigFor(null)
                   }}
                   className="py-1 hover:text-blue-400 px-2 flex justify-end"
@@ -128,8 +148,6 @@ export function ListSelector({ value, onChange, onListCreated, session, userList
           </DropdownMenu.Root>
         )}
       </div>
-
-      {creatingNew && <ListInput session={session} onListCreated={handleListCreated} onCancel={() => setCreatingNew(false)} />}
 
       {openConfigFor && (
         <div

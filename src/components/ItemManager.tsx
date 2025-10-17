@@ -32,6 +32,10 @@ function ItemManager({ session, logout }: { session: Session; logout: () => Prom
     return sortAsc ? timeA - timeB : timeB - timeA
   })
 
+  const handleListSelection = (listId: string | null) => {
+    setSelectedList(listId)
+    setFilteredLists(prev => [...prev, listId])
+  }
   const handleListCreated = (newListId: string) => {
     setSelectedList(newListId)
     setFilteredLists(prev => [...prev, newListId])
@@ -53,7 +57,7 @@ function ItemManager({ session, logout }: { session: Session; logout: () => Prom
         session={session}
         refresh={refresh}
         selectedList={selectedList}
-        onListChange={setSelectedList}
+        onListChange={handleListSelection}
         onListCreated={handleListCreated}
         userLists={userLists}
       />

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import { insertList } from "@/utils/insertList"
 
@@ -22,14 +22,19 @@ export const ListInput = ({
     }
   }, []) // runs only on mount
 
-  const clearForm = () => {
+  const clear = () => {
     setNewList({ listName: "" })
     onCancel()
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault()
+      handleSubmit()
+    }
+  }
 
+  const handleSubmit = async () => {
     if (!session.user) {
       console.error("Not authenticated")
       return
@@ -49,7 +54,7 @@ export const ListInput = ({
       if (error) {
         return
       }
-      clearForm()
+      clear()
       if (newList) {
         onListCreated?.(newList.id, newList.name)
       }
@@ -60,36 +65,38 @@ export const ListInput = ({
       setLoading(false)
     }
 
-    clearForm()
+    clear()
   }
 
   return (
-    <div className="flex flex-col gap-2 p-2 relative border-2">
+    <div className="flex justify-between py-0.75 px-1 gap-1">
       <input
         ref={inputRef}
         type="text"
-        placeholder="List Name"
+        placeholder="New List Name"
         name="listName"
         value={newList.listName}
+        onKeyDown={handleKeyDown}
         onChange={e => setNewList(prev => ({ ...prev, listName: e.target.value }))}
-        className="w-full p-2 border border-gray-300 rounded"
+        className="w-full px-1 border border-gray-300 rounded"
       />
-
-      {newList.listName && (
-        <div className="flex justify-between">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit"
-          >
-            Add List
-          </button>
-          <button type="button" onClick={clearForm} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
-            Cancel
-          </button>
-        </div>
-      )}
+      <div className="flex justify-between gap-1">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading || !newList.listName}
+          className="px-1 text-sm bg-green-600 text-white rounded 
+             hover:bg-green-700 
+             disabled:bg-gray-700 disabled:text-gray-400 
+             disabled:cursor-not-allowed 
+             transition-colors w-fit"
+        >
+          Add
+        </button>
+        <button type="button" onClick={clear} disabled={loading} className="px-1 text-sm bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
+          Cancel
+        </button>
+      </div>
 
       {loading && (
         <div className="absolute flex items-center justify-center bottom-3 left-1/2 -translate-x-1/2">

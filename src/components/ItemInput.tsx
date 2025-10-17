@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react"
+import { useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import ImageSelector from "./ImageSelector"
 import { insertItem } from "@/utils/insertItem"
@@ -17,7 +17,7 @@ export const ItemInput = ({
   refresh: () => Promise<void>
   selectedList: string | null
   onListChange: (listId: string | null) => void
-  onListCreated: (newListId: string) => void
+  onListCreated: (listId: string) => void
   userLists: UserLists
 }) => {
   const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
@@ -25,7 +25,7 @@ export const ItemInput = ({
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
 
-  const clearForm = () => {
+  const clear = () => {
     setNewItem({ itemName: "", extraDetails: "" })
     setItemImage(null)
     setResetId(id => id + 1)
@@ -35,9 +35,14 @@ export const ItemInput = ({
     setItemImage(file)
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault()
+      handleSubmit()
+    }
+  }
 
+  const handleSubmit = async () => {
     if (!session.user) {
       console.error("Not authenticated")
       return
@@ -62,17 +67,18 @@ export const ItemInput = ({
       setLoading(false)
     }
 
-    clearForm()
+    clear()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-2 relative border-2">
-      <ListSelector value={selectedList} onChange={onListChange} onListCreated={onListCreated} session={session} userLists={userLists} />
+    <div className="flex flex-col gap-2 p-2 relative border-2">
+      <ListSelector selectedList={selectedList} onListChange={onListChange} onListCreated={onListCreated} session={session} userLists={userLists} />
       <input
         type="text"
         placeholder="Item Name"
         name="itemName"
         value={newItem.itemName}
+        onKeyDown={handleKeyDown}
         onChange={e => setNewItem(prev => ({ ...prev, itemName: e.target.value }))}
         className="w-full p-1 border border-gray-300 rounded"
       />
@@ -87,11 +93,11 @@ export const ItemInput = ({
       <ImageSelector handleLocalImage={handleLocalImage} key={resetId} />
 
       <div className="flex justify-between">
-        <button type="submit" disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
+        <button type="button" onClick={handleSubmit} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
           Add Item
         </button>
-        <button type="button" onClick={clearForm} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
-          Clear Form
+        <button type="button" onClick={clear} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
+          Clear
         </button>
       </div>
 
@@ -100,6 +106,6 @@ export const ItemInput = ({
           <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-    </form>
+    </div>
   )
 }
