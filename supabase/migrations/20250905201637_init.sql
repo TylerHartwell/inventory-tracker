@@ -51,6 +51,8 @@ CREATE INDEX IF NOT EXISTS idx_items_list_id
 
 -- Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE public.items;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.lists;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.list_users;
 
 -- ============================================
 -- FUNCTIONS

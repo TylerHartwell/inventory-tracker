@@ -1,16 +1,18 @@
-import { useUserLists } from "@/hooks/useUserLists"
+import { UserLists } from "@/hooks/useUserLists"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 
 interface ListFilterProps {
-  userId: string
   filteredLists: (string | null)[]
   onChange: (lists: (string | null)[]) => void
+  selectedList: string | null
+  userLists: UserLists
 }
 
-export function ListFilter({ userId, filteredLists, onChange }: ListFilterProps) {
-  const { lists, loading, error } = useUserLists(userId)
+export function ListFilter({ filteredLists, onChange, selectedList, userLists }: ListFilterProps) {
   const [expanded, setExpanded] = useState(false)
+
+  const { lists, loading, error } = userLists
 
   const handleToggle = (id: string | null) => {
     const isSelected = filteredLists.includes(id)
@@ -45,14 +47,14 @@ export function ListFilter({ userId, filteredLists, onChange }: ListFilterProps)
           ) : (
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2">
-                <input type="checkbox" checked={filteredLists.includes(null)} onChange={() => handleToggle(null)} />
-                <span>Personal (Default)</span>
+                <input type="checkbox" name="default" checked={filteredLists.includes(null)} onChange={() => handleToggle(null)} />
+                <span className={null === selectedList ? "font-semibold underline" : ""}>Personal (Default)</span>
               </label>
 
               {lists.map(list => (
                 <label key={list.id} className="flex items-center gap-2">
-                  <input type="checkbox" checked={filteredLists.includes(list.id)} onChange={() => handleToggle(list.id)} />
-                  <span>{list.name}</span>
+                  <input type="checkbox" name={list.id} checked={filteredLists.includes(list.id)} onChange={() => handleToggle(list.id)} />
+                  <span className={list.id === selectedList ? "font-semibold underline" : ""}>{list.name}</span>
                 </label>
               ))}
 

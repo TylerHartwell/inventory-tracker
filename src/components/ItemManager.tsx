@@ -6,6 +6,7 @@ import { useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
+import { useUserLists } from "@/hooks/useUserLists"
 
 export type List = Database["public"]["Tables"]["lists"]["Row"]
 export type Item = Database["public"]["Tables"]["items"]["Row"]
@@ -19,6 +20,9 @@ function ItemManager({ session, logout }: { session: Session; logout: () => Prom
   const [filteredLists, setFilteredLists] = useState<(string | null)[]>([null])
   const [selectedList, setSelectedList] = useState<string | null>(null)
 
+  const userLists = useUserLists(session.user.id)
+  // const { lists, loading: listsLoading, error, fetchLists } = useUserLists(session.user.id)
+
   const { items, loading, refresh } = useItemsRealtime(session, filteredLists)
   const [sortAsc, setSortAsc] = useState(false)
 
@@ -27,6 +31,11 @@ function ItemManager({ session, logout }: { session: Session; logout: () => Prom
     const timeB = new Date(b.created_at).getTime()
     return sortAsc ? timeA - timeB : timeB - timeA
   })
+
+  const handleListCreated = (newListId: string) => {
+    setSelectedList(newListId)
+    setFilteredLists(prev => [...prev, newListId])
+  }
 
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
@@ -40,9 +49,16 @@ function ItemManager({ session, logout }: { session: Session; logout: () => Prom
         </span>
       </div>
 
-      <ItemInput session={session} refresh={refresh} selectedList={selectedList} onListChange={setSelectedList} />
+      <ItemInput
+        session={session}
+        refresh={refresh}
+        selectedList={selectedList}
+        onListChange={setSelectedList}
+        onListCreated={handleListCreated}
+        userLists={userLists}
+      />
       <div className="flex justify-end items-start gap-2">
-        <ListFilter userId={session.user.id} filteredLists={filteredLists} onChange={setFilteredLists} />
+        <ListFilter filteredLists={filteredLists} onChange={setFilteredLists} selectedList={selectedList} userLists={userLists} />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
 

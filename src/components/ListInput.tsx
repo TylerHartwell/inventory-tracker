@@ -1,13 +1,30 @@
-import { FormEvent, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import { insertList } from "@/utils/insertList"
 
-export const ListInput = ({ session, onListCreated }: { session: Session; onListCreated?: (newListId: string, name: string) => void }) => {
+export const ListInput = ({
+  session,
+  onListCreated,
+  onCancel
+}: {
+  session: Session
+  onListCreated?: (newListId: string, name: string) => void
+  onCancel: () => void
+}) => {
   const [newList, setNewList] = useState({ listName: "" })
   const [loading, setLoading] = useState(false)
 
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, []) // runs only on mount
+
   const clearForm = () => {
     setNewList({ listName: "" })
+    onCancel()
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -49,6 +66,7 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
   return (
     <div className="flex flex-col gap-2 p-2 relative border-2">
       <input
+        ref={inputRef}
         type="text"
         placeholder="List Name"
         name="listName"
@@ -68,7 +86,7 @@ export const ListInput = ({ session, onListCreated }: { session: Session; onList
             Add List
           </button>
           <button type="button" onClick={clearForm} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
-            Clear
+            Cancel
           </button>
         </div>
       )}

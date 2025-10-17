@@ -105,67 +105,55 @@ export const ItemCard = memo(
     }
 
     return (
-      <li key={item.id} className="border border-gray-300 rounded p-4 mb-2">
-        {/* Item Name */}
+      <li key={item.id} className="border border-gray-300 rounded p-1 mb-1">
         {isEditing ? (
-          <input
-            value={editData.itemName}
-            onChange={e => setEditData(prev => ({ ...prev, itemName: e.target.value }))}
-            placeholder="Item Name"
-            className="w-full p-2 rounded text-base font-normal border border-gray-300"
-          />
-        ) : (
-          <p className="w-full p-2 text-base font-normal">{item.item_name}</p>
-        )}
+          <>
+            {/* Editing Mode */}
+            <input
+              value={editData.itemName}
+              onChange={e => setEditData(prev => ({ ...prev, itemName: e.target.value }))}
+              placeholder="Item Name"
+              className="w-full rounded text-base font-normal border border-gray-300"
+            />
+            <textarea
+              value={editData.extraDetails ?? ""}
+              onChange={e => setEditData(prev => ({ ...prev, extraDetails: e.target.value }))}
+              placeholder="Extra Details"
+              className="w-full rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
+            />
+            <div className="flex items-center mb-2">
+              <ImageSelector handleLocalImage={handleLocalImage} signedUrl={item.signedUrl ?? null} />
+            </div>
 
-        {/* Extra Details */}
-        {isEditing ? (
-          <textarea
-            value={editData.extraDetails ?? ""}
-            onChange={e => setEditData(prev => ({ ...prev, extraDetails: e.target.value }))}
-            placeholder="Extra Details"
-            className="w-full p-2 rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
-          />
-        ) : item.extra_details ? (
-          <p className="w-full p-2 text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{item.extra_details}</p>
-        ) : null}
-
-        {/* Image Selector */}
-        {isEditing && (
-          <div className="flex items-center mb-2">
-            <ImageSelector handleLocalImage={handleLocalImage} signedUrl={item.signedUrl ?? null} />
-          </div>
-        )}
-
-        {/* Display image */}
-        {!isEditing && item.signedUrl && (
-          <div className="relative mb-2 h-40 w-auto">
-            <Image src={item.signedUrl} unoptimized alt="Item image" fill priority={isPriority} className="object-contain rounded" />
-          </div>
-        )}
-
-        {/* Buttons */}
-        <div className="space-y-2 flex justify-between">
-          {isEditing ? (
-            <>
+            <div className="flex justify-between">
               <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleCancelEdit}>
                 Cancel
               </button>
               <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleUpdateItem}>
                 Update
               </button>
-            </>
-          ) : (
-            <>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* View Mode */}
+            <p className="w-full text-base font-normal">{item.item_name}</p>
+            {item.extra_details && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{item.extra_details}</p>}
+            {item.signedUrl && (
+              <div className="relative mb-2 h-40 w-auto">
+                <Image src={item.signedUrl} unoptimized alt="Item image" fill priority={isPriority} className="object-contain rounded" />
+              </div>
+            )}
+            <div className="flex justify-between">
               <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={() => setIsEditing(true)}>
                 <Pencil size={16} />
               </button>
               <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={handleDeleteItem}>
                 <Trash2 size={16} />
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </li>
     )
   },

@@ -1,15 +1,48 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/supabase-client"
+import { List } from "@/components/ItemManager"
 
-interface List {
-  id: string
-  name: string
+export interface UserLists {
+  lists: {
+    created_at: string
+    id: string
+    name: string
+    owner_id: string
+  }[]
+  loading: boolean
+  error: string | null
+  fetchLists: () => Promise<void>
 }
 
 export function useUserLists(userId: string) {
   const [lists, setLists] = useState<List[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const fetchLists = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data: userLists, error: userListsError } = await supabase.from("list_users").select("list_id").eq("user_id", userId)
+
+      if (userListsError) throw userListsError
+
+      const listIds = userLists?.map(l => l.list_id) ?? []
+      const { data, error } = await supabase.from("lists").select("*").in("id", listIds)
+
+      if (error) {
+        setError(error.message)
+        setLists([])
+      } else {
+        setLists(data)
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error")
+      setLists([])
+    } finally {
+      setLoading(false)
+    }
+  }, [userId])
 
   useEffect(() => {
     if (!userId) {
@@ -18,42 +51,8 @@ export function useUserLists(userId: string) {
       return
     }
 
-    let mounted = true
-
-    const fetchLists = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const { data: userLists, error: userListsError } = await supabase.from("list_users").select("list_id").eq("user_id", userId)
-
-        if (userListsError) throw userListsError
-        if (!mounted) return
-
-        const listIds = userLists?.map(l => l.list_id) ?? []
-        const { data, error } = await supabase.from("lists").select("id, name").in("id", listIds)
-
-        if (!mounted) return
-        if (error) {
-          setError(error.message)
-          setLists([])
-        } else {
-          setLists(data)
-        }
-      } catch (err: unknown) {
-        if (!mounted) return
-        setError(err instanceof Error ? err.message : "Unknown error")
-        setLists([])
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
     fetchLists()
+  }, [fetchLists, userId])
 
-    return () => {
-      mounted = false
-    }
-  }, [userId])
-
-  return { lists, loading, error }
+  return { lists, loading, error, fetchLists }
 }

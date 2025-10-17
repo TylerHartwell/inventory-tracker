@@ -3,17 +3,22 @@ import { Session } from "@supabase/supabase-js"
 import ImageSelector from "./ImageSelector"
 import { insertItem } from "@/utils/insertItem"
 import { ListSelector } from "./ListSelector"
+import { UserLists } from "@/hooks/useUserLists"
 
 export const ItemInput = ({
   session,
   refresh,
   selectedList,
-  onListChange
+  onListChange,
+  onListCreated,
+  userLists
 }: {
   session: Session
   refresh: () => Promise<void>
   selectedList: string | null
   onListChange: (listId: string | null) => void
+  onListCreated: (newListId: string) => void
+  userLists: UserLists
 }) => {
   const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
   const [itemImage, setItemImage] = useState<File | null>(null)
@@ -62,7 +67,7 @@ export const ItemInput = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-2 relative border-2">
-      <ListSelector value={selectedList} onChange={onListChange} session={session} />
+      <ListSelector value={selectedList} onChange={onListChange} onListCreated={onListCreated} session={session} userLists={userLists} />
       <input
         type="text"
         placeholder="Item Name"

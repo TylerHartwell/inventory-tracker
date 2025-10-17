@@ -1,4 +1,4 @@
-import { useUserLists } from "@/hooks/useUserLists"
+import { UserLists } from "@/hooks/useUserLists"
 import { Session } from "@supabase/supabase-js"
 import { useState } from "react"
 import { ListInput } from "./ListInput"
@@ -9,16 +9,19 @@ import { deleteList } from "@/utils/deleteList"
 interface ListSelectorProps {
   value: string | null
   onChange: (listId: string | null) => void
+  onListCreated: (newListId: string) => void
   session: Session
+  userLists: UserLists
 }
 
-export function ListSelector({ value, onChange, session }: ListSelectorProps) {
-  const { lists, loading, error } = useUserLists(session.user.id)
+export function ListSelector({ value, onChange, onListCreated, session, userLists }: ListSelectorProps) {
   const [creatingNew, setCreatingNew] = useState(false)
   const [openConfigFor, setOpenConfigFor] = useState<string | null>(null)
   const nullListName = "Personal"
   const [newListName, setNewListName] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
+
+  const { lists, loading, error, fetchLists } = userLists
 
   const handleValueChange = (selectedValue: string) => {
     if (selectedValue === "new") {
@@ -33,6 +36,8 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
     onChange(newListId)
     setNewListName(name)
     setCreatingNew(false)
+    onListCreated(newListId)
+    fetchLists()
   }
 
   const handleDelete = async (listId: string) => {
@@ -124,7 +129,7 @@ export function ListSelector({ value, onChange, session }: ListSelectorProps) {
         )}
       </div>
 
-      {creatingNew && <ListInput session={session} onListCreated={handleListCreated} />}
+      {creatingNew && <ListInput session={session} onListCreated={handleListCreated} onCancel={() => setCreatingNew(false)} />}
 
       {openConfigFor && (
         <div
