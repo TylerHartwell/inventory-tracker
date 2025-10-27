@@ -9,15 +9,13 @@ export const ItemInput = ({
   session,
   refresh,
   selectedList,
-  onListChange,
-  onListCreated,
+  onItemInputListChange,
   userLists
 }: {
   session: Session
   refresh: () => Promise<void>
   selectedList: string | null
-  onListChange: (listId: string | null) => void
-  onListCreated: (listId: string) => void
+  onItemInputListChange: (listId: string | null) => void
   userLists: UserLists
 }) => {
   const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
@@ -72,7 +70,7 @@ export const ItemInput = ({
 
   return (
     <div className="flex flex-col gap-2 p-2 relative border-2">
-      <ListSelector selectedList={selectedList} onListChange={onListChange} onListCreated={onListCreated} session={session} userLists={userLists} />
+      <ListSelector selectedList={selectedList} onItemInputListChange={onItemInputListChange} session={session} userLists={userLists} />
       <input
         type="text"
         placeholder="Item Name"

@@ -8,13 +8,13 @@ import { deleteList } from "@/utils/deleteList"
 
 interface ListSelectorProps {
   selectedList: string | null
-  onListChange: (listId: string | null) => void
-  onListCreated: (newListId: string) => void
+  onItemInputListChange: (listId: string | null) => void
+
   session: Session
   userLists: UserLists
 }
 
-export function ListSelector({ selectedList, onListChange, onListCreated, session, userLists }: ListSelectorProps) {
+export function ListSelector({ selectedList, onItemInputListChange, session, userLists }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [openConfigFor, setOpenConfigFor] = useState<string | null>(null)
   const nullListName = "Personal"
@@ -32,13 +32,11 @@ export function ListSelector({ selectedList, onListChange, onListCreated, sessio
 
   const handleValueChange = (selectedValue: string | null) => {
     setIsCreating(false)
-    onListChange(selectedValue)
+    onItemInputListChange(selectedValue)
   }
 
   const handleListCreated = async (newListId: string) => {
-    onListChange(newListId)
-    setIsCreating(false)
-    onListCreated(newListId)
+    handleValueChange(newListId)
     fetchLists()
   }
 
@@ -89,7 +87,14 @@ export function ListSelector({ selectedList, onListChange, onListCreated, sessio
             >
               {isCreating ? (
                 <DropdownMenu.Item asChild>
-                  <ListInput session={session} onListCreated={handleListCreated} onCancel={() => setIsCreating(false)} />
+                  <ListInput
+                    session={session}
+                    onListCreated={handleListCreated}
+                    onCancel={() => {
+                      setIsCreating(false)
+                      setOpen(false)
+                    }}
+                  />
                 </DropdownMenu.Item>
               ) : (
                 <DropdownMenu.Item

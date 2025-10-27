@@ -8,7 +8,7 @@ export const ListInput = ({
   onCancel
 }: {
   session: Session
-  onListCreated?: (newListId: string, name: string) => void
+  onListCreated: (newListId: string) => void
   onCancel: () => void
 }) => {
   const [newList, setNewList] = useState({ listName: "" })
@@ -56,7 +56,7 @@ export const ListInput = ({
       }
       clear()
       if (newList) {
-        onListCreated?.(newList.id, newList.name)
+        onListCreated(newList.id)
       }
     } catch (err) {
       console.error("Failed to insert list:", err)

@@ -36,19 +36,17 @@ function Home() {
     }
   }, [])
 
-  const logout = async () => {
+  const handleLogout = async () => {
     await supabase.auth.signOut()
   }
 
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center text-lg">Loading...</div>
-  }
-
-  return (
+  return loading ? (
+    <div className="flex h-screen items-center justify-center text-lg">Loading...</div>
+  ) : (
     <>
       {session ? (
         <>
-          <ItemManager session={session} logout={logout} />
+          <ItemManager session={session} onLogout={handleLogout} />
         </>
       ) : (
         <Auth />
