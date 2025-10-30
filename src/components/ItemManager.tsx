@@ -20,6 +20,7 @@ export type LocalItem = Item & {
 function ItemManager({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
   const [filteredLists, setFilteredLists] = useState<(string | null)[]>([null])
   const [selectedList, setSelectedList] = useState<string | null>(null)
+  const [followInputList, setFollowInputList] = useState(true)
 
   const userLists = useUserLists(session.user.id)
 
@@ -36,7 +37,9 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
   const handleItemInputListSelection = (listId: string | null) => {
     setSelectedList(listId)
-    setFilteredLists(prev => (prev.includes(listId) ? prev : [...prev, listId]))
+    if (followInputList) {
+      setFilteredLists([listId])
+    }
   }
 
   return (
@@ -51,7 +54,14 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         userLists={userLists}
       />
       <div className="flex justify-end items-start gap-2">
-        <ListFilter filteredLists={filteredLists} onChange={setFilteredLists} selectedList={selectedList} userLists={userLists} />
+        <ListFilter
+          filteredLists={filteredLists}
+          onChange={setFilteredLists}
+          selectedList={selectedList}
+          userLists={userLists}
+          followInputList={followInputList}
+          onToggleFollowInputList={() => setFollowInputList(prev => !prev)}
+        />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
 
@@ -67,7 +77,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
               ))}
             </>
           ) : (
-            <div className="absolute inset-0 flex justify-center -translate-y-4 pointer-events-none">
+            <div className="absolute inset-0 flex justify-center -translate-y-4 pointer-events-none z-10">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-300"></div>
             </div>
           ))}

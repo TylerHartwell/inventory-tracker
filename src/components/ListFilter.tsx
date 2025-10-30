@@ -1,4 +1,6 @@
 import { UserLists } from "@/hooks/useUserLists"
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
+import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 
@@ -7,10 +9,12 @@ interface ListFilterProps {
   onChange: (lists: (string | null)[]) => void
   selectedList: string | null
   userLists: UserLists
+  followInputList: boolean
+  onToggleFollowInputList: () => void
 }
 
-export function ListFilter({ filteredLists, onChange, selectedList, userLists }: ListFilterProps) {
-  const [expanded, setExpanded] = useState(false)
+export function ListFilter({ filteredLists, onChange, selectedList, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
+  const [open, setOpen] = useState(false)
 
   const { lists, loading, error } = userLists
 
@@ -30,49 +34,103 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists }:
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg flex-1 text-sm">
-      {/* Header */}
-      <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full px-1 py-1">
-        <span className="font-medium ml-2">{expanded ? "Showing Lists:" : "Filter"}</span>
-        {expanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-      </button>
+    <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full flex justify-between items-center ">
+        <span className="flex-1 text-left truncate">
+          <span className="font-medium">Filter Lists:</span>
+          {filteredLists.length > 0 && (
+            <span className="ml-1 text-gray-500">
+              {filteredLists
+                .map(id => {
+                  if (id === null) return "Default"
+                  const list = lists.find(l => l.id === id)
+                  return list ? list.name : ""
+                })
+                .filter(Boolean)
+                .join(", ")}
+            </span>
+          )}
+        </span>
+        {open ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+      </DropdownMenu.Trigger>
 
-      {/* Collapsible Content (no animation) */}
-      {expanded && (
-        <div className="px-3 pb-3">
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          avoidCollisions={false}
+          align="start"
+          sideOffset={0}
+          side="bottom"
+          className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
+        >
+          <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
+            <label className="flex items-center gap-2 px-2 py-1 hover:bg-gray-800 cursor-pointer">
+              <input
+                type="checkbox"
+                name="default"
+                checked={filteredLists.includes(null)}
+                onChange={() => handleToggle(null)}
+                className="w-4 h-4 accent-blue-500"
+              />
+              <span className={selectedList === null ? "font-semibold underline" : ""}>Personal (Default)</span>
+            </label>
+          </DropdownMenu.Item>
+
           {loading ? (
-            <div className="text-gray-500 mt-2">Loading lists...</div>
+            <div className="px-4 py-2 text-sm text-gray-400">Loading lists...</div>
           ) : error ? (
-            <div className="text-red-600 mt-2">Error: {error}</div>
+            <div className="px-4 py-2 text-sm text-red-500">{`Error getting lists: ${error}`}</div>
           ) : (
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" name="default" checked={filteredLists.includes(null)} onChange={() => handleToggle(null)} />
-                <span className={null === selectedList ? "font-semibold underline" : ""}>Personal (Default)</span>
-              </label>
-
-              {lists.map(list => (
-                <label key={list.id} className="flex items-center gap-2">
-                  <input type="checkbox" name={list.id} checked={filteredLists.includes(list.id)} onChange={() => handleToggle(list.id)} />
+            lists.map(list => (
+              <DropdownMenu.Item asChild key={list.id} onSelect={e => e.preventDefault()}>
+                <label className="flex items-center gap-2 px-2 py-1 hover:bg-gray-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name={list.id}
+                    checked={filteredLists.includes(list.id)}
+                    onChange={() => handleToggle(list.id)}
+                    className="w-4 h-4 accent-blue-500"
+                  />
                   <span className={list.id === selectedList ? "font-semibold underline" : ""}>{list.name}</span>
                 </label>
-              ))}
-
-              <button
-                type="button"
-                onClick={handleFilterAll}
-                className="self-start border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
-              >
-                {(() => {
-                  const allIds = [null, ...lists.map(l => l.id)]
-                  const allFiltered = allIds.length > 0 && allIds.every(id => filteredLists.includes(id))
-                  return allFiltered ? "Clear All" : "Include All"
-                })()}
-              </button>
-            </div>
+              </DropdownMenu.Item>
+            ))
           )}
-        </div>
-      )}
-    </div>
+
+          <div className="flex justify-between p-1">
+            <button
+              type="button"
+              onClick={handleFilterAll}
+              className="self-start border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 bg-black text-white"
+            >
+              {(() => {
+                const allIds = [null, ...lists.map(l => l.id)]
+                const allFiltered = allIds.length > 0 && allIds.every(id => filteredLists.includes(id))
+                return allFiltered ? "Clear All" : "Include All"
+              })()}
+            </button>
+            <label className="flex gap-2 items-center cursor-pointer">
+              <Switch.Root
+                id="follow-input-list"
+                checked={followInputList}
+                onClick={onToggleFollowInputList}
+                className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500  flex justify-between"
+              >
+                <Switch.Thumb
+                  className="h-full aspect-square inline-block rounded-full bg-white transition-transform duration-300 ease-in-out
+        translate-x-0 data-[state=checked]:translate-x-5"
+                />
+                <span
+                  className="text-[8px] grow flex items-center justify-center transition-transform duration-300 ease-in-out
+        translate-x-0 group-data-[state=checked]:-translate-x-4"
+                >
+                  {followInputList ? "ON" : "OFF"}
+                </span>
+              </Switch.Root>
+              <span className="text-sm select-none">Follow Input List</span>
+            </label>
+          </div>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }

@@ -2,7 +2,7 @@ import { UserLists } from "@/hooks/useUserLists"
 import { Session } from "@supabase/supabase-js"
 import { useEffect, useRef, useState } from "react"
 import { ListInput } from "./ListInput"
-import { ChevronDown, Settings } from "lucide-react"
+import { ChevronDown, ChevronUp, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { deleteList } from "@/utils/deleteList"
 
@@ -78,7 +78,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
           >
             <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full flex justify-between items-center">
               {getTriggerLabel()}
-              <ChevronDown className="mx-1" />
+              {open ? <ChevronUp className="mx-1 text-gray-500" /> : <ChevronDown className="mx-1 text-gray-500" />}
             </DropdownMenu.Trigger>
 
             <DropdownMenu.Content
