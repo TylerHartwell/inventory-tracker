@@ -3,6 +3,8 @@ import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 import useDeepCompareRef from "./useDeepCompareRef"
 import { Item, LocalItem } from "@/components/ItemManager"
+import { useGenerateSignedUrl } from "./useGenerateSignedUrl"
+import { useFetchItemsForLists } from "./useFetchItemsForLists"
 
 export function useItemsRealtime(session: Session, filteredLists: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
@@ -12,68 +14,9 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
 
   const stableFilteredLists = useDeepCompareRef(filteredLists)
 
-  const generateSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
-    if (!filePath) return null
+  const generateSignedUrl = useGenerateSignedUrl()
 
-    const expirySeconds = 60 * 20 // 20 minutes
-
-    const { data, error } = await supabase.storage.from("images").createSignedUrl(filePath, expirySeconds)
-
-    if (error || !data) {
-      console.error("Signed URL error:", error?.message)
-
-      return null
-    }
-
-    return data.signedUrl
-  }, [])
-
-  const fetchItemsForLists = useCallback(
-    async (lists: (string | null)[], signal?: AbortSignal) => {
-      if (signal?.aborted) return [] // early exit if already cancelled
-      if (lists.length === 0) return []
-
-      const orConditions: string[] = []
-      const listIds = lists.filter((id): id is string => id !== null)
-      let query = supabase.from("items").select("*")
-
-      if (lists.includes(null)) {
-        orConditions.push(`and(list_id.is.null,user_id.eq.${session.user.id})`)
-      }
-      if (listIds.length > 0) {
-        orConditions.push(`list_id.in.(${listIds.join(",")})`)
-      }
-
-      if (orConditions.length > 0) query = query.or(orConditions.join(","))
-
-      if (signal?.aborted) return []
-
-      const { data, error } = await query.order("created_at", { ascending: true })
-
-      if (signal?.aborted) return []
-      if (error) throw error
-
-      //Simulate delay
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(resolve, 1000)
-        signal?.addEventListener("abort", () => {
-          clearTimeout(timeout)
-          reject(new DOMException("Aborted", "AbortError"))
-        })
-      })
-
-      if (signal?.aborted) return []
-
-      return Promise.all(
-        data.map(async item => {
-          if (signal?.aborted) return null
-          const signedUrl = item.image_url ? await generateSignedUrl(item.image_url) : null
-          return { ...item, signedUrl }
-        })
-      ).then(items => items.filter((i): i is NonNullable<typeof i> => i !== null))
-    },
-    [generateSignedUrl, session.user.id]
-  )
+  const fetchItemsForLists = useFetchItemsForLists(session, generateSignedUrl)
 
   const refresh = useCallback(async () => {
     setLoading(true)

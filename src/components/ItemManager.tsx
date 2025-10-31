@@ -8,6 +8,8 @@ import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
 import { useUserLists } from "@/hooks/useUserLists"
 import { Header } from "./Header"
+import ItemCardsSkeleton from "./ItemCardsSkeleton"
+import LoadingSpinner from "./LoadingSpinner"
 
 export type List = Database["public"]["Tables"]["lists"]["Row"]
 export type Item = Database["public"]["Tables"]["items"]["Row"]
@@ -42,6 +44,13 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     }
   }
 
+  const handleToggleFollowInputList = () => {
+    setFollowInputList(prev => !prev)
+    if (!followInputList) {
+      setFilteredLists([selectedList])
+    }
+  }
+
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
       <Header userEmail={session.user.email ?? ""} onLogout={onLogout} />
@@ -60,7 +69,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           selectedList={selectedList}
           userLists={userLists}
           followInputList={followInputList}
-          onToggleFollowInputList={() => setFollowInputList(prev => !prev)}
+          onToggleFollowInputList={handleToggleFollowInputList}
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
@@ -69,24 +78,33 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         {loading &&
           (sortedItems.length === 0 ? (
             <>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <li key={i} className="border border-gray-300 rounded p-4 mb-2 animate-pulse">
-                  <div className="h-8 w-3/4 bg-gray-900 rounded mb-2"></div>
-                  <div className="h-8 w-1/2 bg-gray-900 rounded"></div>
-                </li>
-              ))}
+              {console.log("Render: ItemCardsSkeleton")}
+              <ItemCardsSkeleton />
             </>
           ) : (
-            <div className="absolute inset-0 flex justify-center -translate-y-4 pointer-events-none z-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-300"></div>
-            </div>
+            <>
+              {console.log("Render: LoadingSpinner")}
+              <LoadingSpinner />
+              {sortedItems.map((item, index) => (
+                <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />
+              ))}
+            </>
           ))}
 
-        {sortedItems.length === 0 ? (
-          <div className="text-center">- No Results -</div>
-        ) : (
-          sortedItems.map((item, index) => <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />)
-        )}
+        {!loading &&
+          (sortedItems.length === 0 ? (
+            <>
+              {console.log("Render: No Results")}
+              <div className="text-center">- No Results -</div>
+            </>
+          ) : (
+            <>
+              {console.log("Render: ItemCards")}
+              {sortedItems.map((item, index) => (
+                <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />
+              ))}
+            </>
+          ))}
       </ul>
     </div>
   )
