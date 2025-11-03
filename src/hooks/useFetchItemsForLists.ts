@@ -10,7 +10,7 @@ export const useFetchItemsForLists = (session: Session, generateSignedUrl: (file
       const listIds = lists.filter((id): id is string => id !== null)
       const orConditions: string[] = []
 
-      let query = supabase.from("items").select("*")
+      let query = supabase.from("items").select(`*,lists(name)`)
 
       if (lists.includes(null)) {
         orConditions.push(`and(list_id.is.null,user_id.eq.${session.user.id})`)
@@ -25,6 +25,7 @@ export const useFetchItemsForLists = (session: Session, generateSignedUrl: (file
       const { data, error } = await query.order("created_at", { ascending: true })
 
       if (error) throw error
+      if (!data) return []
 
       // Optional delay simulation
       await new Promise<void>((resolve, reject) => {
@@ -35,13 +36,23 @@ export const useFetchItemsForLists = (session: Session, generateSignedUrl: (file
         })
       })
 
-      return Promise.all(
+      const itemsWithListName = await Promise.all(
         data.map(async item => {
           if (signal?.aborted) return null
+
           const signedUrl = item.image_url ? await generateSignedUrl(item.image_url) : null
-          return { ...item, signedUrl }
+
+          const { lists, ...rest } = item // omit the nested lists object
+
+          return {
+            ...rest,
+            signedUrl,
+            listName: lists?.name ?? null // flatten name into listName
+          }
         })
-      ).then(items => items.filter((i): i is NonNullable<typeof i> => i !== null))
+      )
+
+      return itemsWithListName.filter((i): i is NonNullable<typeof i> => i !== null)
     },
     [generateSignedUrl, session.user.id]
   )

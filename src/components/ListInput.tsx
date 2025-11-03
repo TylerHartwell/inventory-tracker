@@ -27,12 +27,12 @@ export const ListInput = ({
     onCancel()
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault()
-      handleSubmit()
-    }
-  }
+  // const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (event.key === "Enter") {
+  //     event.preventDefault()
+  //     handleSubmit()
+  //   }
+  // }
 
   const handleSubmit = async () => {
     if (!session.user) {
@@ -69,30 +69,36 @@ export const ListInput = ({
   }
 
   return (
-    <div className="flex justify-between py-0.75 px-1 gap-1">
+    <form
+      onSubmit={e => {
+        e.preventDefault()
+        handleSubmit()
+      }}
+      className="flex justify-between py-0.75 px-1 gap-1"
+    >
       <input
         ref={inputRef}
         type="text"
         placeholder="New List Name"
         name="listName"
         value={newList.listName}
-        onKeyDown={handleKeyDown}
         onChange={e => setNewList(prev => ({ ...prev, listName: e.target.value }))}
         className="w-full px-1 border border-gray-300 rounded"
       />
+
       <div className="flex justify-between gap-1">
         <button
-          type="button"
-          onClick={handleSubmit}
+          type="submit"
           disabled={loading || !newList.listName}
           className="px-1 text-sm bg-green-600 text-white rounded 
-             hover:bg-green-700 
-             disabled:bg-gray-700 disabled:text-gray-400 
-             disabled:cursor-not-allowed 
-             transition-colors w-fit"
+         hover:bg-green-700 
+         disabled:bg-gray-700 disabled:text-gray-400 
+         disabled:cursor-not-allowed 
+         transition-colors w-fit"
         >
           Add
         </button>
+
         <button type="button" onClick={clear} disabled={loading} className="px-1 text-sm bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
           Cancel
         </button>
@@ -103,6 +109,6 @@ export const ListInput = ({
           <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-    </div>
+    </form>
   )
 }

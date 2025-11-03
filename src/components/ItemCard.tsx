@@ -137,7 +137,11 @@ export const ItemCard = memo(
         ) : (
           <>
             {/* View Mode */}
-            <p className="w-full text-base font-normal">{item.item_name}</p>
+            <div className="flex">
+              <p className="w-full text-base font-normal flex-1">{item.item_name}</p>
+              <span>{item.listName}</span>
+            </div>
+
             {item.extra_details && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{item.extra_details}</p>}
             {item.signedUrl && (
               <div className="relative mb-2 h-40 w-auto">

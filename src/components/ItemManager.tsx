@@ -17,6 +17,7 @@ export type ListUser = Database["public"]["Tables"]["list_users"]["Row"]
 
 export type LocalItem = Item & {
   signedUrl: string | null
+  listName: string | null
 }
 
 function ItemManager({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
@@ -62,7 +63,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onItemInputListChange={handleItemInputListSelection}
         userLists={userLists}
       />
-      <div className="flex justify-end items-start gap-2">
+      <div className="flex justify-center items-center gap-1 border-2 ">
         <ListFilter
           filteredLists={filteredLists}
           onChange={setFilteredLists}

@@ -2,7 +2,7 @@ import { UserLists } from "@/hooks/useUserLists"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface ListFilterProps {
   filteredLists: (string | null)[]
@@ -15,8 +15,25 @@ interface ListFilterProps {
 
 export function ListFilter({ filteredLists, onChange, selectedList, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
   const [open, setOpen] = useState(false)
-
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const contentRef = useRef<HTMLDivElement | null>(null)
   const { lists, loading, error } = userLists
+
+  useEffect(() => {
+    if (!open) return
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (triggerRef.current?.contains(target) || contentRef.current?.contains(target)) {
+        return // inside click — do nothing
+      }
+
+      setOpen(false) // outside click/tap — close
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [open])
 
   const handleToggle = (id: string | null) => {
     const isSelected = filteredLists.includes(id)
@@ -35,11 +52,11 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
-      <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full flex justify-between items-center ">
+      <DropdownMenu.Trigger ref={triggerRef} className="border px-2 py-1 rounded w-full flex justify-between items-center min-w-0">
         <span className="flex-1 text-left truncate">
-          <span className="font-medium">Filter Lists:</span>
+          <span className="text-sm">Filter:</span>
           {filteredLists.length > 0 && (
-            <span className="ml-1 text-gray-500">
+            <span className="ml-1 text-gray-500 text-sm">
               {filteredLists
                 .map(id => {
                   if (id === null) return "Default"
@@ -56,6 +73,7 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
+          ref={contentRef}
           avoidCollisions={false}
           align="start"
           sideOffset={0}
@@ -96,11 +114,11 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
             ))
           )}
 
-          <div className="flex justify-between p-1">
+          <div className="flex justify-between  items-center p-1">
             <button
               type="button"
               onClick={handleFilterAll}
-              className="self-start border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 bg-black text-white"
+              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 bg-black text-white"
             >
               {(() => {
                 const allIds = [null, ...lists.map(l => l.id)]
@@ -108,7 +126,7 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
                 return allFiltered ? "Clear All" : "Include All"
               })()}
             </button>
-            <label className="flex gap-2 items-center cursor-pointer">
+            <label className="flex gap-1 flex-wrap items-center justify-center cursor-pointer">
               <Switch.Root
                 id="follow-input-list"
                 checked={followInputList}
@@ -126,7 +144,7 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
                   {followInputList ? "ON" : "OFF"}
                 </span>
               </Switch.Root>
-              <span className="text-sm select-none">Follow Input List</span>
+              <span className="text-[12px] select-none text-center">Follow Input List</span>
             </label>
           </div>
         </DropdownMenu.Content>

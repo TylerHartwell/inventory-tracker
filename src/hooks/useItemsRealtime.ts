@@ -112,9 +112,12 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
         console.error("Failed to generate signed URL:", e)
       }
 
+      const existingListName = itemsRef.current.get(dbItem.id)?.listName ?? null
+
       const item: LocalItem = {
         ...dbItem,
-        signedUrl
+        signedUrl,
+        listName: existingListName
       }
 
       setItemsMap(prev => {
