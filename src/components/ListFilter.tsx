@@ -3,9 +3,10 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { nullListName } from "./ItemManager"
 
 interface ListFilterProps {
-  filteredLists: (string | null)[]
+  filteredListIds: (string | null)[]
   onChange: (lists: (string | null)[]) => void
   selectedList: string | null
   userLists: UserLists
@@ -13,7 +14,7 @@ interface ListFilterProps {
   onToggleFollowInputList: () => void
 }
 
-export function ListFilter({ filteredLists, onChange, selectedList, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
+export function ListFilter({ filteredListIds, onChange, selectedList, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
@@ -36,16 +37,16 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
   }, [open])
 
   const handleToggle = (id: string | null) => {
-    const isSelected = filteredLists.includes(id)
+    const isSelected = filteredListIds.includes(id)
 
-    const nextLists = isSelected ? filteredLists.filter(v => v !== id) : [...filteredLists, id]
+    const nextLists = isSelected ? filteredListIds.filter(v => v !== id) : [...filteredListIds, id]
 
     onChange(nextLists.length === 0 ? [null] : nextLists)
   }
 
   const handleFilterAll = () => {
     const allIds = [null, ...lists.map(l => l.id)]
-    const allFiltered = allIds.every(id => filteredLists.includes(id))
+    const allFiltered = allIds.every(id => filteredListIds.includes(id))
 
     onChange(allFiltered ? [null] : allIds)
   }
@@ -55,11 +56,11 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
       <DropdownMenu.Trigger ref={triggerRef} className="border px-2 py-1 rounded w-full flex justify-between items-center min-w-0">
         <span className="flex-1 text-left truncate">
           <span className="text-sm">Filter:</span>
-          {filteredLists.length > 0 && (
+          {filteredListIds.length > 0 && (
             <span className="ml-1 text-gray-500 text-sm">
-              {filteredLists
+              {filteredListIds
                 .map(id => {
-                  if (id === null) return "Default"
+                  if (id === null) return nullListName
                   const list = lists.find(l => l.id === id)
                   return list ? list.name : ""
                 })
@@ -85,11 +86,11 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
               <input
                 type="checkbox"
                 name="default"
-                checked={filteredLists.includes(null)}
+                checked={filteredListIds.includes(null)}
                 onChange={() => handleToggle(null)}
                 className="w-4 h-4 accent-blue-500"
               />
-              <span className={selectedList === null ? "font-semibold underline" : ""}>Personal (Default)</span>
+              <span className={selectedList === null ? "font-semibold underline" : ""}>{nullListName}</span>
             </label>
           </DropdownMenu.Item>
 
@@ -104,7 +105,7 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
                   <input
                     type="checkbox"
                     name={list.id}
-                    checked={filteredLists.includes(list.id)}
+                    checked={filteredListIds.includes(list.id)}
                     onChange={() => handleToggle(list.id)}
                     className="w-4 h-4 accent-blue-500"
                   />
@@ -122,7 +123,7 @@ export function ListFilter({ filteredLists, onChange, selectedList, userLists, f
             >
               {(() => {
                 const allIds = [null, ...lists.map(l => l.id)]
-                const allFiltered = allIds.length > 0 && allIds.every(id => filteredLists.includes(id))
+                const allFiltered = allIds.length > 0 && allIds.every(id => filteredListIds.includes(id))
                 return allFiltered ? "Clear All" : "Include All"
               })()}
             </button>

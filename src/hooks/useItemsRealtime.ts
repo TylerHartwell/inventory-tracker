@@ -2,27 +2,27 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 import useDeepCompareRef from "./useDeepCompareRef"
-import { Item, LocalItem } from "@/components/ItemManager"
+import { Item, LocalItem, nullListName } from "@/components/ItemManager"
 import { useGenerateSignedUrl } from "./useGenerateSignedUrl"
 import { useFetchItemsForLists } from "./useFetchItemsForLists"
 
-export function useItemsRealtime(session: Session, filteredLists: (string | null)[] = []) {
+export function useItemsRealtime(session: Session, filteredListIds: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
   const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
   const prevListsRef = useRef<(string | null)[]>([])
 
-  const stableFilteredLists = useDeepCompareRef(filteredLists)
+  const stableFilteredListIds = useDeepCompareRef(filteredListIds)
 
   const generateSignedUrl = useGenerateSignedUrl()
 
-  const fetchItemsForLists = useFetchItemsForLists(session, generateSignedUrl)
+  const fetchItemsForListIds = useFetchItemsForLists(session, generateSignedUrl)
 
   const refresh = useCallback(async () => {
     setLoading(true)
 
     try {
-      const fetched = await fetchItemsForLists(stableFilteredLists)
+      const fetched = await fetchItemsForListIds(stableFilteredListIds)
 
       const newMap = new Map(fetched.map(item => [item.id, item]))
 
@@ -30,7 +30,7 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
     } finally {
       setLoading(false)
     }
-  }, [fetchItemsForLists, stableFilteredLists])
+  }, [fetchItemsForListIds, stableFilteredListIds])
 
   const diffLists = useCallback((prev: (string | null)[], next: (string | null)[]) => {
     const added = next.filter(id => !prev.includes(id))
@@ -45,7 +45,7 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
 
     async function updateItems() {
       const prev = prevListsRef.current
-      const current = stableFilteredLists
+      const current = stableFilteredListIds
       const { added, removed } = diffLists(prev, current)
 
       // Skip if nothing changed (except initial load)
@@ -70,7 +70,7 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
         if (added.length > 0 || prev.length === 0) {
           const listsToFetch = prev.length === 0 ? current : added
 
-          const fetched = await fetchItemsForLists(listsToFetch, signal)
+          const fetched = await fetchItemsForListIds(listsToFetch, signal)
 
           fetched.forEach(item => newItemsMap.set(item.id, item))
         }
@@ -95,16 +95,17 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
     return () => {
       controller.abort() // cancel ongoing fetch if lists change quickly
     }
-  }, [stableFilteredLists, diffLists, fetchItemsForLists])
+  }, [stableFilteredListIds, diffLists, fetchItemsForListIds])
 
   // Realtime subscription
   useEffect(() => {
     const handleUpsert = async (dbItem: Item) => {
       const listId = dbItem.list_id ?? null
 
-      if (!stableFilteredLists.includes(listId)) return
+      if (!stableFilteredListIds.includes(listId)) return
 
       let signedUrl: string | null = null
+      let listName = nullListName
 
       try {
         signedUrl = dbItem.image_url ? await generateSignedUrl(dbItem.image_url) : null
@@ -112,12 +113,24 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
         console.error("Failed to generate signed URL:", e)
       }
 
-      const existingListName = itemsRef.current.get(dbItem.id)?.listName ?? null
+      if (listId) {
+        try {
+          const { data, error } = await supabase.from("lists").select("name").eq("id", listId).single()
+
+          if (error) {
+            console.error("Error fetching list name:", error)
+          } else if (data?.name) {
+            listName = data.name
+          }
+        } catch (e) {
+          console.error("Unexpected error fetching list name:", e)
+        }
+      }
 
       const item: LocalItem = {
         ...dbItem,
         signedUrl,
-        listName: existingListName
+        listName
       }
 
       setItemsMap(prev => {
@@ -160,7 +173,7 @@ export function useItemsRealtime(session: Session, filteredLists: (string | null
     return () => {
       channel.unsubscribe()
     }
-  }, [stableFilteredLists, generateSignedUrl, session.user.id])
+  }, [stableFilteredListIds, generateSignedUrl, session.user.id])
 
   // Auto-refresh only items that have image_url
   useEffect(() => {

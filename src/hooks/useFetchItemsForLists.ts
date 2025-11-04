@@ -1,23 +1,24 @@
+import { nullListName } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import { useCallback } from "react"
 
 export const useFetchItemsForLists = (session: Session, generateSignedUrl: (filePath: string) => Promise<string | null>) => {
   return useCallback(
-    async (lists: (string | null)[], signal?: AbortSignal) => {
-      if (signal?.aborted || lists.length === 0) return []
+    async (listIds: (string | null)[], signal?: AbortSignal) => {
+      if (signal?.aborted || listIds.length === 0) return []
 
-      const listIds = lists.filter((id): id is string => id !== null)
+      const nonNullListIds = listIds.filter((id): id is string => id !== null)
       const orConditions: string[] = []
 
       let query = supabase.from("items").select(`*,lists(name)`)
 
-      if (lists.includes(null)) {
+      if (listIds.includes(null)) {
         orConditions.push(`and(list_id.is.null,user_id.eq.${session.user.id})`)
       }
 
-      if (listIds.length > 0) {
-        orConditions.push(`list_id.in.(${listIds.join(",")})`)
+      if (nonNullListIds.length > 0) {
+        orConditions.push(`list_id.in.(${nonNullListIds.join(",")})`)
       }
 
       if (orConditions.length > 0) query = query.or(orConditions.join(","))
@@ -28,13 +29,13 @@ export const useFetchItemsForLists = (session: Session, generateSignedUrl: (file
       if (!data) return []
 
       // Optional delay simulation
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(resolve, 1000)
-        signal?.addEventListener("abort", () => {
-          clearTimeout(timeout)
-          reject(new DOMException("Aborted", "AbortError"))
-        })
-      })
+      // await new Promise<void>((resolve, reject) => {
+      //   const timeout = setTimeout(resolve, 1000)
+      //   signal?.addEventListener("abort", () => {
+      //     clearTimeout(timeout)
+      //     reject(new DOMException("Aborted", "AbortError"))
+      //   })
+      // })
 
       const itemsWithListName = await Promise.all(
         data.map(async item => {
@@ -47,7 +48,7 @@ export const useFetchItemsForLists = (session: Session, generateSignedUrl: (file
           return {
             ...rest,
             signedUrl,
-            listName: lists?.name ?? null // flatten name into listName
+            listName: lists?.name ?? nullListName // flatten name into listName
           }
         })
       )

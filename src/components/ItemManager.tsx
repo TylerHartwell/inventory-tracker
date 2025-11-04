@@ -17,17 +17,19 @@ export type ListUser = Database["public"]["Tables"]["list_users"]["Row"]
 
 export type LocalItem = Item & {
   signedUrl: string | null
-  listName: string | null
+  listName: string
 }
 
+export const nullListName = "Personal"
+
 function ItemManager({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
-  const [filteredLists, setFilteredLists] = useState<(string | null)[]>([null])
+  const [filteredListIds, setFilteredListIds] = useState<(string | null)[]>([null])
   const [selectedList, setSelectedList] = useState<string | null>(null)
   const [followInputList, setFollowInputList] = useState(true)
 
   const userLists = useUserLists(session.user.id)
 
-  const { items, loading, refresh } = useItemsRealtime(session, filteredLists)
+  const { items, loading, refresh } = useItemsRealtime(session, filteredListIds)
   const [sortAsc, setSortAsc] = useState(false)
 
   const sortedItems = useMemo(() => {
@@ -41,14 +43,14 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const handleItemInputListSelection = (listId: string | null) => {
     setSelectedList(listId)
     if (followInputList) {
-      setFilteredLists([listId])
+      setFilteredListIds([listId])
     }
   }
 
   const handleToggleFollowInputList = () => {
     setFollowInputList(prev => !prev)
     if (!followInputList) {
-      setFilteredLists([selectedList])
+      setFilteredListIds([selectedList])
     }
   }
 
@@ -63,10 +65,10 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onItemInputListChange={handleItemInputListSelection}
         userLists={userLists}
       />
-      <div className="flex justify-center items-center gap-1 border-2 ">
+      <div className="flex justify-center items-center gap-1">
         <ListFilter
-          filteredLists={filteredLists}
-          onChange={setFilteredLists}
+          filteredListIds={filteredListIds}
+          onChange={setFilteredListIds}
           selectedList={selectedList}
           userLists={userLists}
           followInputList={followInputList}

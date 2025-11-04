@@ -5,6 +5,7 @@ import { ListInput } from "./ListInput"
 import { ChevronDown, ChevronUp, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { deleteList } from "@/utils/deleteList"
+import { nullListName } from "./ItemManager"
 
 interface ListSelectorProps {
   selectedList: string | null
@@ -17,7 +18,6 @@ interface ListSelectorProps {
 export function ListSelector({ selectedList, onItemInputListChange, session, userLists }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [openConfigFor, setOpenConfigFor] = useState<string | null>(null)
-  const nullListName = "Personal"
   const [open, setOpen] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -111,7 +111,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
               <DropdownMenu.Separator className="h-px bg-gray-700" />
 
               <DropdownMenu.Item onSelect={() => handleValueChange(null)} className="flex justify-between items-baseline px-2 py-1 hover:bg-gray-800">
-                <span>{nullListName} (Default)</span>
+                <span>{nullListName}</span>
                 <button
                   type="button"
                   onClick={e => {
@@ -165,7 +165,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
           >
             <h2 className="text-lg font-semibold mb-3">Configure List</h2>
             <p className="text-sm text-gray-400 mb-4">
-              Managing: <strong>{openConfigFor ? lists.find(l => l.id === openConfigFor)?.name : "Personal (Default)"}</strong>
+              Managing: <strong>{openConfigFor ? lists.find(l => l.id === openConfigFor)?.name : nullListName}</strong>
             </p>
 
             <div className="space-y-2">
