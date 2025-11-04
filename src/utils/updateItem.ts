@@ -1,7 +1,7 @@
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import { uploadImage } from "./uploadImage"
-import { LocalItem } from "@/components/ItemManager"
+import { Item, LocalItem } from "@/components/ItemManager"
 import { deleteImage } from "./deleteImage"
 
 interface updateItemParams {
@@ -15,7 +15,7 @@ export const updateItem = async ({
   session,
   updates
 }: updateItemParams): Promise<
-  | { data: LocalItem; error: null }
+  | { data: Item; error: null }
   | {
       data: null
       error: string
@@ -55,9 +55,7 @@ export const updateItem = async ({
 
   return {
     data: {
-      ...data,
-      //////TODO potentially create new signedUrl immediately?
-      signedUrl: item.signedUrl
+      ...data
     },
     error: null
   }

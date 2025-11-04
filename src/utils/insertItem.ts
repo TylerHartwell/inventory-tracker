@@ -1,12 +1,12 @@
 import { Session } from "@supabase/supabase-js"
 import { uploadImage } from "./uploadImage"
 import { supabase } from "@/supabase-client"
-import { LocalItem } from "@/components/ItemManager"
+import { Item } from "@/components/ItemManager"
 
 interface InsertItemParams {
   session: Session
-  itemName: LocalItem["item_name"]
-  extraDetails?: LocalItem["extra_details"]
+  itemName: Item["item_name"]
+  extraDetails?: Item["extra_details"]
   itemImage?: File | null
   selectedList: string | null
 }
@@ -18,7 +18,7 @@ export const insertItem = async ({
   itemImage,
   selectedList
 }: InsertItemParams): Promise<
-  | { data: LocalItem; error: null }
+  | { data: Item; error: null }
   | {
       data: null
       error: string
@@ -55,16 +55,16 @@ export const insertItem = async ({
   }
 
   // Generate signed URL if image exists
-  let signedUrl: string | null = null
-  if (insertedItem.image_url) {
-    const { data, error } = await supabase.storage.from("images").createSignedUrl(insertedItem.image_url, 60 * 20)
+  // let signedUrl: string | null = null
+  // if (insertedItem.image_url) {
+  //   const { data, error } = await supabase.storage.from("images").createSignedUrl(insertedItem.image_url, 60 * 20)
 
-    if (error) {
-      return { data: null, error: error.message }
-    }
+  //   if (error) {
+  //     return { data: null, error: error.message }
+  //   }
 
-    signedUrl = data.signedUrl
-  }
+  //   signedUrl = data.signedUrl
+  // }
 
-  return { data: { ...insertedItem, signedUrl }, error: null }
+  return { data: { ...insertedItem }, error: null }
 }
