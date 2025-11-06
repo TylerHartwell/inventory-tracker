@@ -2,7 +2,7 @@ import { UserLists } from "@/hooks/useUserLists"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { useState } from "react"
+import { ComponentRef, useEffect, useRef, useState } from "react"
 import { nullListName } from "./ItemManager"
 
 interface ListFilterProps {
@@ -16,7 +16,22 @@ interface ListFilterProps {
 
 export function ListFilter({ filteredListIds, onChange, selectedList, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
   const [open, setOpen] = useState(false)
+  const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
+
   const { lists, loading, error } = userLists
+
+  useEffect(() => {
+    if (!open) return
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (contentRef.current?.contains(target)) return
+      setOpen(false)
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [open])
 
   const handleToggle = (id: string | null) => {
     const isSelected = filteredListIds.includes(id)
@@ -56,8 +71,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          onPointerDownOutside={() => setOpen(false)}
-          onInteractOutside={() => setOpen(false)}
+          ref={contentRef}
           avoidCollisions={false}
           align="start"
           sideOffset={0}
