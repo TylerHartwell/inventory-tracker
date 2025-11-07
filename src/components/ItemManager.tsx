@@ -65,7 +65,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onItemInputListChange={handleItemInputListSelection}
         userLists={userLists}
       />
-      <div className="flex justify-center items-center gap-1">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(min-content,25%)] justify-center items-center gap-1">
         <ListFilter
           filteredListIds={filteredListIds}
           onChange={setFilteredListIds}

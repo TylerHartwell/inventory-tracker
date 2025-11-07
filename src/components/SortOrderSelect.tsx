@@ -1,19 +1,51 @@
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
+import { ChevronDown } from "lucide-react"
+import { ComponentRef, useEffect, useRef, useState } from "react"
+
 interface SortOrderSelectProps {
   sortAsc: boolean
   onChange: (asc: boolean) => void
 }
 
 export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => {
+  const [open, setOpen] = useState(false)
+  const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (contentRef.current?.contains(target)) return
+      setOpen(false)
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [open])
+
   return (
-    <div className="flex items-center text-sm">
-      <select id="sortOrder" className="px-1 py-1 border rounded" value={sortAsc ? "asc" : "desc"} onChange={e => onChange(e.target.value === "asc")}>
-        <option value="desc" className="text-black">
-          Newest First
-        </option>
-        <option value="asc" className="text-black">
-          Oldest First
-        </option>
-      </select>
-    </div>
+    <DropdownMenu.Root open={open} modal={false} onOpenChange={setOpen}>
+      <DropdownMenu.Trigger className="border px-2 py-1  w-full h-full rounded flex justify-between items-center text-sm text-nowrap">
+        {sortAsc ? "Oldest First" : "Newest First"}
+        <ChevronDown className="w-5 h-5 text-gray-500" />
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          ref={contentRef}
+          align="start"
+          className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
+        >
+          <DropdownMenu.Item onSelect={() => onChange(false)} className="flex justify-between items-baseline px-2 py-1 hover:bg-gray-800">
+            Newest First
+          </DropdownMenu.Item>
+
+          <DropdownMenu.Item onSelect={() => onChange(true)} className="flex justify-between items-baseline px-2 py-1 hover:bg-gray-800">
+            Oldest First
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }

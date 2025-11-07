@@ -1,6 +1,6 @@
 import { UserLists } from "@/hooks/useUserLists"
 import { Session } from "@supabase/supabase-js"
-import { useEffect, useRef, useState } from "react"
+import { ComponentRef, useEffect, useRef, useState } from "react"
 import { ListInput } from "./ListInput"
 import { ChevronDown, ChevronUp, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
@@ -20,6 +20,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
   const [openConfigFor, setOpenConfigFor] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
 
+  const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -27,6 +28,19 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
       inputRef.current?.focus()
     }
   }, [isCreating])
+
+  useEffect(() => {
+    if (!open) return
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (contentRef.current?.contains(target)) return
+      setOpen(false)
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [open])
 
   const { lists, loading, error, fetchLists } = userLists
 
@@ -82,6 +96,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
             </DropdownMenu.Trigger>
 
             <DropdownMenu.Content
+              ref={contentRef}
               align="start"
               className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
             >
