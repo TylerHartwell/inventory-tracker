@@ -2,7 +2,7 @@ import { UserLists } from "@/hooks/useUserLists"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { ComponentRef, useEffect, useRef, useState } from "react"
+import { ComponentRef, useEffect, useRef, useState, MouseEvent } from "react"
 import { nullListName } from "./ItemManager"
 
 interface ListFilterProps {
@@ -41,7 +41,8 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
     onChange(nextLists.length === 0 ? [null] : nextLists)
   }
 
-  const handleFilterAll = () => {
+  const handleFilterAll = (e: MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.blur()
     const allIds = [null, ...lists.map(l => l.id)]
     const allFiltered = allIds.every(id => filteredListIds.includes(id))
 
