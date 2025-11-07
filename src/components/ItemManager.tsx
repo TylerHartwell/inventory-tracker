@@ -80,13 +80,9 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       <ul className="list-none p-0 relative">
         {loading &&
           (sortedItems.length === 0 ? (
-            <>
-              {console.log("Render: ItemCardsSkeleton")}
-              <ItemCardsSkeleton />
-            </>
+            <ItemCardsSkeleton />
           ) : (
             <>
-              {console.log("Render: LoadingSpinner")}
               <LoadingSpinner />
               {sortedItems.map((item, index) => (
                 <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />
@@ -96,13 +92,9 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
         {!loading &&
           (sortedItems.length === 0 ? (
-            <>
-              {console.log("Render: No Results")}
-              <div className="text-center">- No Results -</div>
-            </>
+            <div className="text-center">- No Results -</div>
           ) : (
             <>
-              {console.log("Render: ItemCards")}
               {sortedItems.map((item, index) => (
                 <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />
               ))}

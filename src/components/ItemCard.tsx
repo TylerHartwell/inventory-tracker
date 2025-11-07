@@ -126,10 +126,10 @@ export const ItemCard = memo(
             </div>
 
             <div className="flex justify-between">
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:bg-yellow-600" onClick={handleCancelEdit}>
+              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleCancelEdit}>
                 Cancel
               </button>
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:bg-yellow-600" onClick={handleUpdateItem}>
+              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleUpdateItem}>
                 Update
               </button>
             </div>
@@ -149,10 +149,10 @@ export const ItemCard = memo(
               </div>
             )}
             <div className="flex justify-between">
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:bg-yellow-600" onClick={() => setIsEditing(true)}>
+              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={() => setIsEditing(true)}>
                 <Pencil size={16} />
               </button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded hover-fine:bg-red-700" onClick={handleDeleteItem}>
+              <button className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleDeleteItem}>
                 <Trash2 size={16} />
               </button>
             </div>

@@ -91,7 +91,7 @@ export const ListInput = ({
           type="submit"
           disabled={loading || !newList.listName}
           className="px-1 text-sm bg-green-600 text-white rounded 
-         hover-fine:bg-green-700 
+         hover-fine:outline-1 active:outline-1 
          disabled:bg-gray-700 disabled:text-gray-400 
          disabled:cursor-not-allowed 
          transition-colors w-fit"
@@ -99,7 +99,12 @@ export const ListInput = ({
           Add
         </button>
 
-        <button type="button" onClick={clear} disabled={loading} className="px-1 text-sm bg-gray-600 text-white rounded hover-fine:bg-blue-700 w-fit">
+        <button
+          type="button"
+          onClick={clear}
+          disabled={loading}
+          className="px-1 text-sm bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit"
+        >
           Cancel
         </button>
       </div>

@@ -81,13 +81,13 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
           className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
         >
           <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
-            <label className="flex items-center gap-2 px-2 py-1 hover-fine:bg-gray-800 cursor-pointer">
+            <label className="flex items-center gap-2 px-2 py-1 hover-fine:outline-1 active:outline-1 cursor-pointer">
               <input
                 type="checkbox"
                 name="default"
                 checked={filteredListIds.includes(null)}
                 onChange={() => handleToggle(null)}
-                className="w-4 h-4 accent-blue-500"
+                className="w-4 h-4 accent-blue-500 cursor-pointer"
               />
               <span className={selectedList === null ? "font-semibold underline" : ""}>{nullListName}</span>
             </label>
@@ -100,13 +100,13 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
           ) : (
             lists.map(list => (
               <DropdownMenu.Item asChild key={list.id} onSelect={e => e.preventDefault()}>
-                <label className="flex items-center gap-2 px-2 py-1 hover-fine:bg-gray-800 cursor-pointer">
+                <label className="flex items-center gap-2 px-2 py-1 hover-fine:outline-1 active:outline-1 cursor-pointer">
                   <input
                     type="checkbox"
                     name={list.id}
                     checked={filteredListIds.includes(list.id)}
                     onChange={() => handleToggle(list.id)}
-                    className="w-4 h-4 accent-blue-500"
+                    className="w-4 h-4 accent-blue-500 cursor-pointer"
                   />
                   <span className={list.id === selectedList ? "font-semibold underline" : ""}>{list.name}</span>
                 </label>
@@ -118,7 +118,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
             <button
               type="button"
               onClick={handleFilterAll}
-              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:bg-gray-100 active:bg-gray-100 bg-black text-white"
+              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:outline-1 active:outline-1 active:outline-1 bg-black text-white"
             >
               {(() => {
                 const allIds = [null, ...lists.map(l => l.id)]
@@ -131,15 +131,15 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
                 id="follow-input-list"
                 checked={followInputList}
                 onClick={onToggleFollowInputList}
-                className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500  flex justify-between"
+                className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500  flex justify-between cursor-pointer"
               >
                 <Switch.Thumb
                   className="h-full aspect-square inline-block rounded-full bg-white transition-transform duration-300 ease-in-out
-        translate-x-0 data-[state=checked]:translate-x-5"
+        translate-x-0 data-[state=checked]:translate-x-5 "
                 />
                 <span
                   className="text-[8px] grow flex items-center justify-center transition-transform duration-300 ease-in-out
-        translate-x-0 group-data-[state=checked]:-translate-x-4"
+        translate-x-0 group-data-[state=checked]:-translate-x-4 "
                 >
                   {followInputList ? "ON" : "OFF"}
                 </span>

@@ -117,7 +117,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                     e.preventDefault()
                     setIsCreating(true)
                   }}
-                  className="flex justify-between items-baseline font-bold px-2 py-1 hover-fine:bg-gray-800"
+                  className="flex justify-between items-baseline font-bold px-2 py-1 hover-fine:outline-1 active:outline-1"
                 >
                   + Create New List
                 </DropdownMenu.Item>
@@ -127,7 +127,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
 
               <DropdownMenu.Item
                 onSelect={() => handleValueChange(null)}
-                className="flex justify-between items-baseline px-2 py-1 hover-fine:bg-gray-800"
+                className="flex justify-between items-baseline px-2 py-1 hover-fine:outline-1 active:outline-1"
               >
                 <span>{nullListName}</span>
                 <button
@@ -139,7 +139,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                     handleValueChange(null)
                     setOpenConfigFor(null)
                   }}
-                  className="py-1 hover-fine:text-blue-400 px-2 flex justify-end"
+                  className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
                 >
                   <Settings size={14} />
                 </button>
@@ -149,7 +149,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                 <DropdownMenu.Item
                   key={list.id}
                   onSelect={() => handleValueChange(list.id)}
-                  className="flex justify-between items-center px-2 py-1 hover-fine:bg-gray-800"
+                  className="flex justify-between items-center px-2 py-1 hover-fine:outline-1 active:outline-1"
                 >
                   <span>{list.name}</span>
                   <button
@@ -161,7 +161,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                       handleValueChange(list.id)
                       setOpenConfigFor(list.id)
                     }}
-                    className="py-1 hover-fine:text-blue-400 px-2 flex justify-end"
+                    className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
                   >
                     <Settings size={14} />
                   </button>
@@ -187,17 +187,17 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
             </p>
 
             <div className="space-y-2">
-              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:bg-gray-700">
+              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
                 ✏️ Edit Name
               </button>
-              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:bg-gray-700">
+              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
                 👥 Manage Users
               </button>
               {openConfigFor !== "personal" && (
                 <button
                   type="button"
                   onClick={() => handleDelete(openConfigFor)}
-                  className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:bg-red-600"
+                  className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
                 >
                   🗑️ Delete List
                 </button>
@@ -205,7 +205,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
             </div>
 
             <div className="flex justify-end mt-4">
-              <button type="button" className="text-sm text-gray-400 hover-fine:text-white" onClick={() => setOpenConfigFor(null)}>
+              <button type="button" className="text-sm text-gray-400 hover-fine:outline-1 active:outline-1" onClick={() => setOpenConfigFor(null)}>
                 Close
               </button>
             </div>

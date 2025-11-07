@@ -93,7 +93,7 @@ export const Auth = () => {
         <div className="flex gap-2">
           <button
             type="submit" // Default when pressing Enter
-            className="flex-1 py-2 bg-blue-600 text-white rounded hover-fine:bg-blue-700 disabled:opacity-50"
+            className="flex-1 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
             disabled={loading}
           >
             Sign In
@@ -101,7 +101,7 @@ export const Auth = () => {
           <button
             type="button"
             onClick={() => handleAuth("signUp")}
-            className="flex-1 py-2 bg-green-600 text-white rounded hover-fine:bg-green-700 disabled:opacity-50"
+            className="flex-1 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
             disabled={loading}
           >
             Sign Up
