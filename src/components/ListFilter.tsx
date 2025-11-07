@@ -2,7 +2,7 @@ import { UserLists } from "@/hooks/useUserLists"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { ComponentRef, useEffect, useRef, useState, MouseEvent } from "react"
+import { ComponentRef, useEffect, useRef, useState } from "react"
 import { nullListName } from "./ItemManager"
 
 interface ListFilterProps {
@@ -41,8 +41,9 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
     onChange(nextLists.length === 0 ? [null] : nextLists)
   }
 
-  const handleFilterAll = (e: MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.blur()
+  const handleFilterAll = () => {
+    // e: MouseEvent<HTMLButtonElement>
+    // e.currentTarget.blur()
     const allIds = [null, ...lists.map(l => l.id)]
     const allFiltered = allIds.every(id => filteredListIds.includes(id))
 
@@ -117,12 +118,12 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
             <button
               type="button"
               onClick={handleFilterAll}
-              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover:bg-gray-100 bg-black text-white"
+              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:bg-gray-100 bg-black text-white"
             >
               {(() => {
                 const allIds = [null, ...lists.map(l => l.id)]
                 const allFiltered = allIds.length > 0 && allIds.every(id => filteredListIds.includes(id))
-                return allFiltered ? "Clear All" : "Include All"
+                return allFiltered ? "Default Only" : "Include All"
               })()}
             </button>
             <label className="flex gap-1 flex-wrap items-center justify-center cursor-pointer">
