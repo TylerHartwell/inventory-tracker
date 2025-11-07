@@ -2,7 +2,7 @@ import { Session } from "@supabase/supabase-js"
 import { ItemInput } from "./ItemInput"
 import { ItemCard } from "./ItemCard"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
@@ -26,6 +26,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [filteredListIds, setFilteredListIds] = useState<(string | null)[]>([null])
   const [selectedList, setSelectedList] = useState<string | null>(null)
   const [followInputList, setFollowInputList] = useState(true)
+  const [showScrollTop, setShowScrollTop] = useState(false)
 
   const userLists = useUserLists(session.user.id)
 
@@ -54,10 +55,22 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     }
   }
 
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 10)
+    }
+
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
       <Header userEmail={session.user.email ?? ""} onLogout={onLogout} />
-
       <ItemInput
         session={session}
         refresh={refresh}
@@ -76,7 +89,6 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
-
       <ul className="list-none p-0 relative">
         {loading &&
           (sortedItems.length === 0 ? (
@@ -89,7 +101,6 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
               ))}
             </>
           ))}
-
         {!loading &&
           (sortedItems.length === 0 ? (
             <div className="text-center">- No Results -</div>
@@ -100,7 +111,16 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
               ))}
             </>
           ))}
+        {sortedItems.length !== 0 && <div className="h-10  flex items-center justify-center">- End of Results -</div>}
       </ul>
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-2 right-4 w-10 h-10 rounded-full shadow-lg border bg-white cursor-pointer text-black transition"
+        >
+          ↑
+        </button>
+      )}
     </div>
   )
 }

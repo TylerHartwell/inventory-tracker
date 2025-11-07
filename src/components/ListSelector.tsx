@@ -44,24 +44,24 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
 
   const { lists, loading, error, fetchLists } = userLists
 
-  const handleValueChange = (selectedValue: string | null) => {
+  const handleItemInputListChange = (selectedValue: string | null) => {
     setIsCreating(false)
     onItemInputListChange(selectedValue)
   }
 
   const handleListCreated = async (newListId: string) => {
-    handleValueChange(newListId)
+    handleItemInputListChange(newListId)
     fetchLists()
   }
 
   const handleDelete = async (listId: string) => {
+    if (!confirm("Delete this list and all its items?")) return
     const { error } = await deleteList({ listId, session })
     if (error) {
       console.error(error)
       return
     }
-    alert("List deleted successfully!")
-    handleValueChange(null)
+    handleItemInputListChange(null)
     setOpenConfigFor(null)
     fetchLists()
   }
@@ -126,7 +126,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
               <DropdownMenu.Separator className="h-px bg-gray-700" />
 
               <DropdownMenu.Item
-                onSelect={() => handleValueChange(null)}
+                onSelect={() => handleItemInputListChange(null)}
                 className="flex justify-between items-baseline px-2 py-1 hover-fine:outline-1 active:outline-1"
               >
                 <span>{nullListName}</span>
@@ -136,7 +136,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                     e.preventDefault()
                     e.stopPropagation()
                     setOpen(false)
-                    handleValueChange(null)
+                    handleItemInputListChange(null)
                     setOpenConfigFor(null)
                   }}
                   className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
@@ -148,7 +148,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
               {lists.map(list => (
                 <DropdownMenu.Item
                   key={list.id}
-                  onSelect={() => handleValueChange(list.id)}
+                  onSelect={() => handleItemInputListChange(list.id)}
                   className="flex justify-between items-center px-2 py-1 hover-fine:outline-1 active:outline-1"
                 >
                   <span>{list.name}</span>
@@ -156,9 +156,9 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                     type="button"
                     onClick={e => {
                       e.preventDefault()
-                      e.stopPropagation() // Prevent the menu item select
+                      e.stopPropagation()
                       setOpen(false)
-                      handleValueChange(list.id)
+                      handleItemInputListChange(list.id)
                       setOpenConfigFor(list.id)
                     }}
                     className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
@@ -173,14 +173,8 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
       </div>
 
       {openConfigFor && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black/70 z-50"
-          onClick={() => setOpenConfigFor(null)} // click outside closes modal
-        >
-          <div
-            className="bg-gray-900 text-white rounded-lg p-4 w-80"
-            onClick={e => e.stopPropagation()} // prevent modal click from closing
-          >
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50" onClick={() => setOpenConfigFor(null)}>
+          <div className="bg-gray-900 text-white rounded-lg p-4 w-80" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-3">Configure List</h2>
             <p className="text-sm text-gray-400 mb-4">
               Managing: <strong>{openConfigFor ? lists.find(l => l.id === openConfigFor)?.name : nullListName}</strong>
