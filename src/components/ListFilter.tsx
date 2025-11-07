@@ -81,7 +81,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
           className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
         >
           <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
-            <label className="flex items-center gap-2 px-2 py-1 hover:bg-gray-800 cursor-pointer">
+            <label className="flex items-center gap-2 px-2 py-1 hover-fine:bg-gray-800 cursor-pointer">
               <input
                 type="checkbox"
                 name="default"
@@ -100,7 +100,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
           ) : (
             lists.map(list => (
               <DropdownMenu.Item asChild key={list.id} onSelect={e => e.preventDefault()}>
-                <label className="flex items-center gap-2 px-2 py-1 hover:bg-gray-800 cursor-pointer">
+                <label className="flex items-center gap-2 px-2 py-1 hover-fine:bg-gray-800 cursor-pointer">
                   <input
                     type="checkbox"
                     name={list.id}
@@ -118,7 +118,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
             <button
               type="button"
               onClick={handleFilterAll}
-              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:bg-gray-100 bg-black text-white"
+              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:bg-gray-100 active:bg-gray-100 bg-black text-white"
             >
               {(() => {
                 const allIds = [null, ...lists.map(l => l.id)]

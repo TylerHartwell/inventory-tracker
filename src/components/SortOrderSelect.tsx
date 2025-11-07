@@ -37,11 +37,11 @@ export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => 
           align="start"
           className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
         >
-          <DropdownMenu.Item onSelect={() => onChange(false)} className="flex justify-between items-baseline px-2 py-1 hover:bg-gray-800">
+          <DropdownMenu.Item onSelect={() => onChange(false)} className="flex justify-between items-baseline px-2 py-1 hover-fine:bg-gray-800">
             Newest First
           </DropdownMenu.Item>
 
-          <DropdownMenu.Item onSelect={() => onChange(true)} className="flex justify-between items-baseline px-2 py-1 hover:bg-gray-800">
+          <DropdownMenu.Item onSelect={() => onChange(true)} className="flex justify-between items-baseline px-2 py-1 hover-fine:bg-gray-800">
             Oldest First
           </DropdownMenu.Item>
         </DropdownMenu.Content>

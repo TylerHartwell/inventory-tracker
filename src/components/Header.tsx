@@ -9,7 +9,7 @@ export const Header = ({ userEmail, onLogout }: HeaderProps) => {
       <h2 className="hidden 2xs:block font-semibold grow-1">Inventory Tracker</h2>
       <span className="flex items-baseline justify-between gap-4 ">
         <span>{userEmail}</span>
-        <button onClick={onLogout} className="rounded-lg bg-red-500 px-2 py-1 text-sm text-white hover:bg-red-600 transition-colors">
+        <button onClick={onLogout} className="rounded-lg bg-red-500 px-2 py-1 text-sm text-white hover-fine:bg-red-600 transition-colors">
           Log Out
         </button>
       </span>

@@ -91,10 +91,15 @@ export const ItemInput = ({
       <ImageSelector handleLocalImage={handleLocalImage} key={resetId} />
 
       <div className="flex justify-between">
-        <button type="button" onClick={handleSubmit} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700 w-fit">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading}
+          className="px-4 py-2 bg-green-600 text-white rounded hover-fine:bg-blue-700 w-fit"
+        >
           Add Item
         </button>
-        <button type="button" onClick={clear} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700 w-fit">
+        <button type="button" onClick={clear} disabled={loading} className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:bg-blue-700 w-fit">
           Clear
         </button>
       </div>
