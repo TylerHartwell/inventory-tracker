@@ -6,18 +6,20 @@ import { ChevronDown, ChevronUp, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { deleteList } from "@/utils/deleteList"
 import { nullListName } from "./ItemManager"
+import ListConfigModal from "./ListConfigModal"
 
 interface ListSelectorProps {
   selectedList: string | null
   onItemInputListChange: (listId: string | null) => void
-
   session: Session
   userLists: UserLists
+  refresh: () => Promise<void>
 }
 
-export function ListSelector({ selectedList, onItemInputListChange, session, userLists }: ListSelectorProps) {
+export function ListSelector({ selectedList, onItemInputListChange, session, userLists, refresh }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
-  const [openConfigFor, setOpenConfigFor] = useState<string | null>(null)
+  const [configId, setConfigId] = useState<string | null>(null)
+  const [isConfigOpen, setIsConfigOpen] = useState(false)
   const [open, setOpen] = useState(false)
 
   const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
@@ -62,7 +64,8 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
       return
     }
     handleItemInputListChange(null)
-    setOpenConfigFor(null)
+    setConfigId(null)
+    setIsConfigOpen(false)
     fetchLists()
   }
 
@@ -117,7 +120,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                     e.preventDefault()
                     setIsCreating(true)
                   }}
-                  className="flex justify-between items-baseline font-bold px-2 py-1 hover-fine:outline-1 active:outline-1"
+                  className="flex justify-between items-baseline font-bold px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
                 >
                   + Create New List
                 </DropdownMenu.Item>
@@ -127,29 +130,30 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
 
               <DropdownMenu.Item
                 onSelect={() => handleItemInputListChange(null)}
-                className="flex justify-between items-baseline px-2 py-1 hover-fine:outline-1 active:outline-1"
+                className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
               >
                 <span>{nullListName}</span>
-                <button
+                {/* <button
                   type="button"
                   onClick={e => {
                     e.preventDefault()
                     e.stopPropagation()
                     setOpen(false)
                     handleItemInputListChange(null)
-                    setOpenConfigFor(null)
+                    setConfigId(null)
+                    setIsConfigOpen(true)
                   }}
                   className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
                 >
                   <Settings size={14} />
-                </button>
+                </button> */}
               </DropdownMenu.Item>
 
               {lists.map(list => (
                 <DropdownMenu.Item
                   key={list.id}
                   onSelect={() => handleItemInputListChange(list.id)}
-                  className="flex justify-between items-center px-2 py-1 hover-fine:outline-1 active:outline-1"
+                  className="flex justify-between items-center px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
                 >
                   <span>{list.name}</span>
                   <button
@@ -159,7 +163,8 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                       e.stopPropagation()
                       setOpen(false)
                       handleItemInputListChange(list.id)
-                      setOpenConfigFor(list.id)
+                      setConfigId(list.id)
+                      setIsConfigOpen(true)
                     }}
                     className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
                   >
@@ -172,39 +177,51 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
         )}
       </div>
 
-      {openConfigFor && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50" onClick={() => setOpenConfigFor(null)}>
-          <div className="bg-gray-900 text-white rounded-lg p-4 w-80" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold mb-3">Configure List</h2>
-            <p className="text-sm text-gray-400 mb-4">
-              Managing: <strong>{openConfigFor ? lists.find(l => l.id === openConfigFor)?.name : nullListName}</strong>
-            </p>
+      {isConfigOpen && configId !== null && (
+        <ListConfigModal
+          setIsConfigOpen={setIsConfigOpen}
+          configId={configId}
+          lists={lists}
+          session={session}
+          handleDelete={handleDelete}
+          nullListName={nullListName}
+          refresh={refresh}
+        />
+        // <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50" onClick={() => setIsConfigOpen(false)}>
+        //   <div className="bg-gray-900 text-white rounded-lg p-4 w-80" onClick={e => e.stopPropagation()}>
+        //     <h2 className="text-lg font-semibold mb-3">Configure List</h2>
+        //     <p className="text-sm text-gray-400 mb-4">
+        //       Managing: <strong>{configId ? lists.find(l => l.id === configId)?.name : nullListName}</strong>
+        //     </p>
 
-            <div className="space-y-2">
-              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
-                ✏️ Edit Name
-              </button>
-              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
-                👥 Manage Users
-              </button>
-              {openConfigFor !== "personal" && (
-                <button
-                  type="button"
-                  onClick={() => handleDelete(openConfigFor)}
-                  className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
-                >
-                  🗑️ Delete List
-                </button>
-              )}
-            </div>
+        //     <div className="space-y-2">
+        //       <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
+        //         ✏️ Edit Name
+        //       </button>
 
-            <div className="flex justify-end mt-4">
-              <button type="button" className="text-sm text-gray-400 hover-fine:outline-1 active:outline-1" onClick={() => setOpenConfigFor(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        //       {configId !== null && (
+        //         <>
+        //           <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
+        //             👥 Manage Users
+        //           </button>
+        //           <button
+        //             type="button"
+        //             onClick={() => handleDelete(configId)}
+        //             className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+        //           >
+        //             🗑️ Delete List
+        //           </button>
+        //         </>
+        //       )}
+        //     </div>
+
+        //     <div className="flex justify-end mt-4">
+        //       <button type="button" className="text-sm text-gray-400 hover-fine:outline-1 active:outline-1" onClick={() => setIsConfigOpen(false)}>
+        //         Close
+        //       </button>
+        //     </div>
+        //   </div>
+        // </div>
       )}
     </div>
   )

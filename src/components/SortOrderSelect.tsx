@@ -39,14 +39,14 @@ export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => 
         >
           <DropdownMenu.Item
             onSelect={() => onChange(false)}
-            className="flex justify-between items-baseline px-2 py-1 hover-fine:outline-1 active:outline-1"
+            className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
           >
             Newest First
           </DropdownMenu.Item>
 
           <DropdownMenu.Item
             onSelect={() => onChange(true)}
-            className="flex justify-between items-baseline px-2 py-1 hover-fine:outline-1 active:outline-1"
+            className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
           >
             Oldest First
           </DropdownMenu.Item>

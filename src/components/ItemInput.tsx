@@ -70,7 +70,13 @@ export const ItemInput = ({
 
   return (
     <div className="flex flex-col gap-2 p-2 relative border-2">
-      <ListSelector selectedList={selectedList} onItemInputListChange={onItemInputListChange} session={session} userLists={userLists} />
+      <ListSelector
+        selectedList={selectedList}
+        onItemInputListChange={onItemInputListChange}
+        session={session}
+        userLists={userLists}
+        refresh={refresh}
+      />
       <input
         type="text"
         placeholder="Item Name"
