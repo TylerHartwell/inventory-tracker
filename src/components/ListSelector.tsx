@@ -186,6 +186,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
           handleDelete={handleDelete}
           nullListName={nullListName}
           refresh={refresh}
+          fetchLists={fetchLists}
         />
         // <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50" onClick={() => setIsConfigOpen(false)}>
         //   <div className="bg-gray-900 text-white rounded-lg p-4 w-80" onClick={e => e.stopPropagation()}>

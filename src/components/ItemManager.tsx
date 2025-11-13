@@ -23,15 +23,26 @@ export type LocalItem = Item & {
 export const nullListName = "Personal"
 
 function ItemManager({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
-  const [filteredListIds, setFilteredListIds] = useState<(string | null)[]>([null])
-  const [selectedList, setSelectedList] = useState<string | null>(null)
-  const [followInputList, setFollowInputList] = useState(true)
+  const [filteredListIds, setFilteredListIds] = useState<(string | null)[]>(() => {
+    const saved = sessionStorage.getItem("filteredListIds")
+    return saved ? JSON.parse(saved) : [null]
+  })
+  const [selectedList, setSelectedList] = useState<string | null>(() => {
+    const saved = sessionStorage.getItem("selectedList")
+    return saved ? JSON.parse(saved) : null
+  })
+  const [followInputList, setFollowInputList] = useState<boolean>(() => {
+    const saved = sessionStorage.getItem("followInputList")
+    return saved ? JSON.parse(saved) : true
+  })
+  const [sortAsc, setSortAsc] = useState<boolean>(() => {
+    const saved = sessionStorage.getItem("sortAsc")
+    return saved ? JSON.parse(saved) : false
+  })
   const [showScrollTop, setShowScrollTop] = useState(false)
-
   const userLists = useUserLists(session.user.id)
 
   const { items, loading, refresh } = useItemsRealtime(session, filteredListIds)
-  const [sortAsc, setSortAsc] = useState(false)
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
@@ -55,6 +66,10 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     }
   }
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   useEffect(() => {
     const onScroll = () => {
       setShowScrollTop(window.scrollY > 10)
@@ -64,9 +79,25 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+  useEffect(() => {
+    sessionStorage.setItem("filteredListIds", JSON.stringify(filteredListIds))
+  }, [filteredListIds])
+
+  useEffect(() => {
+    sessionStorage.setItem("selectedList", JSON.stringify(selectedList))
+  }, [selectedList])
+
+  useEffect(() => {
+    sessionStorage.setItem("followInputList", JSON.stringify(followInputList))
+  }, [followInputList])
+
+  useEffect(() => {
+    sessionStorage.setItem("sortAsc", JSON.stringify(sortAsc))
+  }, [sortAsc])
+
+  useEffect(() => {
+    sessionStorage.clear()
+  }, [session.user.id])
 
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">

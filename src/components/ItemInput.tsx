@@ -56,16 +56,21 @@ export const ItemInput = ({
     setLoading(true)
 
     try {
-      await insertItem({ session, itemName, extraDetails, itemImage, selectedList })
+      const { error } = await insertItem({ session, itemName, extraDetails, itemImage, selectedList })
+      if (error) {
+        console.error("Insert item error:", error)
+        setLoading(false)
+        alert(`Failed to insert item: ${error || "An error occurred."}`)
+        return
+      }
       await refresh()
+      clear()
     } catch (err) {
-      console.error("Failed to insert item:", err)
-      return
+      console.error("Unexpected error inserting item:", err)
+      alert("Something went wrong while inserting the item.")
     } finally {
       setLoading(false)
     }
-
-    clear()
   }
 
   return (

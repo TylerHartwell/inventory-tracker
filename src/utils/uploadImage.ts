@@ -20,7 +20,7 @@ export const uploadImage = async ({ session, file }: UploadImageParams) => {
   const { error } = await supabase.storage.from("images").upload(filePath, file)
 
   if (error) {
-    return { data: null, error: `Unexpected error: ${error.message}` }
+    return { data: null, error: error.message }
   }
 
   return { data: filePath, error: null }

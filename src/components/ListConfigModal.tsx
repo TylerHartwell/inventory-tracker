@@ -10,7 +10,8 @@ function ListConfigModal({
   session,
   handleDelete,
   nullListName,
-  refresh
+  refresh,
+  fetchLists
 }: {
   setIsConfigOpen: (v: boolean) => void
   configId: string
@@ -19,6 +20,7 @@ function ListConfigModal({
   handleDelete: (id: string) => void
   nullListName: string
   refresh: () => Promise<void>
+  fetchLists: () => Promise<void>
 }) {
   const [isEditingName, setIsEditingName] = useState(false)
   const [newName, setNewName] = useState("")
@@ -38,10 +40,18 @@ function ListConfigModal({
 
     setIsEditingName(false)
     refresh()
+    fetchLists()
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50" onClick={() => setIsConfigOpen(false)}>
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/70 z-50"
+      onPointerDown={e => {
+        if (e.target === e.currentTarget) {
+          setIsConfigOpen(false)
+        }
+      }}
+    >
       <div className="bg-gray-900 text-white rounded-lg p-4 w-80" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-semibold mb-3">Configure List</h2>
         <p className="text-sm text-gray-400 mb-4">
