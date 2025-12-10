@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.list_users (
     list_id uuid NOT NULL REFERENCES public.lists(id) ON DELETE CASCADE,
     user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     role text NOT NULL CHECK (role = ANY (ARRAY['owner','editor','viewer'])),
+    cached_display_name text NOT NULL DEFAULT '',
     UNIQUE (list_id, user_id)
 );
 

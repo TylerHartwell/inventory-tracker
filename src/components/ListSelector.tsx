@@ -133,20 +133,6 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                 className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
               >
                 <span>{nullListName}</span>
-                {/* <button
-                  type="button"
-                  onClick={e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setOpen(false)
-                    handleItemInputListChange(null)
-                    setConfigId(null)
-                    setIsConfigOpen(true)
-                  }}
-                  className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
-                >
-                  <Settings size={14} />
-                </button> */}
               </DropdownMenu.Item>
 
               {lists.map(list => (
@@ -188,41 +174,6 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
           refresh={refresh}
           fetchLists={fetchLists}
         />
-        // <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50" onClick={() => setIsConfigOpen(false)}>
-        //   <div className="bg-gray-900 text-white rounded-lg p-4 w-80" onClick={e => e.stopPropagation()}>
-        //     <h2 className="text-lg font-semibold mb-3">Configure List</h2>
-        //     <p className="text-sm text-gray-400 mb-4">
-        //       Managing: <strong>{configId ? lists.find(l => l.id === configId)?.name : nullListName}</strong>
-        //     </p>
-
-        //     <div className="space-y-2">
-        //       <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
-        //         ✏️ Edit Name
-        //       </button>
-
-        //       {configId !== null && (
-        //         <>
-        //           <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
-        //             👥 Manage Users
-        //           </button>
-        //           <button
-        //             type="button"
-        //             onClick={() => handleDelete(configId)}
-        //             className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
-        //           >
-        //             🗑️ Delete List
-        //           </button>
-        //         </>
-        //       )}
-        //     </div>
-
-        //     <div className="flex justify-end mt-4">
-        //       <button type="button" className="text-sm text-gray-400 hover-fine:outline-1 active:outline-1" onClick={() => setIsConfigOpen(false)}>
-        //         Close
-        //       </button>
-        //     </div>
-        //   </div>
-        // </div>
       )}
     </div>
   )

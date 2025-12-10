@@ -78,20 +78,64 @@ export type Database = {
           },
         ]
       }
+      list_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          list_id: string
+          role: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          list_id: string
+          role: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          list_id?: string
+          role?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "list_invites_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       list_users: {
         Row: {
+          cached_display_name: string
           id: string
           list_id: string
           role: string
           user_id: string
         }
         Insert: {
+          cached_display_name: string
           id?: string
           list_id: string
           role: string
           user_id: string
         }
         Update: {
+          cached_display_name?: string
           id?: string
           list_id?: string
           role?: string
@@ -130,13 +174,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      list_members: {
+        Row: {
+          display_name: string | null
+          email: string | null
+          list_id: string | null
+          pending: boolean | null
+          role: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      fn_user_is_owner_of_list: {
-        Args: { _list_id: string }
-        Returns: boolean
-      }
+      accept_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      decline_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      fn_user_is_owner_of_list: { Args: { _list_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

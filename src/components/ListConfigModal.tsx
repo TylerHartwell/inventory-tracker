@@ -2,6 +2,8 @@ import { useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import { updateList } from "@/utils/updateList"
 import { List } from "./ItemManager"
+import { MembersList } from "./MembersList"
+import { insertListInvite } from "@/utils/insertListInvite"
 
 function ListConfigModal({
   setIsConfigOpen,
@@ -23,7 +25,10 @@ function ListConfigModal({
   fetchLists: () => Promise<void>
 }) {
   const [isEditingName, setIsEditingName] = useState(false)
+  const [isManagingUsers, setIsManagingUsers] = useState(false)
   const [newName, setNewName] = useState("")
+  const [newUserEmail, setNewUserEmail] = useState("")
+  const [membersKey, setMembersKey] = useState(0)
   const currentList = lists.find(l => l.id === configId)
 
   const handleUpdateName = async () => {
@@ -41,6 +46,22 @@ function ListConfigModal({
     setIsEditingName(false)
     refresh()
     fetchLists()
+  }
+
+  const handleInvite = async (newRole: "editor" | "viewer") => {
+    if (!newUserEmail || !currentList) return
+    const { error } = await insertListInvite({
+      listId: currentList.id,
+      session,
+      email: newUserEmail,
+      role: newRole
+    })
+    if (error) {
+      console.error(error)
+      return
+    }
+    setNewUserEmail("")
+    setMembersKey(k => k + 1)
   }
 
   return (
@@ -94,9 +115,40 @@ function ListConfigModal({
 
           {configId !== null && (
             <>
-              <button type="button" className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1">
-                👥 Manage Users
-              </button>
+              {!isManagingUsers ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsManagingUsers(true)
+                  }}
+                  className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+                >
+                  👥 Manage Users
+                </button>
+              ) : (
+                <div className="flex flex-col gap-4 w-full">
+                  {/* Invite form */}
+                  <div className="flex gap-2">
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder="Enter email"
+                      autoComplete="off"
+                      autoFocus
+                      value={newUserEmail}
+                      onChange={e => setNewUserEmail(e.target.value)}
+                      className="flex-1 border rounded px-2 py-1"
+                    />
+                    <button onClick={() => handleInvite("viewer")} className="bg-blue-500 text-white px-4 py-1 rounded">
+                      Invite
+                    </button>
+                  </div>
+
+                  {/* Members list */}
+                  <MembersList key={membersKey} listId={configId} session={session} />
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => handleDelete(configId)}

@@ -14,6 +14,7 @@ import LoadingSpinner from "./LoadingSpinner"
 export type List = Database["public"]["Tables"]["lists"]["Row"]
 export type Item = Database["public"]["Tables"]["items"]["Row"]
 export type ListUser = Database["public"]["Tables"]["list_users"]["Row"]
+export type ListInvite = Database["public"]["Tables"]["list_invites"]["Row"]
 
 export type LocalItem = Item & {
   signedUrl: string | null
