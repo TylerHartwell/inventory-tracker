@@ -22,39 +22,18 @@ ALTER TABLE public.list_invites ENABLE ROW LEVEL SECURITY;
 -- 2. RLS Policies for list_invites
 -- ============================================
 
--- Owners can view invites
-CREATE POLICY "Owners can view invites"
+-- Owners or recipients can view invites
+CREATE POLICY "Owners or recipients can view invites"
 ON public.list_invites FOR SELECT TO authenticated
 USING (
   EXISTS (
     SELECT 1 FROM public.list_users
     WHERE list_id = list_invites.list_id
-      AND user_id = auth.uid()
+      AND user_id = (select auth.uid())
       AND role = 'owner'
   )
-);
-
--- Allow users to SELECT their invites
-CREATE POLICY "Users can select their own list invites"
-ON public.list_invites
-FOR SELECT TO authenticated
-USING (
-    email = auth.email()
-);
-
--- Users can update only the status of their own invite
-CREATE POLICY "Users can update their own list invite status safely"
-ON public.list_invites
-FOR UPDATE TO authenticated
-USING (
-    email = auth.email()  -- can only access their own invite
-)
-WITH CHECK (
-    email = auth.email()  -- ensure they are only updating their own
-    AND status IN ('accepted', 'declined')  -- only allow valid statuses
-    AND list_id = list_invites.list_id  -- cannot change the list
-    AND role = list_invites.role      -- cannot change the role
-    AND email = list_invites.email    -- cannot change the email
+  OR  
+  email = (select auth.email())
 );
 
 -- Owners can create invites
@@ -64,32 +43,47 @@ WITH CHECK (
   EXISTS (
     SELECT 1 FROM public.list_users
     WHERE list_id = list_invites.list_id
-      AND user_id = auth.uid()
+      AND user_id = (select auth.uid())
       AND role = 'owner'
   )
 );
 
--- Owners can update invites (including changing invite role)
-CREATE POLICY "Owners can update invites"
-ON public.list_invites FOR UPDATE TO authenticated
+-- Invites update (invitee status OR owner role)
+CREATE POLICY "Invites update (invitee status OR owner role)"
+ON public.list_invites
+FOR UPDATE
+TO authenticated
 USING (
-  -- Must be an owner of the list the invite belongs to
+  email = (select auth.email())
+  OR
   EXISTS (
     SELECT 1
     FROM public.list_users
     WHERE list_id = list_invites.list_id
-      AND user_id = auth.uid()
+      AND user_id = (select auth.uid())
       AND role = 'owner'
   )
 )
 WITH CHECK (
-  -- Updated row must still belong to a list where the user is owner
-  EXISTS (
-    SELECT 1
-    FROM public.list_users
-    WHERE list_id = list_invites.list_id
-      AND user_id = auth.uid()
-      AND role = 'owner'
+  (
+    email = (select auth.email())
+    AND status IN ('accepted', 'declined')
+    AND list_id = list_invites.list_id
+    AND email = list_invites.email
+    AND role = list_invites.role
+  )
+  OR
+  (
+    EXISTS (
+      SELECT 1
+      FROM public.list_users
+      WHERE list_id = list_invites.list_id
+        AND user_id = (select auth.uid())
+        AND role = 'owner'
+    )
+    AND email = list_invites.email
+    AND list_id = list_invites.list_id
+    AND status = list_invites.status
   )
 );
 
@@ -100,7 +94,7 @@ USING (
   EXISTS (
     SELECT 1 FROM public.list_users
     WHERE list_id = list_invites.list_id
-      AND user_id = auth.uid()
+      AND user_id = (select auth.uid())
       AND role = 'owner'
   )
 );

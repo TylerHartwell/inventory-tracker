@@ -221,7 +221,7 @@ WITH CHECK
       SELECT 1 FROM public.list_users lu
       WHERE lu.list_id = list_users.list_id
     )
-    AND user_id = auth.uid()
+    AND user_id = (select auth.uid())
     AND role = 'owner'
   )
 );
@@ -229,7 +229,7 @@ WITH CHECK
 CREATE POLICY "Owners or self can remove membership" 
 ON public.list_users FOR DELETE TO authenticated
 USING (
-  (user_id = auth.uid() AND role <> 'owner')
+  (user_id = (select auth.uid()) AND role <> 'owner')
   OR (
     public.fn_user_is_owner_of_list(list_users.list_id)
     AND role <> 'owner'
@@ -247,6 +247,6 @@ CREATE POLICY "Users and owners can view list memberships"
 ON public.list_users
 FOR SELECT TO authenticated
 USING (
-  user_id = auth.uid()
+  user_id = (select auth.uid())
   OR public.fn_user_is_owner_of_list(list_users.list_id)
 );
