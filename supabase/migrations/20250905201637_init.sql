@@ -59,6 +59,18 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.list_users;
 -- FUNCTIONS
 -- ============================================
 
+CREATE OR REPLACE FUNCTION public.fn_list_has_users(list_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.list_users
+    WHERE list_users.list_id = fn_list_has_users.list_id
+  );
+$$;
+
 -- Automatically add owner when a new list is created
 CREATE OR REPLACE FUNCTION public.tf_add_list_creator_as_owner()
 RETURNS trigger LANGUAGE plpgsql SET search_path = '' AS $$
@@ -181,7 +193,7 @@ USING (
 -- Lists
 CREATE POLICY "Users can create lists" 
 ON public.lists FOR INSERT TO authenticated
-WITH CHECK (owner_id = (SELECT auth.uid()));
+WITH CHECK (owner_id = auth.uid());
 
 CREATE POLICY "Users can view lists" 
 ON public.lists FOR SELECT TO authenticated
@@ -212,15 +224,11 @@ USING (EXISTS (
 -- List Users
 CREATE POLICY "Owners can add users" 
 ON public.list_users FOR INSERT TO authenticated
-WITH CHECK 
-(
+WITH CHECK (
   public.fn_user_is_owner_of_list(list_users.list_id)
   OR
-  (NOT EXISTS 
-    (
-      SELECT 1 FROM public.list_users lu
-      WHERE lu.list_id = list_users.list_id
-    )
+  (
+    NOT public.fn_list_has_users(list_users.list_id)
     AND user_id = (select auth.uid())
     AND role = 'owner'
   )
