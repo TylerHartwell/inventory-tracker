@@ -193,7 +193,7 @@ USING (
 -- Lists
 CREATE POLICY "Users can create lists" 
 ON public.lists FOR INSERT TO authenticated
-WITH CHECK (owner_id = auth.uid());
+WITH CHECK (owner_id = (SELECT auth.uid()));
 
 CREATE POLICY "Users can view lists" 
 ON public.lists FOR SELECT TO authenticated
