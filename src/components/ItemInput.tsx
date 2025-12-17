@@ -63,8 +63,8 @@ export const ItemInput = ({
         alert(`Failed to insert item: ${error || "An error occurred."}`)
         return
       }
-      await refresh()
       clear()
+      // await refresh()
     } catch (err) {
       console.error("Unexpected error inserting item:", err)
       alert("Something went wrong while inserting the item.")
@@ -106,9 +106,17 @@ export const ItemInput = ({
           type="button"
           onClick={handleSubmit}
           disabled={loading}
-          className="px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit"
+          className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit"
         >
-          Add Item
+          {/* Button label */}
+          <span className={loading ? "opacity-30" : ""}>Add Item</span>
+
+          {/* Loading overlay */}
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
         </button>
         <button
           type="button"
@@ -119,12 +127,6 @@ export const ItemInput = ({
           Clear
         </button>
       </div>
-
-      {loading && (
-        <div className="absolute flex items-center justify-center bottom-3 left-1/2 -translate-x-1/2">
-          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
     </div>
   )
 }

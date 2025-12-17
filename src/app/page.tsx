@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Auth } from "../components/auth"
-import ItemManager from "../components/ItemManager"
-import { supabase } from "../supabase-client"
+
+import ItemManager from "@/components/ItemManager"
+import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
+import Auth from "@/components/AuthForm"
 
 function Home() {
   const [session, setSession] = useState<Session | null>(null)

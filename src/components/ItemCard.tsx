@@ -79,7 +79,7 @@ export const ItemCard = memo(
       }> = {}
 
       if (editData.itemName.trim() !== item.item_name) updates.itemName = editData.itemName.trim()
-      if (editData.extraDetails && editData.extraDetails.trim() !== item.extra_details) updates.extraDetails = editData.extraDetails.trim()
+      if (editData.extraDetails !== null && editData.extraDetails.trim() !== item.extra_details) updates.extraDetails = editData.extraDetails.trim()
       if (editData.isImageRemoval) updates.itemImage = null
       if (editData.itemImage) updates.itemImage = editData.itemImage
 
@@ -110,12 +110,14 @@ export const ItemCard = memo(
           <>
             {/* Editing Mode */}
             <input
+              name="item-name"
               value={editData.itemName}
               onChange={e => setEditData(prev => ({ ...prev, itemName: e.target.value }))}
               placeholder="Item Name"
               className="w-full rounded text-base font-normal border border-gray-300"
             />
             <textarea
+              name="extra-details"
               value={editData.extraDetails ?? ""}
               onChange={e => setEditData(prev => ({ ...prev, extraDetails: e.target.value }))}
               placeholder="Extra Details"

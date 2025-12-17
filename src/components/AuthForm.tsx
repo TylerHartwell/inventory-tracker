@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react"
 import { supabase } from "../supabase-client"
 
-export const Auth = () => {
+const Auth = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -116,3 +116,5 @@ export const Auth = () => {
     </div>
   )
 }
+
+export default Auth
