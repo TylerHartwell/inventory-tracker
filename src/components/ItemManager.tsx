@@ -20,6 +20,9 @@ export type LocalItem = Item & {
   signedUrl: string | null
   listName: string
 }
+export type LocalListInvite = ListInvite & {
+  listName: string
+}
 
 export const nullListName = "Personal"
 

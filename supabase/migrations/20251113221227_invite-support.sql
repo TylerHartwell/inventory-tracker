@@ -154,6 +154,13 @@ END;
 $$;
 
 
+REVOKE ALL ON FUNCTION public.accept_invite(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.decline_invite(uuid) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.accept_invite(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.decline_invite(uuid) TO authenticated;
+
+
 -- ============================================
 -- 4. Views
 -- ============================================
