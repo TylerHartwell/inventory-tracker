@@ -12,8 +12,8 @@ const Auth = () => {
       setMessage({ type: "error", text: "Email and password are required." })
       return
     }
-    if (password.length < 6) {
-      setMessage({ type: "error", text: "Password must be at least 6 characters long." })
+    if (password.length < 8) {
+      setMessage({ type: "error", text: "Password must be at least 8 characters long." })
       return
     }
 
@@ -87,6 +87,7 @@ const Auth = () => {
             setPassword(e.target.value)
             setMessage(null)
           }}
+          autoComplete="current-password"
           className={inputClass}
         />
 
@@ -94,7 +95,7 @@ const Auth = () => {
           <button
             type="submit" // Default when pressing Enter
             className="flex-1 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
-            disabled={loading}
+            disabled={loading || !email || !password}
           >
             Sign In
           </button>
@@ -102,7 +103,7 @@ const Auth = () => {
             type="button"
             onClick={() => handleAuth("signUp")}
             className="flex-1 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
-            disabled={loading}
+            disabled={loading || !email || !password}
           >
             Sign Up
           </button>

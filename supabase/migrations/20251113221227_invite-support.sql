@@ -1,22 +1,91 @@
 -- ============================================
--- 1. Create list_invites table
+-- 1. Functions
 -- ============================================
-CREATE TABLE IF NOT EXISTS public.list_invites (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    list_id uuid NOT NULL REFERENCES public.lists(id) ON DELETE CASCADE,
-    email text NOT NULL,
-    role text NOT NULL CHECK (role = ANY (ARRAY['editor','viewer'])),
-    status text NOT NULL DEFAULT 'pending' CHECK (status = ANY (ARRAY['pending','accepted','declined'])),
-    accepted_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (list_id, email)
-);
+CREATE OR REPLACE FUNCTION public.fn_list_has_member_with_email(
+  _list_id uuid,
+  _email text
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.list_users lu
+    JOIN auth.users u ON u.id = lu.user_id
+    WHERE lu.list_id = _list_id
+      AND lower(u.email) = lower(_email)
+  );
+$$;
 
-CREATE INDEX IF NOT EXISTS idx_list_invites_list_id
-  ON public.list_invites(list_id);
+CREATE OR REPLACE FUNCTION public.accept_invite(p_invite_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+    invite_record public.list_invites%ROWTYPE;
+BEGIN
+    SELECT * INTO invite_record
+    FROM public.list_invites
+    WHERE id = p_invite_id
+      AND status = 'pending'
+      AND lower(email) = lower((SELECT email FROM auth.users WHERE id = auth.uid()))
+    FOR UPDATE;
 
--- Enable RLS
-ALTER TABLE public.list_invites ENABLE ROW LEVEL SECURITY;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invite not found or already accepted/declined';
+    END IF;
+
+    -- Add to list_users
+    INSERT INTO public.list_users(list_id, user_id, role)
+    VALUES (
+      invite_record.list_id, 
+      auth.uid(), 
+      invite_record.role
+    )
+    ON CONFLICT (list_id, user_id) DO NOTHING;
+
+    -- Update invite as accepted
+    UPDATE public.list_invites
+    SET status = 'accepted',
+        accepted_at = now()
+    WHERE id = p_invite_id;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.decline_invite(p_invite_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+    UPDATE public.list_invites
+    SET status = 'declined'
+    WHERE id = p_invite_id
+      AND status = 'pending'
+      AND lower(email) = lower((SELECT email FROM auth.users WHERE id = auth.uid()));
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Invite not found or already handled';
+    END IF;
+
+END;
+$$;
+
+
+REVOKE ALL ON FUNCTION public.accept_invite(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.decline_invite(uuid) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.accept_invite(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.decline_invite(uuid) TO authenticated;
+
 
 -- ============================================
 -- 2. RLS Policies for list_invites
@@ -40,11 +109,19 @@ USING (
 CREATE POLICY "Owners can create invites"
 ON public.list_invites FOR INSERT TO authenticated
 WITH CHECK (
-  EXISTS (
+    -- Cannot invite yourself
+  lower(email) <> lower((select auth.email()))
+    -- Must be an owner of the list
+  AND EXISTS (
     SELECT 1 FROM public.list_users
     WHERE list_id = list_invites.list_id
       AND user_id = (select auth.uid())
       AND role = 'owner'
+  )
+  -- Cannot invite someone already on the list
+  AND NOT public.fn_list_has_member_with_email(
+    list_invites.list_id,
+    list_invites.email
   )
 );
 
@@ -101,68 +178,7 @@ USING (
 
 
 -- ============================================
--- 3. Functions
--- ============================================
-CREATE OR REPLACE FUNCTION public.accept_invite(p_invite_id uuid)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, auth
-AS $$
-DECLARE
-    invite_record public.list_invites%ROWTYPE;
-BEGIN
-    SELECT * INTO invite_record
-    FROM public.list_invites
-    WHERE id = p_invite_id
-      AND status = 'pending'
-      AND lower(email) = lower((SELECT email FROM auth.users WHERE id = auth.uid()));
-
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Invite not found or already accepted/declined';
-    END IF;
-
-    -- Add to list_users
-    INSERT INTO public.list_users(list_id, user_id, role, cached_display_name)
-    VALUES (invite_record.list_id, auth.uid(), invite_record.role, (SELECT display_name FROM auth.users WHERE id = auth.uid()))
-    ON CONFLICT (list_id, user_id) DO NOTHING;
-
-    -- Update invite as accepted
-    UPDATE public.list_invites
-    SET status = 'accepted',
-        accepted_at = now()
-    WHERE id = p_invite_id;
-
-END;
-$$;
-
-
-CREATE OR REPLACE FUNCTION public.decline_invite(p_invite_id uuid)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, auth
-AS $$
-BEGIN
-    UPDATE public.list_invites
-    SET status = 'declined'
-    WHERE id = p_invite_id
-      AND status = 'pending'
-      AND lower(email) = lower((SELECT email FROM auth.users WHERE id = auth.uid()));
-
-END;
-$$;
-
-
-REVOKE ALL ON FUNCTION public.accept_invite(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.decline_invite(uuid) FROM PUBLIC;
-
-GRANT EXECUTE ON FUNCTION public.accept_invite(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.decline_invite(uuid) TO authenticated;
-
-
--- ============================================
--- 4. Views
+-- 3. Views
 -- ============================================
 
 
@@ -172,7 +188,6 @@ AS
 SELECT
   u.list_id,
   u.user_id,
-  u.cached_display_name AS display_name,
   u.role,
   FALSE AS pending,
   NULL::text AS email
@@ -183,7 +198,6 @@ UNION ALL
 SELECT
   i.list_id,
   NULL::uuid AS user_id,
-  NULL AS display_name,
   i.role,
   TRUE AS pending,
   i.email

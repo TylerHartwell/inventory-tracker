@@ -52,7 +52,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
-      <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full h-full flex justify-between items-center min-w-0 ">
+      <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full h-full flex justify-between items-center min-w-0 cursor-pointer">
         <span className="flex-1 text-left truncate">
           <span className="text-sm">Filter:</span>
           {filteredListIds.length > 0 && (

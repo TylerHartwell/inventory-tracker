@@ -2,7 +2,7 @@ import { supabase } from "@/supabase-client"
 
 export type ListMember = {
   user_id: string | null
-  display_name: string | null
+  username: string | null
   email: string | null
   role: "owner" | "editor" | "viewer"
   pending: boolean

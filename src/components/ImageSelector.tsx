@@ -56,7 +56,7 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
           <button
             type="button"
             onClick={handleButtonClick}
-            className="bg-blue-600 text-white px-5 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 flex items-center gap-2"
+            className="bg-blue-600 text-white px-5 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
           >
             📷 Select Photo
           </button>
@@ -67,7 +67,7 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
             <button
               type="button"
               onClick={handleButtonClick}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
             >
               📷 Select Photo
             </button>

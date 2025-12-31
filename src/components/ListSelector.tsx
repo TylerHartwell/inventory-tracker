@@ -93,7 +93,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
             }}
             modal={false}
           >
-            <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full flex justify-between items-center">
+            <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full flex justify-between items-center cursor-pointer">
               {getTriggerLabel()}
               {open ? <ChevronUp className="mx-1 text-gray-500" /> : <ChevronDown className="mx-1 text-gray-500" />}
             </DropdownMenu.Trigger>
@@ -120,7 +120,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                     e.preventDefault()
                     setIsCreating(true)
                   }}
-                  className="flex justify-between items-baseline font-bold px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
+                  className="flex justify-between items-baseline font-bold px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
                 >
                   + Create New List
                 </DropdownMenu.Item>
@@ -130,7 +130,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
 
               <DropdownMenu.Item
                 onSelect={() => handleItemInputListChange(null)}
-                className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
+                className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
               >
                 <span>{nullListName}</span>
               </DropdownMenu.Item>
@@ -139,7 +139,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
                 <DropdownMenu.Item
                   key={list.id}
                   onSelect={() => handleItemInputListChange(list.id)}
-                  className="flex justify-between items-center px-2 py-1 outline-white hover-fine:outline-1 active:outline-1"
+                  className="flex justify-between items-center px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
                 >
                   <span>{list.name}</span>
                   <button
@@ -165,7 +165,7 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
 
       {isConfigOpen && configId !== null && (
         <ListConfigModal
-          setIsConfigOpen={setIsConfigOpen}
+          onClose={() => setIsConfigOpen(false)}
           configId={configId}
           lists={lists}
           session={session}

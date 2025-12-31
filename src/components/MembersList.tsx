@@ -65,7 +65,7 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
       return
     }
 
-    setUsers(prev => prev.filter(u => (user.pending ? u.email !== user.email : u.user_id !== user.user_id)))
+    // setUsers(prev => prev.filter(u => (user.pending ? u.email !== user.email : u.user_id !== user.user_id)))
   }
 
   useEffect(() => {
@@ -113,12 +113,9 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
               </option>
             </select>
 
-            {/* Delete button (only for pending invites) */}
-            {user.pending && (
-              <button onClick={() => handleDelete(user)} className="text-red-500 px-2 py-1">
-                Delete
-              </button>
-            )}
+            <button onClick={() => handleDelete(user)} className="text-red-500 px-2 py-1">
+              Delete
+            </button>
           </div>
         ))}
     </div>

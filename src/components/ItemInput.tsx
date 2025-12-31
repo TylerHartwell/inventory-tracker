@@ -106,7 +106,7 @@ export const ItemInput = ({
           type="button"
           onClick={handleSubmit}
           disabled={loading}
-          className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit"
+          className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
         >
           {/* Button label */}
           <span className={loading ? "opacity-30" : ""}>Add Item</span>
@@ -122,7 +122,7 @@ export const ItemInput = ({
           type="button"
           onClick={clear}
           disabled={loading}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit"
+          className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
         >
           Clear
         </button>

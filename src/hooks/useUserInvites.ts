@@ -1,7 +1,7 @@
 import { supabase } from "@/supabase-client"
 import { useEffect, useState } from "react"
 
-type InviteWithListName = {
+export type InviteWithListName = {
   id: string
   role: string
   status: string
@@ -17,25 +17,25 @@ export function useUserInvites() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchInvites = async () => {
-      setLoading(true)
+  const fetchInvites = async () => {
+    setLoading(true)
+    setError(null)
 
-      const {
-        data: { user },
-        error: userError
-      } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser()
 
-      if (userError || !user?.email) {
-        setError("Not authenticated")
-        setLoading(false)
-        return
-      }
+    if (userError || !user?.email) {
+      setError("Not authenticated")
+      setLoading(false)
+      return
+    }
 
-      const { data, error } = await supabase
-        .from("list_invites")
-        .select(
-          `
+    const { data, error: inviteError } = await supabase
+      .from("list_invites")
+      .select(
+        `
     id,
     role,
     status,
@@ -45,27 +45,30 @@ export function useUserInvites() {
       name
     )
   `
-        )
-        .eq("email", user.email.toLowerCase())
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
+      )
+      .eq("email", user.email.toLowerCase())
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
 
-      if (error) {
-        setError(error.message)
-      } else {
-        setInvites(
-          (data ?? []).map(invite => ({
-            ...invite,
-            list: invite.lists
-          }))
-        )
-      }
-
-      setLoading(false)
+    if (inviteError) {
+      setError(inviteError.message)
+    } else {
+      const formattedInvites: InviteWithListName[] = (data ?? []).map(invite => ({
+        id: invite.id,
+        role: invite.role,
+        status: invite.status,
+        created_at: invite.created_at,
+        list: invite.lists
+      }))
+      setInvites(formattedInvites)
     }
 
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchInvites()
   }, [])
 
-  return { invites, loading, error }
+  return { invites, loading, error, refetchInvites: fetchInvites }
 }

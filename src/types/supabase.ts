@@ -87,7 +87,6 @@ export type Database = {
           list_id: string
           role: string
           status: string
-          user_id: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -97,7 +96,6 @@ export type Database = {
           list_id: string
           role: string
           status?: string
-          user_id?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -107,7 +105,6 @@ export type Database = {
           list_id?: string
           role?: string
           status?: string
-          user_id?: string | null
         }
         Relationships: [
           {
@@ -121,21 +118,18 @@ export type Database = {
       }
       list_users: {
         Row: {
-          cached_display_name: string
           id: string
           list_id: string
           role: string
           user_id: string
         }
         Insert: {
-          cached_display_name: string
           id?: string
           list_id: string
           role: string
           user_id: string
         }
         Update: {
-          cached_display_name?: string
           id?: string
           list_id?: string
           role?: string
@@ -172,11 +166,25 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          id: string
+          username: string | null
+        }
+        Insert: {
+          id: string
+          username?: string | null
+        }
+        Update: {
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       list_members: {
         Row: {
-          display_name: string | null
           email: string | null
           list_id: string | null
           pending: boolean | null
@@ -189,6 +197,11 @@ export type Database = {
     Functions: {
       accept_invite: { Args: { p_invite_id: string }; Returns: undefined }
       decline_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      fn_list_has_member_with_email: {
+        Args: { _email: string; _list_id: string }
+        Returns: boolean
+      }
+      fn_list_has_users: { Args: { list_id: string }; Returns: boolean }
       fn_user_is_owner_of_list: { Args: { _list_id: string }; Returns: boolean }
     }
     Enums: {
