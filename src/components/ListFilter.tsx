@@ -123,7 +123,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
               {(() => {
                 const allIds = [null, ...lists.map(l => l.id)]
                 const allFiltered = allIds.length > 0 && allIds.every(id => filteredListIds.includes(id))
-                return allFiltered ? "Default Only" : "Include All"
+                return allFiltered ? nullListName : "Include All"
               })()}
             </button>
             <label className="flex gap-1 flex-wrap items-center justify-center cursor-pointer">

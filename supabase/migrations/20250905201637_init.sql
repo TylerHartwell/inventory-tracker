@@ -5,9 +5,12 @@
 -- Profiles table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-  username text unique,
-  constraint username_length check (char_length(username) >= 3)
+  username text,
+  CONSTRAINT username_length CHECK ( username IS NULL OR char_length(username) BETWEEN 3 AND 30)
 );
+
+CREATE UNIQUE INDEX profiles_username_unique
+on public.profiles (lower(username)) WHERE username IS NOT NULL;
 
 -- Lists table
 CREATE TABLE IF NOT EXISTS public.lists (
@@ -178,6 +181,31 @@ CREATE OR REPLACE FUNCTION public.fn_list_has_users(list_id uuid)
 -- ============================================
 -- RLS POLICIES
 -- ============================================
+-- Profiles
+CREATE POLICY "Profiles are publicly readable"
+  ON public.profiles
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Users can insert their own profile"
+  ON public.profiles
+  FOR INSERT
+  TO authenticated
+  WITH CHECK ((SELECT auth.uid())  = id);
+
+CREATE POLICY "Users can update their own profile"
+  ON public.profiles
+  FOR UPDATE
+  TO authenticated
+  USING ((SELECT auth.uid())  = id)
+  WITH CHECK ((SELECT auth.uid())  = id);
+
+CREATE POLICY "Users can delete their own profile"
+  ON public.profiles
+  FOR DELETE
+  TO authenticated
+  USING ((SELECT auth.uid()) = id);
 
 -- Items
 CREATE POLICY "Users can create items" 

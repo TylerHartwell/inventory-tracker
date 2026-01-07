@@ -190,8 +190,11 @@ SELECT
   u.user_id,
   u.role,
   FALSE AS pending,
-  NULL::text AS email
+  NULL::text AS email,
+  p.username
 FROM public.list_users u
+LEFT JOIN public.profiles p
+  ON p.id = u.user_id
 
 UNION ALL
 
@@ -200,6 +203,7 @@ SELECT
   NULL::uuid AS user_id,
   i.role,
   TRUE AS pending,
-  i.email
+  i.email,
+  NULL::text AS username
 FROM public.list_invites i
 WHERE i.status = 'pending';

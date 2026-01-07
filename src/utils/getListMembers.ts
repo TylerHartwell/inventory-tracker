@@ -1,6 +1,7 @@
 import { supabase } from "@/supabase-client"
 
 export type ListMember = {
+  list_id: string | null
   user_id: string | null
   username: string | null
   email: string | null

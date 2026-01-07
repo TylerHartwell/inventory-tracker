@@ -190,6 +190,7 @@ export type Database = {
           pending: boolean | null
           role: string | null
           user_id: string | null
+          username: string | null
         }
         Relationships: []
       }

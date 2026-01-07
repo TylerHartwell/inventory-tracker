@@ -1,8 +1,11 @@
 import { X, RefreshCw } from "lucide-react"
 import { InvitesList } from "./InvitesList"
 import { InviteWithListName } from "@/hooks/useUserInvites"
+import { UsernameEditor } from "./UsernameEditor"
+import { Session } from "@supabase/supabase-js"
 
 interface UserSettingsProps {
+  session: Session
   onLogout: () => Promise<void>
   onClose: () => void
   invitesState: {
@@ -13,12 +16,19 @@ interface UserSettingsProps {
   }
 }
 
-const UserSettings = ({ onLogout, onClose, invitesState }: UserSettingsProps) => {
+const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettingsProps) => {
   const { loading, refetchInvites } = invitesState
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-sm rounded-xl bg-gray-700 p-3 shadow-lg flex flex-col gap-2">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onPointerDown={e => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div className="w-full max-w-sm rounded-xl bg-gray-700 p-3 shadow-lg flex flex-col gap-2" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center">
           <span>User Options</span>
           <button
@@ -28,6 +38,8 @@ const UserSettings = ({ onLogout, onClose, invitesState }: UserSettingsProps) =>
             <X />
           </button>
         </div>
+
+        <UsernameEditor session={session} />
 
         <div className="border border-gray-400 rounded-md p-1 flex flex-col items-center">
           <div className="grid grid-cols-3  w-full">

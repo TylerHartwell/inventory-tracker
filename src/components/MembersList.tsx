@@ -95,7 +95,7 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
         .map(user => (
           <div key={user.pending ? user.email : user.user_id} className="flex items-center justify-between border rounded p-2">
             {/* Name / Email */}
-            <span className="flex-1">{user.email}</span>
+            <span className="flex-1">{user.username ?? "Anon"}</span>
 
             {/* Role select */}
             <select

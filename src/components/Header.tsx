@@ -2,13 +2,14 @@ import { useState } from "react"
 import { Settings } from "lucide-react"
 import UserSettings from "./UserSettings"
 import { useUserInvites } from "@/hooks/useUserInvites"
+import { Session } from "@supabase/supabase-js"
 
 interface HeaderProps {
-  userEmail: string
+  session: Session
   onLogout: () => Promise<void>
 }
 
-export const Header = ({ userEmail, onLogout }: HeaderProps) => {
+export const Header = ({ session, onLogout }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const invitesState = useUserInvites()
 
@@ -18,7 +19,7 @@ export const Header = ({ userEmail, onLogout }: HeaderProps) => {
       <div className="flex justify-between items-baseline text-sm">
         <h2 className="hidden 2xs:block font-semibold grow">Inventory Tracker</h2>
         <div className="flex items-center">
-          <span> {userEmail}</span>
+          <span> {session.user.email}</span>
           <button onClick={() => setIsOpen(true)} className="rounded-lg px-2 py-1 font-medium hover:bg-gray-600 transition cursor-pointer">
             <Settings size={16} />
           </button>
@@ -26,7 +27,7 @@ export const Header = ({ userEmail, onLogout }: HeaderProps) => {
       </div>
 
       {/* Modal Backdrop */}
-      {isOpen && <UserSettings onLogout={onLogout} onClose={() => setIsOpen(false)} invitesState={invitesState} />}
+      {isOpen && <UserSettings session={session} onLogout={onLogout} onClose={() => setIsOpen(false)} invitesState={invitesState} />}
     </>
   )
 }

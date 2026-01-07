@@ -11,6 +11,7 @@ import { Header } from "./Header"
 import ItemCardsSkeleton from "./ItemCardsSkeleton"
 import LoadingSpinner from "./LoadingSpinner"
 
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 export type List = Database["public"]["Tables"]["lists"]["Row"]
 export type Item = Database["public"]["Tables"]["items"]["Row"]
 export type ListUser = Database["public"]["Tables"]["list_users"]["Row"]
@@ -105,7 +106,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
-      <Header userEmail={session.user.email ?? ""} onLogout={onLogout} />
+      <Header session={session} onLogout={onLogout} />
       <ItemInput
         session={session}
         refresh={refresh}
