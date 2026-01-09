@@ -13,7 +13,7 @@ export const deleteListUser = async ({ listId, session, userId }: DeleteListUser
     return { data: null, error: "Not authenticated" }
   }
 
-  const { data, error: listUserError } = await supabase.from("list_users").delete().eq("id", listId).eq("user_id", userId).select()
+  const { data, error: listUserError } = await supabase.from("list_users").delete().eq("list_id", listId).eq("user_id", userId).select()
 
   if (listUserError) {
     return { data: null, error: listUserError.message }

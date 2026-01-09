@@ -19,7 +19,12 @@ export const updateListInvite = async ({
     return { data: null, error: "Not authenticated" }
   }
 
-  const { data, error } = await supabase.from("list_invites").update({ role: newRole }).match({ list_id: listId, email }).select("*").single()
+  const { data, error } = await supabase
+    .from("list_invites")
+    .update({ role: newRole })
+    .match({ list_id: listId, email, status: "pending" })
+    .select("*")
+    .single()
 
   if (error) {
     return { data: null, error: `Error updating invite role: ${error.message}` }

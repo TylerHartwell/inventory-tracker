@@ -12,12 +12,12 @@ interface UserSettingsProps {
     invites: InviteWithListName[]
     loading: boolean
     error: string | null
-    refetchInvites: () => Promise<void>
+    fetchInvites: () => Promise<{ data: null; error: string | null }>
   }
 }
 
 const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettingsProps) => {
-  const { loading, refetchInvites } = invitesState
+  const { loading, fetchInvites } = invitesState
 
   return (
     <div
@@ -44,7 +44,7 @@ const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettings
         <div className="border border-gray-400 rounded-md p-1 flex flex-col items-center">
           <div className="grid grid-cols-3  w-full">
             <span className="col-start-2 text-center">Pending Invites</span>
-            <button onClick={() => refetchInvites()} className="cursor-pointer disabled:opacity-50" disabled={loading}>
+            <button onClick={() => fetchInvites()} className="cursor-pointer disabled:opacity-50" disabled={loading}>
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
             </button>
           </div>

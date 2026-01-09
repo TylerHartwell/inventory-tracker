@@ -27,9 +27,10 @@ export function useUserInvites() {
     } = await supabase.auth.getUser()
 
     if (userError || !user?.email) {
-      setError("Not authenticated")
+      const errMsg = "Not authenticated"
+      setError(errMsg)
       setLoading(false)
-      return
+      return { data: null, error: errMsg }
     }
 
     const { data, error: inviteError } = await supabase
@@ -52,23 +53,26 @@ export function useUserInvites() {
 
     if (inviteError) {
       setError(inviteError.message)
-    } else {
-      const formattedInvites: InviteWithListName[] = (data ?? []).map(invite => ({
-        id: invite.id,
-        role: invite.role,
-        status: invite.status,
-        created_at: invite.created_at,
-        list: invite.lists
-      }))
-      setInvites(formattedInvites)
+      setLoading(false)
+      return { data: null, error: inviteError.message }
     }
 
+    const formattedInvites: InviteWithListName[] = (data ?? []).map(invite => ({
+      id: invite.id,
+      role: invite.role,
+      status: invite.status,
+      created_at: invite.created_at,
+      list: invite.lists
+    }))
+    setInvites(formattedInvites)
     setLoading(false)
+
+    return { data: null, error: null }
   }
 
   useEffect(() => {
     fetchInvites()
   }, [])
 
-  return { invites, loading, error, refetchInvites: fetchInvites }
+  return { invites, loading, error, fetchInvites }
 }

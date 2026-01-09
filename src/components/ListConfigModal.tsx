@@ -113,6 +113,7 @@ function ListConfigModal({
               <input
                 type="text"
                 value={newName}
+                name="list-name"
                 placeholder="List Name"
                 onChange={e => setNewName(e.target.value)}
                 onKeyDown={e => {

@@ -27,6 +27,18 @@ export const insertListInvite = async ({
   const { data, error } = await supabase.from("list_invites").insert({ email, list_id: listId, role }).select("*").single()
 
   if (error) {
+    if (error.code === "42501") {
+      return {
+        data: null,
+        error: "That user is already a member of this list"
+      }
+    }
+    if (error.code === "23505") {
+      return {
+        data: null,
+        error: "An invitation has already been sent to this email."
+      }
+    }
     return { data: null, error: error.message }
   }
 
