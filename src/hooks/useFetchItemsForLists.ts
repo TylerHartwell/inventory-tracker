@@ -1,7 +1,11 @@
-import { nullListName } from "@/components/ItemManager"
+import { Item, List, nullListName } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
-import { Session } from "@supabase/supabase-js"
+import { PostgrestResponse, Session } from "@supabase/supabase-js"
 import { useCallback } from "react"
+
+type ItemWithList = Item & {
+  lists: Pick<List, "name"> | null
+}
 
 export const useFetchItemsForLists = (session: Session, generateSignedUrl: (filePath: string) => Promise<string | null>) => {
   return useCallback(
@@ -9,36 +13,37 @@ export const useFetchItemsForLists = (session: Session, generateSignedUrl: (file
       if (signal?.aborted || listIds.length === 0) return []
 
       const nonNullListIds = listIds.filter((id): id is string => id !== null)
-      const orConditions: string[] = []
 
-      let query = supabase.from("items").select(`*,lists(name)`)
+      const queryPromises: Promise<PostgrestResponse<ItemWithList>>[] = []
 
       if (listIds.includes(null)) {
-        orConditions.push(`and(list_id.is.null,user_id.eq.${session.user.id})`)
+        queryPromises.push(
+          (async () =>
+            supabase
+              .from("items")
+              .select("*, lists(name)")
+              .is("list_id", null)
+              .eq("user_id", session.user.id)
+              .order("created_at", { ascending: true }))()
+        )
       }
 
       if (nonNullListIds.length > 0) {
-        orConditions.push(`list_id.in.(${nonNullListIds.join(",")})`)
+        queryPromises.push(
+          (async () => supabase.from("items").select("*, lists(name)").in("list_id", nonNullListIds).order("created_at", { ascending: true }))()
+        )
       }
 
-      if (orConditions.length > 0) query = query.or(orConditions.join(","))
+      const results = await Promise.all(queryPromises)
 
-      const { data, error } = await query.order("created_at", { ascending: true })
+      for (const result of results) {
+        if (result.error) throw result.error
+      }
 
-      if (error) throw error
-      if (!data) return []
-
-      // Optional delay simulation
-      // await new Promise<void>((resolve, reject) => {
-      //   const timeout = setTimeout(resolve, 1000)
-      //   signal?.addEventListener("abort", () => {
-      //     clearTimeout(timeout)
-      //     reject(new DOMException("Aborted", "AbortError"))
-      //   })
-      // })
+      const allData = results.flatMap(result => result.data || [])
 
       const itemsWithListName = await Promise.all(
-        data.map(async item => {
+        allData.map(async item => {
           if (signal?.aborted) return null
 
           const signedUrl = item.image_url ? await generateSignedUrl(item.image_url) : null

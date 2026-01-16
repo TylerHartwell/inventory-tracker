@@ -39,7 +39,7 @@ export const updateItem = async ({
       mappedUpdates.image_url = null
     }
     if (updates.itemImage instanceof File) {
-      const { data, error } = await uploadImage({ session, file: updates.itemImage })
+      const { data, error } = await uploadImage({ session, file: updates.itemImage, itemId: item.id, listId: item.list_id })
       if (error) {
         return { data: null, error: error }
       }

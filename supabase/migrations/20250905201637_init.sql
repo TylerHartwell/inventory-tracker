@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 CREATE UNIQUE INDEX profiles_username_unique
-on public.profiles (lower(username)) WHERE username IS NOT NULL;
+  on public.profiles (lower(username)) WHERE username IS NOT NULL;
 
 -- Lists table
 CREATE TABLE IF NOT EXISTS public.lists (

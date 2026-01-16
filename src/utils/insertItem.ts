@@ -32,26 +32,41 @@ export const insertItem = async ({
     return { data: null, error: "Item name is required." }
   }
 
-  let imageUrl: string | null = null
-
-  if (itemImage) {
-    const { data, error } = await uploadImage({ session, file: itemImage })
-
-    if (error) {
-      return { data: null, error: error }
-    }
-
-    imageUrl = data
-  }
-
-  const { data: insertedItem, error } = await supabase
+  const { data: insertedItem, error: insertError } = await supabase
     .from("items")
-    .insert({ item_name: itemName, extra_details: extraDetails, image_url: imageUrl ?? "", list_id: selectedList })
+    .insert({
+      item_name: itemName,
+      extra_details: extraDetails,
+      list_id: selectedList ?? null
+    })
     .select("*")
     .single()
 
-  if (error) {
-    return { data: null, error: error.message }
+  if (insertError || !insertedItem) {
+    return { data: null, error: insertError?.message || "Failed to insert item" }
+  }
+
+  let imageUrl: string | null = null
+
+  if (itemImage) {
+    const { data, error } = await uploadImage({
+      session,
+      file: itemImage,
+      itemId: insertedItem.id,
+      listId: selectedList ?? null
+    })
+
+    if (error) {
+      return { data: null, error }
+    }
+
+    imageUrl = data
+
+    const { error: updateError } = await supabase.from("items").update({ image_url: imageUrl }).eq("id", insertedItem.id)
+
+    if (updateError) {
+      return { data: null, error: updateError.message }
+    }
   }
 
   // Generate signed URL if image exists
@@ -66,5 +81,5 @@ export const insertItem = async ({
   //   signedUrl = data.signedUrl
   // }
 
-  return { data: { ...insertedItem }, error: null }
+  return { data: { ...insertedItem, image_url: imageUrl }, error: null }
 }

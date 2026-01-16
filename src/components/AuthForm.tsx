@@ -22,15 +22,15 @@ const Auth = () => {
 
     try {
       if (mode === "signUp") {
-        const { error } = await supabase.auth.signUp({ email, password })
-        if (error) throw new Error(error.message)
+        const { error: signUpError } = await supabase.auth.signUp({ email, password })
+        if (signUpError) throw new Error(signUpError.message)
         setMessage({
           type: "success",
           text: "Sign-up successful! Please check your email to confirm your account before logging in."
         })
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw new Error(error.message)
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) throw new Error(signInError.message)
         if (!data.session) {
           setMessage({
             type: "error",
@@ -48,9 +48,9 @@ const Auth = () => {
     }
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    handleAuth("signIn")
+    await handleAuth("signIn")
   }
 
   const inputClass = "w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"

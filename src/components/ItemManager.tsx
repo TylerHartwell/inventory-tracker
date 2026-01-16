@@ -101,7 +101,12 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   }, [sortAsc])
 
   useEffect(() => {
-    sessionStorage.clear()
+    // Only clear app-specific sessionStorage keys when user changes
+    // This prevents clearing unrelated data from other apps/tabs
+    const appKeys = ["filteredListIds", "selectedList", "followInputList", "sortAsc"]
+    appKeys.forEach(key => {
+      sessionStorage.removeItem(key)
+    })
   }, [session.user.id])
 
   return (
