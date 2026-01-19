@@ -8,13 +8,13 @@ import { UserLists } from "@/hooks/useUserLists"
 export const ItemInput = ({
   session,
   refresh,
-  selectedList,
+  selectedListId,
   onItemInputListChange,
   userLists
 }: {
   session: Session
   refresh: () => Promise<void>
-  selectedList: string | null
+  selectedListId: string | null
   onItemInputListChange: (listId: string | null) => void
   userLists: UserLists
 }) => {
@@ -56,7 +56,7 @@ export const ItemInput = ({
     setLoading(true)
 
     try {
-      const { error } = await insertItem({ session, itemName, extraDetails, itemImage, selectedList })
+      const { error } = await insertItem({ session, itemName, extraDetails, itemImage, selectedListId })
       if (error) {
         console.error("Insert item error:", error)
         setLoading(false)
@@ -76,7 +76,7 @@ export const ItemInput = ({
   return (
     <div className="flex flex-col gap-2 p-2 relative border-2">
       <ListSelector
-        selectedList={selectedList}
+        selectedListId={selectedListId}
         onItemInputListChange={onItemInputListChange}
         session={session}
         userLists={userLists}

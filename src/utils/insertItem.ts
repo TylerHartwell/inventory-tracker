@@ -8,7 +8,7 @@ interface InsertItemParams {
   itemName: Item["item_name"]
   extraDetails?: Item["extra_details"]
   itemImage?: File | null
-  selectedList: string | null
+  selectedListId: string | null
 }
 
 export const insertItem = async ({
@@ -16,7 +16,7 @@ export const insertItem = async ({
   itemName,
   extraDetails = "",
   itemImage,
-  selectedList
+  selectedListId
 }: InsertItemParams): Promise<
   | { data: Item; error: null }
   | {
@@ -37,7 +37,7 @@ export const insertItem = async ({
     .insert({
       item_name: itemName,
       extra_details: extraDetails,
-      list_id: selectedList ?? null
+      list_id: selectedListId ?? null
     })
     .select("*")
     .single()
@@ -53,7 +53,7 @@ export const insertItem = async ({
       session,
       file: itemImage,
       itemId: insertedItem.id,
-      listId: selectedList ?? null
+      listId: selectedListId ?? null
     })
 
     if (error) {

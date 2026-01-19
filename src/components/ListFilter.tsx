@@ -8,13 +8,13 @@ import { nullListName } from "./ItemManager"
 interface ListFilterProps {
   filteredListIds: (string | null)[]
   onChange: (lists: (string | null)[]) => void
-  selectedList: string | null
+  selectedListId: string | null
   userLists: UserLists
   followInputList: boolean
   onToggleFollowInputList: () => void
 }
 
-export function ListFilter({ filteredListIds, onChange, selectedList, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
+export function ListFilter({ filteredListIds, onChange, selectedListId, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
   const [open, setOpen] = useState(false)
   const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
 
@@ -89,7 +89,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
                 onChange={() => handleToggle(null)}
                 className="w-4 h-4 accent-blue-500 cursor-pointer"
               />
-              <span className={selectedList === null ? "font-semibold underline" : ""}>{nullListName}</span>
+              <span className={selectedListId === null ? "font-semibold underline" : ""}>{nullListName}</span>
             </label>
           </DropdownMenu.Item>
 
@@ -108,7 +108,7 @@ export function ListFilter({ filteredListIds, onChange, selectedList, userLists,
                     onChange={() => handleToggle(list.id)}
                     className="w-4 h-4 accent-blue-500 cursor-pointer"
                   />
-                  <span className={list.id === selectedList ? "font-semibold underline" : ""}>{list.name}</span>
+                  <span className={list.id === selectedListId ? "font-semibold underline" : ""}>{list.name}</span>
                 </label>
               </DropdownMenu.Item>
             ))

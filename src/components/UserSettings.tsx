@@ -19,10 +19,12 @@ interface UserSettingsProps {
 const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettingsProps) => {
   const { loading, fetchInvites } = invitesState
 
+  const hasInvites = invitesState.invites.length > 0
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onPointerDown={e => {
+      onClick={e => {
         if (e.target === e.currentTarget) {
           onClose()
         }
@@ -43,7 +45,11 @@ const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettings
 
         <div className="border border-gray-400 rounded-md p-1 flex flex-col items-center">
           <div className="grid grid-cols-3  w-full">
-            <span className="col-start-2 text-center">Pending Invites</span>
+            <span className="relative col-start-2">
+              {hasInvites && <span className="absolute top-2 -left-3 w-1.75 h-1.75 bg-red-500 rounded-full border border-white"></span>}
+              <span className=" text-center">Pending Invites</span>
+            </span>
+
             <button onClick={() => fetchInvites()} className="cursor-pointer disabled:opacity-50" disabled={loading}>
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
             </button>

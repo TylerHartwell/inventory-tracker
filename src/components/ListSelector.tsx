@@ -9,14 +9,14 @@ import { nullListName } from "./ItemManager"
 import ListConfigModal from "./ListConfigModal"
 
 interface ListSelectorProps {
-  selectedList: string | null
+  selectedListId: string | null
   onItemInputListChange: (listId: string | null) => void
   session: Session
   userLists: UserLists
   refresh: () => Promise<void>
 }
 
-export function ListSelector({ selectedList, onItemInputListChange, session, userLists, refresh }: ListSelectorProps) {
+export function ListSelector({ selectedListId, onItemInputListChange, session, userLists, refresh }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [configId, setConfigId] = useState<string | null>(null)
   const [isConfigOpen, setIsConfigOpen] = useState(false)
@@ -70,8 +70,8 @@ export function ListSelector({ selectedList, onItemInputListChange, session, use
   }
 
   const getTriggerLabel = () => {
-    if (!selectedList) return nullListName
-    return lists.find(list => list.id === selectedList)?.name ?? selectedList
+    if (!selectedListId) return nullListName
+    return lists.find(list => list.id === selectedListId)?.name ?? selectedListId
   }
 
   return (

@@ -32,8 +32,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     const saved = sessionStorage.getItem("filteredListIds")
     return saved ? JSON.parse(saved) : [null]
   })
-  const [selectedList, setSelectedList] = useState<string | null>(() => {
-    const saved = sessionStorage.getItem("selectedList")
+  const [selectedListId, setSelectedListId] = useState<string | null>(() => {
+    const saved = sessionStorage.getItem("selectedListId")
     return saved ? JSON.parse(saved) : null
   })
   const [followInputList, setFollowInputList] = useState<boolean>(() => {
@@ -58,7 +58,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   }, [items, sortAsc])
 
   const handleItemInputListSelection = (listId: string | null) => {
-    setSelectedList(listId)
+    setSelectedListId(listId)
     if (followInputList) {
       setFilteredListIds([listId])
     }
@@ -67,7 +67,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const handleToggleFollowInputList = () => {
     setFollowInputList(prev => !prev)
     if (!followInputList) {
-      setFilteredListIds([selectedList])
+      setFilteredListIds([selectedListId])
     }
   }
 
@@ -89,8 +89,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   }, [filteredListIds])
 
   useEffect(() => {
-    sessionStorage.setItem("selectedList", JSON.stringify(selectedList))
-  }, [selectedList])
+    sessionStorage.setItem("selectedListId", JSON.stringify(selectedListId))
+  }, [selectedListId])
 
   useEffect(() => {
     sessionStorage.setItem("followInputList", JSON.stringify(followInputList))
@@ -103,10 +103,11 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   useEffect(() => {
     // Only clear app-specific sessionStorage keys when user changes
     // This prevents clearing unrelated data from other apps/tabs
-    const appKeys = ["filteredListIds", "selectedList", "followInputList", "sortAsc"]
-    appKeys.forEach(key => {
-      sessionStorage.removeItem(key)
-    })
+
+    return () => {
+      const appKeys = ["filteredListIds", "selectedListId", "followInputList", "sortAsc"]
+      appKeys.forEach(key => sessionStorage.removeItem(key))
+    }
   }, [session.user.id])
 
   return (
@@ -115,7 +116,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       <ItemInput
         session={session}
         refresh={refresh}
-        selectedList={selectedList}
+        selectedListId={selectedListId}
         onItemInputListChange={handleItemInputListSelection}
         userLists={userLists}
       />
@@ -123,7 +124,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         <ListFilter
           filteredListIds={filteredListIds}
           onChange={setFilteredListIds}
-          selectedList={selectedList}
+          selectedListId={selectedListId}
           userLists={userLists}
           followInputList={followInputList}
           onToggleFollowInputList={handleToggleFollowInputList}
