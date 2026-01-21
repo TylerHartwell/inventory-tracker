@@ -153,7 +153,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
               ))}
             </>
           ))}
-        {sortedItems.length !== 0 && <div className="h-10  flex items-center justify-center">- End of Results -</div>}
+        {sortedItems.length !== 0 && <div className="h-10 flex items-center text-center justify-center ">- End -</div>}
       </ul>
       {showScrollTop && (
         <button

@@ -69,17 +69,5 @@ export const insertItem = async ({
     }
   }
 
-  // Generate signed URL if image exists
-  // let signedUrl: string | null = null
-  // if (insertedItem.image_url) {
-  //   const { data, error } = await supabase.storage.from("images").createSignedUrl(insertedItem.image_url, 60 * 20)
-
-  //   if (error) {
-  //     return { data: null, error: error.message }
-  //   }
-
-  //   signedUrl = data.signedUrl
-  // }
-
   return { data: { ...insertedItem, image_url: imageUrl }, error: null }
 }

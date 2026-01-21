@@ -1,81 +1,127 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { updateProfile } from "@/utils/updateProfile"
-import { useUserProfile } from "@/hooks/useUserProfile"
+import { UserProfile } from "@/hooks/useUserProfile"
 import { Session } from "@supabase/supabase-js"
+import { Pencil, Check, X } from "lucide-react"
+import { useMinDurationSpin } from "@/hooks/useMinDurationSpin"
 
-export function UsernameEditor({ session }: { session: Session }) {
-  const { profile, setProfile, loading } = useUserProfile()
-  const [value, setValue] = useState("")
+export function UsernameEditor({ session, userProfile }: { session: Session; userProfile: UserProfile }) {
+  const { profile, setProfile, loading } = userProfile
+  const [localUsername, setLocalUsername] = useState(profile?.username ?? "")
   const [saving, setSaving] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Initialize input value when profile loads
+  const onFinish = () => {
+    setProfile(prev => (prev ? { ...prev, username: localUsername.trim() } : prev))
+  }
+
+  const spinning = useMinDurationSpin(saving, 300, onFinish)
+
+  // Initialize username when profile loads
   useEffect(() => {
-    if (profile) setValue(profile.username ?? "")
-  }, [profile])
+    setLocalUsername(profile?.username ?? "")
+  }, [profile?.username])
 
   if (loading || !profile) return <div>Loading…</div>
 
-  const hasChanged = value.trim() !== "" && value !== profile.username
+  const hasChanged = localUsername.trim() !== "" && localUsername !== profile.username
+
+  const focusInput = () => {
+    inputRef.current?.focus()
+  }
 
   const handleSubmit = async () => {
     if (!hasChanged) return
 
     setSaving(true)
     setError(null)
-    setSuccess(false)
 
     const { error } = await updateProfile({
       session: session,
-      newUsername: value.trim()
+      newUsername: localUsername.trim()
     })
 
     if (error) {
       setError(error)
+      focusInput()
     } else {
-      setProfile(prev => (prev ? { ...prev, username: value.trim() } : prev))
-      setSuccess(true)
+      setEditing(false)
     }
 
     setSaving(false)
   }
 
+  const showForm = !localUsername || editing || spinning
+
   return (
-    <div className="flex items-center justify-center outline-1 outline-gray-400 rounded-md">
-      <label htmlFor="username" className="block text-sm font-medium">
-        Username:
-      </label>
+    <div className="flex flex-col gap-1 rounded-md px-1">
+      {showForm ? (
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            handleSubmit()
+          }}
+          className="flex items-center gap-1 w-full"
+        >
+          <label htmlFor="username" className="text-sm font-medium">
+            Username:
+          </label>
+          <input
+            id="username"
+            type="text"
+            name="username"
+            autoFocus
+            ref={inputRef}
+            value={localUsername}
+            autoComplete="off"
+            onChange={e => setLocalUsername(e.target.value)}
+            placeholder="Enter new username"
+            disabled={spinning}
+            className="px-1 -ml-1.25  border border-gray-300 rounded-md shadow-sm  disabled:bg-gray-800 disabled:cursor-not-allowed w-full min-w-0"
+          />
 
-      <input
-        id="username"
-        type="text"
-        value={value}
-        autoComplete="off"
-        onChange={e => {
-          setValue(e.target.value)
-          setSuccess(false)
-        }}
-        placeholder="Enter your username"
-        disabled={saving}
-        className=" px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-      />
+          <button
+            type="submit"
+            disabled={!hasChanged || spinning}
+            className={`px-2 py-1 rounded-md border border-gray-400 text-white font-medium focus:outline-none focus:ring-1 ${
+              hasChanged && !spinning ? "bg-green-500 hover:bg-green-400" : "bg-gray-500 cursor-not-allowed"
+            } `}
+          >
+            <Check />
+          </button>
+          <button
+            type="button"
+            disabled={spinning}
+            name="cancel"
+            onClick={() => {
+              setEditing(false)
+              setError(null)
+              setLocalUsername(profile.username ?? "")
+            }}
+            className={`px-2 py-1 rounded-md border border-gray-400 text-white font-medium focus:outline-none focus:ring-1 ${
+              !spinning ? "bg-gray-800 hover:bg-gray-600" : "bg-gray-700 cursor-not-allowed"
+            } `}
+          >
+            <X />
+          </button>
+        </form>
+      ) : (
+        <div className="flex items-center gap-1 w-full">
+          <span className="text-sm font-medium">Username:</span>
+          <span className="w-full">{localUsername}</span>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="px-2 py-1 rounded-md border border-gray-400 text-white font-medium hover:bg-gray-500 focus:outline-none focus:ring-1"
+          >
+            <Pencil />
+          </button>
+        </div>
+      )}
 
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={!hasChanged || saving}
-        className={`
-          px-2 py-1 rounded-md text-white font-medium
-          ${hasChanged && !saving ? "bg-indigo-600 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"}
-          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-        `}
-      >
-        {saving ? "Saving…" : "Change"}
-      </button>
-
-      {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
-      {success && <p className="text-green-600 mt-2 text-sm">Username updated</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   )
 }

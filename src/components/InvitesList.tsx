@@ -8,12 +8,13 @@ interface InvitesListProps {
     error: string | null
     fetchInvites: () => Promise<{ data: null; error: string | null }>
   }
+  spinning: boolean
 }
 
-export function InvitesList({ invitesState }: InvitesListProps) {
-  const { invites, loading, error, fetchInvites } = invitesState
+export function InvitesList({ invitesState, spinning }: InvitesListProps) {
+  const { invites, error, fetchInvites } = invitesState
 
-  if (loading) return <p>Loading invites…</p>
+  if (spinning) return <p>Loading invites…</p>
   if (error) return <p>Error: {error}</p>
 
   if (invites.length === 0) {

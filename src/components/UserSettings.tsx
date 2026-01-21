@@ -3,6 +3,8 @@ import { InvitesList } from "./InvitesList"
 import { InviteWithListName } from "@/hooks/useUserInvites"
 import { UsernameEditor } from "./UsernameEditor"
 import { Session } from "@supabase/supabase-js"
+import { useMinDurationSpin } from "@/hooks/useMinDurationSpin"
+import { UserProfile } from "@/hooks/useUserProfile"
 
 interface UserSettingsProps {
   session: Session
@@ -14,10 +16,13 @@ interface UserSettingsProps {
     error: string | null
     fetchInvites: () => Promise<{ data: null; error: string | null }>
   }
+  userProfile: UserProfile
 }
 
-const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettingsProps) => {
+const UserSettings = ({ session, onLogout, onClose, invitesState, userProfile }: UserSettingsProps) => {
   const { loading, fetchInvites } = invitesState
+
+  const spinning = useMinDurationSpin(loading, 300)
 
   const hasInvites = invitesState.invites.length > 0
 
@@ -32,7 +37,7 @@ const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettings
     >
       <div className="w-full max-w-sm rounded-xl bg-gray-700 p-3 shadow-lg flex flex-col gap-2" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center">
-          <span>User Options</span>
+          <span>User Settings</span>
           <button
             onClick={() => onClose()}
             className="rounded-lg size-5 hover:bg-gray-500 text-center flex items-center justify-center transition cursor-pointer"
@@ -41,20 +46,19 @@ const UserSettings = ({ session, onLogout, onClose, invitesState }: UserSettings
           </button>
         </div>
 
-        <UsernameEditor session={session} />
+        <UsernameEditor session={session} userProfile={userProfile} />
 
         <div className="border border-gray-400 rounded-md p-1 flex flex-col items-center">
-          <div className="grid grid-cols-3  w-full">
-            <span className="relative col-start-2">
+          <div className="flex justify-center items-center  w-full">
+            <span className="relative flex gap-1 items-center justify-center">
               {hasInvites && <span className="absolute top-2 -left-3 w-1.75 h-1.75 bg-red-500 rounded-full border border-white"></span>}
-              <span className=" text-center">Pending Invites</span>
+              <span className=" text-center text-nowrap">Pending Invites</span>
+              <button onClick={() => fetchInvites()} className="p-1 cursor-pointer disabled:opacity-50" disabled={spinning}>
+                <RefreshCw size={16} className={spinning ? "animate-spin [animation-duration:600ms]" : ""} />
+              </button>
             </span>
-
-            <button onClick={() => fetchInvites()} className="cursor-pointer disabled:opacity-50" disabled={loading}>
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            </button>
           </div>
-          <InvitesList invitesState={invitesState} />
+          <InvitesList invitesState={invitesState} spinning={spinning} />
         </div>
 
         <div className="flex justify-center items-center">

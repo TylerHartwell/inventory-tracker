@@ -1,5 +1,19 @@
 import { supabase } from "@/supabase-client"
-import { useEffect, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
+
+export interface UserProfile {
+  profile: {
+    username: string | null
+    email: string
+  } | null
+  loading: boolean
+  setProfile: Dispatch<
+    SetStateAction<{
+      username: string | null
+      email: string
+    } | null>
+  >
+}
 
 export function useUserProfile() {
   const [profile, setProfile] = useState<{ username: string | null; email: string } | null>(null)

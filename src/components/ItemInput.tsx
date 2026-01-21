@@ -33,8 +33,8 @@ export const ItemInput = ({
     setItemImage(file)
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       handleSubmit()
     }
@@ -95,6 +95,7 @@ export const ItemInput = ({
         placeholder="Extra Details"
         name="extraDetails"
         value={newItem.extraDetails}
+        onKeyDown={handleKeyDown}
         onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
         className="w-full p-1 border border-gray-300 rounded min-h-min"
       />
@@ -102,6 +103,14 @@ export const ItemInput = ({
       <ImageSelector handleLocalImage={handleLocalImage} key={resetId} />
 
       <div className="flex justify-between">
+        <button
+          type="button"
+          onClick={clear}
+          disabled={loading}
+          className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+        >
+          Clear
+        </button>
         <button
           type="button"
           onClick={handleSubmit}
@@ -117,14 +126,6 @@ export const ItemInput = ({
               <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-        </button>
-        <button
-          type="button"
-          onClick={clear}
-          disabled={loading}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
-        >
-          Clear
         </button>
       </div>
     </div>

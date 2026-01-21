@@ -7,10 +7,9 @@ import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import Auth from "@/components/AuthForm"
 
-// Fallback component for errors
 function ErrorFallback({ error, resetErrorBoundary }: { error: unknown; resetErrorBoundary: () => void }) {
   const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
-  
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
@@ -66,7 +65,6 @@ function Home() {
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onError={(error, errorInfo) => {
-        // Log errors (can integrate with Sentry, LogRocket, etc.)
         if (process.env.NODE_ENV === "development") {
           console.error("ErrorBoundary caught an error:", error, errorInfo)
         }

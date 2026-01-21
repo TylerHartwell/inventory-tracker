@@ -3,6 +3,7 @@ import { Settings } from "lucide-react"
 import UserSettings from "./UserSettings"
 import { useUserInvites } from "@/hooks/useUserInvites"
 import { Session } from "@supabase/supabase-js"
+import { useUserProfile } from "@/hooks/useUserProfile"
 
 interface HeaderProps {
   session: Session
@@ -12,6 +13,8 @@ interface HeaderProps {
 export const Header = ({ session, onLogout }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const invitesState = useUserInvites()
+  const userProfile = useUserProfile()
+  const showUser = !userProfile.loading
 
   const hasInvites = invitesState.invites.length > 0
 
@@ -21,10 +24,11 @@ export const Header = ({ session, onLogout }: HeaderProps) => {
       <div className="flex justify-between items-baseline text-sm">
         <h2 className="hidden 2xs:block font-semibold grow">Inventory Tracker</h2>
         <div className="flex items-center">
-          <span> {session.user.email}</span>
+          <span className={`transition-all duration-300 ease-out ${showUser ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"}`}>
+            {showUser ? (userProfile.profile?.username ?? session.user.email) : null}
+          </span>
           <button
-            onClick={e => {
-              console.log(e)
+            onClick={() => {
               setIsOpen(true)
             }}
             className="relative rounded-lg px-2 py-1 font-medium hover:bg-gray-600 transition cursor-pointer"
@@ -36,7 +40,9 @@ export const Header = ({ session, onLogout }: HeaderProps) => {
       </div>
 
       {/* Modal Backdrop */}
-      {isOpen && <UserSettings session={session} onLogout={onLogout} onClose={() => setIsOpen(false)} invitesState={invitesState} />}
+      {isOpen && (
+        <UserSettings session={session} onLogout={onLogout} onClose={() => setIsOpen(false)} invitesState={invitesState} userProfile={userProfile} />
+      )}
     </>
   )
 }
