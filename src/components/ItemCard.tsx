@@ -37,11 +37,15 @@ export const ItemCard = memo(
     }, [item.item_name, item.extra_details, item.signedUrl])
 
     const handleLocalImage = (file: File | null) => {
-      setEditData(prev => ({
-        ...prev,
-        itemImage: file,
-        isImageRemoval: !file && !!item.image_url
-      }))
+      setEditData(prev => {
+        const isImageRemoval = !file && !!item.image_url && !prev.itemImage
+
+        return {
+          ...prev,
+          itemImage: file,
+          isImageRemoval: file ? false : isImageRemoval || prev.isImageRemoval
+        }
+      })
     }
 
     const handleCancelEdit = () => {
@@ -137,6 +141,7 @@ export const ItemCard = memo(
                 type="button"
                 className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1"
                 onClick={handleCancelEdit}
+                title="Cancel editing"
               >
                 Cancel
               </button>
@@ -144,11 +149,12 @@ export const ItemCard = memo(
                 type="button"
                 className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1"
                 onClick={handleDeleteItem}
+                title="Delete item"
               >
                 <Trash2 size={16} />
               </button>
-              <button type="submit" className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1">
-                Update
+              <button type="submit" className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" title="Save changes">
+                Save Changes
               </button>
             </div>
           </form>
@@ -167,12 +173,13 @@ export const ItemCard = memo(
               </div>
             )}
             <div className="flex justify-end">
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={() => setIsEditing(true)}>
+              <button
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1"
+                onClick={() => setIsEditing(true)}
+                title="Edit item"
+              >
                 <Pencil size={16} />
               </button>
-              {/* <button className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleDeleteItem}>
-                <Trash2 size={16} />
-              </button> */}
             </div>
           </>
         )}

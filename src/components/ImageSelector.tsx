@@ -1,4 +1,4 @@
-import { Pencil, X } from "lucide-react"
+import { Pencil, Trash2, X } from "lucide-react"
 import Image from "next/image"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
@@ -7,6 +7,7 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
   const [previewUrl, setPreviewUrl] = useState<string | null>(() => {
     return signedUrl ? signedUrl : null
   })
+  const [localImage, setLocalImage] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
   const handleButtonClick = () => {
@@ -16,10 +17,7 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
   const handleFileChange = (file: File | null) => {
     if (file) {
       handleLocalImage(file)
-
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
+      setLocalImage(file)
 
       const url = URL.createObjectURL(file)
       setPreviewUrl(url)
@@ -36,9 +34,24 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
 
   const handleRemoveImage = () => {
     handleLocalImage(null)
-    if (previewUrl) {
+    if (localImage) {
+      URL.revokeObjectURL(previewUrl || "")
+      setPreviewUrl(signedUrl || null)
+    }
+    setLocalImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleRemoveExisting = () => {
+    // Revoke blob URL if it exists (not the signed URL)
+    if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl)
     }
+    // Signal to parent that existing image should be removed
+    handleLocalImage(null)
+    setLocalImage(null)
     setPreviewUrl(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -64,11 +77,13 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
 
   useEffect(() => {
     return () => {
-      if (previewUrl) {
+      if (localImage && previewUrl && previewUrl !== signedUrl) {
         URL.revokeObjectURL(previewUrl)
       }
     }
-  }, [previewUrl])
+  }, [previewUrl, localImage, signedUrl])
+
+  const showRemoveExistingOption = signedUrl && !localImage
 
   return (
     <div className="w-full flex justify-center items-center">
@@ -110,16 +125,30 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
           type="button"
           onClick={handleButtonClick}
           className="bg-blue-600 text-white flex items-center w-min px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
+          title="Select or change image"
         >
           <Pencil size={14} />
         </button>
-        <button
-          type="button"
-          onClick={handleRemoveImage}
-          className="bg-red-600 w-min text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200"
-        >
-          <X size={14} />
-        </button>
+        {localImage && (
+          <button
+            type="button"
+            onClick={handleRemoveImage}
+            className="bg-red-600 w-min text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200"
+            title="Remove selected image"
+          >
+            <X size={14} />
+          </button>
+        )}
+        {showRemoveExistingOption && (
+          <button
+            type="button"
+            onClick={handleRemoveExisting}
+            className="bg-red-600 w-min text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200"
+            title="Remove existing image"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
     </div>
   )
