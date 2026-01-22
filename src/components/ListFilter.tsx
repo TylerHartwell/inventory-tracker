@@ -20,6 +20,8 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
 
   const { lists, loading, error } = userLists
 
+  const onlyNullListSelected = filteredListIds.length === 1 && filteredListIds.includes(null)
+
   useEffect(() => {
     if (!open) return
 
@@ -87,7 +89,7 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
                 name="default"
                 checked={filteredListIds.includes(null)}
                 onChange={() => handleToggle(null)}
-                className="w-4 h-4 accent-blue-500 cursor-pointer"
+                className={`w-4 h-4 accent-blue-500 cursor-pointer ${onlyNullListSelected && "accent-gray-700"}`}
               />
               <span className={selectedListId === null ? "font-semibold underline" : ""}>{nullListName}</span>
             </label>

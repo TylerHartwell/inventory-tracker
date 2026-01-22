@@ -107,41 +107,57 @@ export const ItemCard = memo(
     return (
       <li key={item.id} className="border border-gray-300 rounded p-1 mb-1">
         {isEditing ? (
-          <>
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+              handleUpdateItem()
+            }}
+          >
             {/* Editing Mode */}
             <input
               name="item-name"
               value={editData.itemName}
               onChange={e => setEditData(prev => ({ ...prev, itemName: e.target.value }))}
               placeholder="Item Name"
-              className="w-full rounded text-base font-normal border border-gray-300"
+              className="w-full px-1 rounded text-base font-normal border border-gray-300"
             />
             <textarea
               name="extra-details"
               value={editData.extraDetails ?? ""}
               onChange={e => setEditData(prev => ({ ...prev, extraDetails: e.target.value }))}
               placeholder="Extra Details"
-              className="w-full rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
+              className="w-full px-1 rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
             />
             <div className="flex items-center mb-2">
               <ImageSelector handleLocalImage={handleLocalImage} signedUrl={item.signedUrl ?? null} />
             </div>
 
             <div className="flex justify-between">
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleCancelEdit}>
+              <button
+                type="button"
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1"
+                onClick={handleCancelEdit}
+              >
                 Cancel
               </button>
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleUpdateItem}>
+              <button
+                type="button"
+                className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1"
+                onClick={handleDeleteItem}
+              >
+                <Trash2 size={16} />
+              </button>
+              <button type="submit" className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1">
                 Update
               </button>
             </div>
-          </>
+          </form>
         ) : (
           <>
             {/* View Mode */}
             <div className="flex">
               <p className="w-full text-base font-normal flex-1">{item.item_name}</p>
-              <span>{item.listName}</span>
+              <span className="opacity-80">{item.listName}</span>
             </div>
 
             {item.extra_details && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{item.extra_details}</p>}
@@ -150,13 +166,13 @@ export const ItemCard = memo(
                 <Image src={item.signedUrl} unoptimized alt="Item image" fill priority={isPriority} className="object-contain rounded" />
               </div>
             )}
-            <div className="flex justify-between">
+            <div className="flex justify-end">
               <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={() => setIsEditing(true)}>
                 <Pencil size={16} />
               </button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleDeleteItem}>
+              {/* <button className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1" onClick={handleDeleteItem}>
                 <Trash2 size={16} />
-              </button>
+              </button> */}
             </div>
           </>
         )}

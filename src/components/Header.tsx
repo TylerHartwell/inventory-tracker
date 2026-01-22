@@ -21,10 +21,10 @@ export const Header = ({ session, onLogout }: HeaderProps) => {
   return (
     <>
       {/* Header */}
-      <div className="flex justify-between items-baseline text-sm">
+      <div className="flex justify-end items-baseline text-sm">
         <h2 className="hidden 2xs:block font-semibold grow">Inventory Tracker</h2>
         <div className="flex items-center">
-          <span className={`transition-all duration-300 ease-out ${showUser ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"}`}>
+          <span className={`transition-all duration-300 ease-out ${showUser ? "opacity-100 translate-x-0" : "opacity-0 translate-x-1/2"}`}>
             {showUser ? (userProfile.profile?.username ?? session.user.email) : null}
           </span>
           <button

@@ -56,8 +56,14 @@ const Auth = () => {
   const inputClass = "w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
 
   return (
-    <div className="max-w-sm mx-auto p-4">
-      <h2 className="text-xl font-semibold mb-4 text-center">Sign In / Sign Up</h2>
+    <div className="mx-auto p-4 flex flex-col items-center">
+      <h1 className="max-w-md text-2xl font-semibold text-center mb-2 flex gap-2 items-center">
+        <span>-</span>Inventory Tracker<span>-</span>
+      </h1>
+      <h2 className="max-w-md text-md mb-4 text-center flex flex-col xs:flex-row xs:gap-1">
+        <span>Flexible Item Collections.</span>
+        <span>Shareable and Collaborative.</span>
+      </h2>
 
       {message && (
         <div className={`mb-4 p-2 rounded text-sm ${message.type === "error" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
@@ -65,7 +71,7 @@ const Auth = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mb-4">
+      <form onSubmit={handleSubmit} className="mb-4 max-w-xs">
         <input
           type="email"
           placeholder="Email"
@@ -114,6 +120,21 @@ const Auth = () => {
           </div>
         )}
       </form>
+
+      <div className="flex flex-col gap-8 mt-4 items-center">
+        <h3 className="max-w-lg">
+          Create <strong>structured lists</strong> with rich item details, <strong>invite others</strong>, and control who can{" "}
+          <strong>view or edit</strong>—perfect for cataloging, tracking, and collaborating.
+        </h3>
+        <ul className="list-disc ml-8">
+          <li>Names, Descriptions, Details</li>
+          <li>Images & Icons</li>
+          <li>Dates (Purchase, Expiration, Warranty)</li>
+          <li>Prices & Quantitites</li>
+          <li>Categories & Tags</li>
+          <li>And More...</li>
+        </ul>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { ComponentRef, useEffect, useRef, useState } from "react"
 
 interface SortOrderSelectProps {
@@ -28,13 +28,12 @@ export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => 
     <DropdownMenu.Root open={open} modal={false} onOpenChange={setOpen}>
       <DropdownMenu.Trigger className="border px-2 py-1  w-full h-full rounded flex justify-between items-center text-sm text-nowrap cursor-pointer">
         {sortAsc ? "Oldest First" : "Newest First"}
-        <ChevronDown className="w-5 h-5 text-gray-500" />
+        {open ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           ref={contentRef}
-          align="start"
           className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
         >
           <DropdownMenu.Item
