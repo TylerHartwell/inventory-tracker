@@ -3,11 +3,12 @@ import { Session } from "@supabase/supabase-js"
 import { uploadImage } from "./uploadImage"
 import { Item, LocalItem } from "@/components/ItemManager"
 import { deleteImage } from "./deleteImage"
+import { UpdatePayload } from "@/components/ItemCard"
 
 interface updateItemParams {
   item: LocalItem
   session: Session
-  updates: Partial<{ itemName: string; extraDetails: string; itemImage: File | null }>
+  updates: UpdatePayload
 }
 
 export const updateItem = async ({
@@ -30,20 +31,27 @@ export const updateItem = async ({
     ...(updates.extraDetails !== undefined && { extra_details: updates.extraDetails })
   }
 
-  if (updates.itemImage instanceof File || (updates.itemImage === null && item.image_url !== null)) {
+  if (updates.itemImage !== undefined) {
     if (item.image_url) {
       const { error } = await deleteImage({ session, imageUrl: item.image_url })
       if (error) {
-        return { data: null, error: error }
+        return { data: null, error }
       }
-      mappedUpdates.image_url = null
     }
-    if (updates.itemImage instanceof File) {
-      const { data, error } = await uploadImage({ session, file: updates.itemImage, itemId: item.id, listId: item.list_id })
+
+    if (updates.itemImage) {
+      const { data, error } = await uploadImage({
+        session,
+        file: updates.itemImage,
+        itemId: item.id,
+        listId: item.list_id
+      })
       if (error) {
-        return { data: null, error: error }
+        return { data: null, error }
       }
       mappedUpdates.image_url = data
+    } else {
+      mappedUpdates.image_url = null
     }
   }
 

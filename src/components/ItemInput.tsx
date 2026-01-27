@@ -29,7 +29,7 @@ export const ItemInput = ({
     setResetId(id => id + 1)
   }
 
-  const handleLocalImage = (file: File | null) => {
+  const handleItemImageFile = (file: File | null) => {
     setItemImage(file)
   }
 
@@ -100,7 +100,7 @@ export const ItemInput = ({
         className="w-full p-1 border border-gray-300 rounded min-h-min"
       />
 
-      <ImageSelector handleLocalImage={handleLocalImage} key={resetId} />
+      <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} />
 
       <div className="flex justify-between">
         <button

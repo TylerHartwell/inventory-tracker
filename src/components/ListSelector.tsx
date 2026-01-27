@@ -101,7 +101,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
             <DropdownMenu.Content
               ref={contentRef}
               align="start"
-              className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
+              className="z-50 bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
             >
               {isCreating ? (
                 <DropdownMenu.Item asChild>

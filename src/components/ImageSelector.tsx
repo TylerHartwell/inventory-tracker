@@ -1,61 +1,49 @@
-import { Pencil, Trash2, X } from "lucide-react"
+import { Pencil, Trash2, X, RotateCcw } from "lucide-react"
 import Image from "next/image"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
-function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImage: (file: File | null) => void; signedUrl?: string | null }) {
+function ImageSelector({
+  onImageFileChange,
+  signedUrl = null
+}: {
+  onImageFileChange: (file: File | null, isDeletingExisting?: boolean) => void
+  signedUrl?: string | null
+}) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(() => {
-    return signedUrl ? signedUrl : null
-  })
-  const [localImage, setLocalImage] = useState<File | null>(null)
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
+  const [existingRemoved, setExistingRemoved] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
 
-  const handleButtonClick = () => {
+  const handleFileInputClick = () => {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = (file: File | null) => {
-    if (file) {
-      handleLocalImage(file)
-      setLocalImage(file)
-
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
-    }
-  }
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
-    handleFileChange(file)
+
+    if (file) handleFileSelection(file)
   }
 
-  const handleRemoveImage = () => {
-    handleLocalImage(null)
-    if (localImage) {
-      URL.revokeObjectURL(previewUrl || "")
-      setPreviewUrl(signedUrl || null)
-    }
-    setLocalImage(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+  const handleFileSelection = (file: File) => {
+    onImageFileChange(file)
+    clearFileInputToAllowReselection(fileInputRef)
+    const url = URL.createObjectURL(file)
+
+    setSelectedImageUrl(url)
+  }
+  const handleRemoveSelectedImage = () => {
+    onImageFileChange(null)
+    URL.revokeObjectURL(selectedImageUrl || "")
+    setSelectedImageUrl(null)
   }
 
   const handleRemoveExisting = () => {
-    // Revoke blob URL if it exists (not the signed URL)
-    if (previewUrl && previewUrl.startsWith("blob:")) {
-      URL.revokeObjectURL(previewUrl)
-    }
-    // Signal to parent that existing image should be removed
-    handleLocalImage(null)
-    setLocalImage(null)
-    setPreviewUrl(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+    setExistingRemoved(true)
+    onImageFileChange(null, true)
+  }
+  const handleUndoRemoveExisting = () => {
+    setExistingRemoved(false)
+    onImageFileChange(null, false)
   }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -63,48 +51,59 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
     setIsDragging(true)
   }
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
     setIsDragging(false)
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
-
     const file = e.dataTransfer.files?.[0] || null
-    handleFileChange(file)
+
+    if (file) handleFileSelection(file)
   }
+
+  const clearFileInputToAllowReselection = (fileInputRef: React.RefObject<HTMLInputElement | null>) => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const hasExistingImage = !!signedUrl
+  const showExistingImage = hasExistingImage && !existingRemoved && !selectedImageUrl
+  const showUndoExisting = hasExistingImage && existingRemoved && !selectedImageUrl
+  const showCancelSelected = !!selectedImageUrl
+  const imageToShowUrl = selectedImageUrl || (showExistingImage ? signedUrl : null)
 
   useEffect(() => {
     return () => {
-      if (localImage && previewUrl && previewUrl !== signedUrl) {
-        URL.revokeObjectURL(previewUrl)
+      if (selectedImageUrl) {
+        URL.revokeObjectURL(selectedImageUrl)
       }
     }
-  }, [previewUrl, localImage, signedUrl])
-
-  const showRemoveExistingOption = signedUrl && !localImage
+  }, [selectedImageUrl])
 
   return (
-    <div className="w-full flex justify-center items-center">
-      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleInputChange} className="hidden" />
+    <div className="w-full flex relative justify-center items-center">
+      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileInputChange} className="hidden" />
 
       <div
         role="button"
         tabIndex={0}
         aria-label="Select an image or drag and drop"
-        className={`relative w-1/2 aspect-[16/9] flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer overflow-hidden ${
+        className={`relative w-1/2 aspect-[16/9] flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer ${
           isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
         }`}
-        onClick={handleButtonClick}
+        onClick={handleFileInputClick}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {previewUrl ? (
-          <div className="absolute w-full h-full flex-1  bg-transparent rounded-md overflow-hidden">
+        {imageToShowUrl ? (
+          <div className="absolute w-full h-full flex-1  bg-transparent rounded-md ">
             <Image
-              src={previewUrl}
+              src={imageToShowUrl}
               alt="Preview"
               fill
               unoptimized
@@ -120,33 +119,44 @@ function ImageSelector({ handleLocalImage, signedUrl = null }: { handleLocalImag
         )}
       </div>
 
-      <div className="flex flex-col gap-2 ">
+      <div className="flex flex-col gap-2">
         <button
           type="button"
-          onClick={handleButtonClick}
+          name="file-input"
+          onClick={handleFileInputClick}
           className="bg-blue-600 text-white flex items-center w-min px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
           title="Select or change image"
         >
           <Pencil size={14} />
         </button>
-        {localImage && (
+        {showCancelSelected && (
           <button
             type="button"
-            onClick={handleRemoveImage}
-            className="bg-red-600 w-min text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200"
+            onClick={handleRemoveSelectedImage}
+            className="absolute top-0 bg-red-600 h-min bottom-full text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
             title="Remove selected image"
           >
             <X size={14} />
           </button>
         )}
-        {showRemoveExistingOption && (
+        {showExistingImage && (
           <button
             type="button"
             onClick={handleRemoveExisting}
-            className="bg-red-600 w-min text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200"
+            className="absolute top-0 bg-red-600 h-min bottom-full text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
             title="Remove existing image"
           >
             <Trash2 size={14} />
+          </button>
+        )}
+        {showUndoExisting && (
+          <button
+            type="button"
+            onClick={handleUndoRemoveExisting}
+            className="absolute top-0 bg-red-600 h-min bottom-full text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
+            title="Undo remove existing image"
+          >
+            <RotateCcw size={14} />
           </button>
         )}
       </div>
