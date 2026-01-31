@@ -1,18 +1,14 @@
 import { supabase } from "@/supabase-client"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 
+export type UserProfileData = {
+  username: string | null
+  email: string
+}
 export interface UserProfile {
-  profile: {
-    username: string | null
-    email: string
-  } | null
+  profile: UserProfileData | null
   loading: boolean
-  setProfile: Dispatch<
-    SetStateAction<{
-      username: string | null
-      email: string
-    } | null>
-  >
+  setProfile: Dispatch<SetStateAction<UserProfileData | null>>
 }
 
 export function useUserProfile() {
@@ -24,7 +20,10 @@ export function useUserProfile() {
       const {
         data: { user }
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        setLoading(false)
+        return
+      }
 
       const { data: profile } = await supabase.from("profiles").select("username").eq("id", user.id).single()
 

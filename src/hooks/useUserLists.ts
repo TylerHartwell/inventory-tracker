@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/supabase-client"
 import { List } from "@/components/ItemManager"
+import { camelize } from "@/utils/camelize"
 
 export interface UserLists {
-  lists: {
-    created_at: string
-    id: string
-    name: string
-    owner_id: string
-  }[]
+  lists: List[]
   loading: boolean
   error: string | null
   fetchLists: () => Promise<void>
@@ -34,7 +30,7 @@ export function useUserLists(userId: string) {
         setError(error.message)
         setLists([])
       } else {
-        setLists(data)
+        setLists((camelize(data) ?? []) as List[])
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error")

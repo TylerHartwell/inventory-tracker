@@ -1,13 +1,6 @@
 import { supabase } from "@/supabase-client"
-
-export type ListMember = {
-  list_id: string | null
-  user_id: string | null
-  username: string | null
-  email: string | null
-  role: "owner" | "editor" | "viewer"
-  pending: boolean
-}
+import { camelize } from "./camelize"
+import { ListMember } from "@/components/ItemManager"
 
 export const getListMembers = async (
   listId: string
@@ -18,11 +11,11 @@ export const getListMembers = async (
       error: string
     }
 > => {
-  const { data, error } = await supabase.from("list_members").select("*").eq("list_id", listId).order("pending", { ascending: false })
+  const { data: listMembersDb, error } = await supabase.from("list_members").select("*").eq("list_id", listId).order("pending", { ascending: false })
 
   if (error) {
     return { data: null, error: error.message }
   }
 
-  return { data: data as ListMember[], error: null }
+  return { data: camelize(listMembersDb) ?? ([] as ListMember[]), error: null }
 }

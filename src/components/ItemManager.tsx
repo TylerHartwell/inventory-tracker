@@ -1,21 +1,30 @@
 import { Session } from "@supabase/supabase-js"
-import { ItemInput } from "./ItemInput"
-import { ItemCard } from "./ItemCard"
+import { ItemInput } from "./item-input/ItemInput"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
 import { useUserLists } from "@/hooks/useUserLists"
-import { Header } from "./Header"
-import ItemCardsSkeleton from "./ItemCardsSkeleton"
-import LoadingSpinner from "./LoadingSpinner"
+import { Header } from "./header/Header"
+import { Camelize } from "@/utils/camelize"
+import SortedItemResults from "./sorted-item-results/SortedItemResults"
+import ScrollToTopBtn from "./ScrollToTopBtn"
+import useSessionStorage from "@/hooks/useSessionStorage"
 
-export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
-export type List = Database["public"]["Tables"]["lists"]["Row"]
-export type Item = Database["public"]["Tables"]["items"]["Row"]
-export type ListUser = Database["public"]["Tables"]["list_users"]["Row"]
-export type ListInvite = Database["public"]["Tables"]["list_invites"]["Row"]
+export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
+export type DBList = Database["public"]["Tables"]["lists"]["Row"]
+export type DBItem = Database["public"]["Tables"]["items"]["Row"]
+export type DBListUser = Database["public"]["Tables"]["list_users"]["Row"]
+export type DBListInvite = Database["public"]["Tables"]["list_invites"]["Row"]
+export type DBListMember = Database["public"]["Views"]["list_members"]["Row"]
+
+export type Profile = Camelize<DBProfile>
+export type List = Camelize<DBList>
+export type Item = Camelize<DBItem>
+export type ListUser = Camelize<DBListUser>
+export type ListInvite = Camelize<DBListInvite>
+export type ListMember = Camelize<DBListMember>
 
 export type LocalItem = Item & {
   signedUrl: string | null
@@ -27,32 +36,28 @@ export type LocalListInvite = ListInvite & {
 
 export const nullListName = "Personal"
 
+const SESSION_KEYS = {
+  filteredListIds: "filteredListIds",
+  selectedListId: "selectedListId",
+  followInputList: "followInputList",
+  sortAsc: "sortAsc"
+} as const
+
+export type SessionKey = (typeof SESSION_KEYS)[keyof typeof SESSION_KEYS]
+
 function ItemManager({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
-  const [filteredListIds, setFilteredListIds] = useState<(string | null)[]>(() => {
-    const saved = sessionStorage.getItem("filteredListIds")
-    return saved ? JSON.parse(saved) : [null]
-  })
-  const [selectedListId, setSelectedListId] = useState<string | null>(() => {
-    const saved = sessionStorage.getItem("selectedListId")
-    return saved ? JSON.parse(saved) : null
-  })
-  const [followInputList, setFollowInputList] = useState<boolean>(() => {
-    const saved = sessionStorage.getItem("followInputList")
-    return saved ? JSON.parse(saved) : true
-  })
-  const [sortAsc, setSortAsc] = useState<boolean>(() => {
-    const saved = sessionStorage.getItem("sortAsc")
-    return saved ? JSON.parse(saved) : false
-  })
-  const [showScrollTop, setShowScrollTop] = useState(false)
+  const [filteredListIds, setFilteredListIds] = useSessionStorage<(string | null)[]>(SESSION_KEYS.filteredListIds, [null], session.user.id)
+  const [selectedListId, setSelectedListId] = useSessionStorage<string | null>(SESSION_KEYS.selectedListId, null, session.user.id)
+  const [followInputList, setFollowInputList] = useSessionStorage<boolean>(SESSION_KEYS.followInputList, true, session.user.id)
+  const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const userLists = useUserLists(session.user.id)
 
   const { items, loading, refresh } = useItemsRealtime(session, filteredListIds)
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
-      const timeA = new Date(a.created_at).getTime()
-      const timeB = new Date(b.created_at).getTime()
+      const timeA = new Date(a.createdAt).getTime()
+      const timeB = new Date(b.createdAt).getTime()
       return sortAsc ? timeA - timeB : timeB - timeA
     })
   }, [items, sortAsc])
@@ -63,52 +68,12 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       setFilteredListIds([listId])
     }
   }
-
   const handleToggleFollowInputList = () => {
     setFollowInputList(prev => !prev)
     if (!followInputList) {
       setFilteredListIds([selectedListId])
     }
   }
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  useEffect(() => {
-    const onScroll = () => {
-      setShowScrollTop(window.scrollY > 10)
-    }
-
-    window.addEventListener("scroll", onScroll)
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
-  useEffect(() => {
-    sessionStorage.setItem("filteredListIds", JSON.stringify(filteredListIds))
-  }, [filteredListIds])
-
-  useEffect(() => {
-    sessionStorage.setItem("selectedListId", JSON.stringify(selectedListId))
-  }, [selectedListId])
-
-  useEffect(() => {
-    sessionStorage.setItem("followInputList", JSON.stringify(followInputList))
-  }, [followInputList])
-
-  useEffect(() => {
-    sessionStorage.setItem("sortAsc", JSON.stringify(sortAsc))
-  }, [sortAsc])
-
-  useEffect(() => {
-    // Only clear app-specific sessionStorage keys when user changes
-    // This prevents clearing unrelated data from other apps/tabs
-
-    return () => {
-      const appKeys = ["filteredListIds", "selectedListId", "followInputList", "sortAsc"]
-      appKeys.forEach(key => sessionStorage.removeItem(key))
-    }
-  }, [session.user.id])
 
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
@@ -131,38 +96,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
-      <ul className="list-none p-0 relative">
-        {loading &&
-          (sortedItems.length === 0 ? (
-            <ItemCardsSkeleton />
-          ) : (
-            <>
-              <LoadingSpinner />
-              {sortedItems.map((item, index) => (
-                <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />
-              ))}
-            </>
-          ))}
-        {!loading &&
-          (sortedItems.length === 0 ? (
-            <div className="text-center">- No Results -</div>
-          ) : (
-            <>
-              {sortedItems.map((item, index) => (
-                <ItemCard item={item} key={item.id} session={session} isPriority={index <= 3} />
-              ))}
-            </>
-          ))}
-        {sortedItems.length !== 0 && <div className="h-10 flex items-center text-center justify-center ">- End -</div>}
-      </ul>
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-2 right-4 w-10 h-10 rounded-full shadow-lg border bg-white cursor-pointer text-black transition"
-        >
-          ↑
-        </button>
-      )}
+      <SortedItemResults loading={loading} sortedItems={sortedItems} />
+      <ScrollToTopBtn />
     </div>
   )
 }

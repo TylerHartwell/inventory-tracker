@@ -3,41 +3,34 @@ import { supabase } from "../supabase-client"
 import { Session } from "@supabase/supabase-js"
 import useDeepCompareRef from "./useDeepCompareRef"
 import { Item, LocalItem, nullListName } from "@/components/ItemManager"
-import { useGenerateSignedUrl } from "./useGenerateSignedUrl"
-import { useFetchItemsForLists } from "./useFetchItemsForLists"
+import { generateSignedUrl } from "@/utils/generateSignedUrl"
+import { getItemsForListIds } from "@/utils/getItemsForListIds"
 
 export function useItemsRealtime(session: Session, filteredListIds: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
-  const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
   const prevListsRef = useRef<(string | null)[]>([])
-
   const stableFilteredListIds = useDeepCompareRef(filteredListIds)
 
-  const generateSignedUrl = useGenerateSignedUrl()
-
-  const fetchItemsForListIds = useFetchItemsForLists(session, generateSignedUrl)
+  const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
 
   const refresh = useCallback(async () => {
     setLoading(true)
 
     try {
-      const fetched = await fetchItemsForListIds(stableFilteredListIds)
+      const fetched = await getItemsForListIds(session.user.id, stableFilteredListIds)
 
       const newMap = new Map(fetched.map(item => [item.id, item]))
 
       setItemsMap(newMap)
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error("Error refreshing items:", err.message, err)
+      }
     } finally {
       setLoading(false)
     }
-  }, [fetchItemsForListIds, stableFilteredListIds])
-
-  const diffLists = useCallback((prev: (string | null)[], next: (string | null)[]) => {
-    const added = next.filter(id => !prev.includes(id))
-    const removed = prev.filter(id => !next.includes(id))
-
-    return { added, removed }
-  }, [])
+  }, [session.user.id, stableFilteredListIds])
 
   useEffect(() => {
     const controller = new AbortController() // for optional fetch cancellation
@@ -60,7 +53,7 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
         if (removed.length > 0) {
           const removedSet = new Set(removed)
           for (const [id, item] of newItemsMap.entries()) {
-            if (removedSet.has(item.list_id ?? null)) {
+            if (removedSet.has(item.listId ?? null)) {
               newItemsMap.delete(id)
             }
           }
@@ -70,7 +63,9 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
         if (added.length > 0 || prev.length === 0) {
           const listsToFetch = prev.length === 0 ? current : added
 
-          const fetched = await fetchItemsForListIds(listsToFetch, signal)
+          const fetched = await getItemsForListIds(session.user.id, listsToFetch, signal)
+
+          if (signal.aborted) return
 
           fetched.forEach(item => newItemsMap.set(item.id, item))
         }
@@ -95,12 +90,12 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     return () => {
       controller.abort() // cancel ongoing fetch if lists change quickly
     }
-  }, [stableFilteredListIds, diffLists, fetchItemsForListIds])
+  }, [stableFilteredListIds, session.user.id])
 
   // Realtime subscription
   useEffect(() => {
     const handleUpsert = async (dbItem: Item) => {
-      const listId = dbItem.list_id ?? null
+      const listId = dbItem.listId ?? null
 
       if (!stableFilteredListIds.includes(listId)) return
 
@@ -108,7 +103,7 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
       let listName = nullListName
 
       try {
-        signedUrl = dbItem.image_url ? await generateSignedUrl(dbItem.image_url) : null
+        signedUrl = dbItem.imageUrl ? await generateSignedUrl(dbItem.imageUrl) : null
       } catch (e) {
         console.error("Failed to generate signed URL:", e)
       }
@@ -136,7 +131,11 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
       setItemsMap(prev => {
         const newMap = new Map(prev)
 
-        newMap.set(item.id, item)
+        // Merge incoming item with any existing entry to avoid clobbering fields
+        const existing = newMap.get(item.id)
+        const merged = existing ? { ...existing, ...item } : item
+
+        newMap.set(item.id, merged)
 
         return newMap
       })
@@ -173,27 +172,37 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     return () => {
       channel.unsubscribe()
     }
-  }, [stableFilteredListIds, generateSignedUrl, session.user.id])
+  }, [stableFilteredListIds, session.user.id])
 
   // Auto-refresh only items that have image_url
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const refreshed = await Promise.all(
-        Array.from(itemsRef.current.values()).map(async item => {
-          if (!item.image_url) return item
-          const signedUrl = await generateSignedUrl(item.image_url)
-          return { ...item, signedUrl }
-        })
-      )
-      setItemsMap(new Map(refreshed.map(item => [item.id, item])))
-    }, 1000 * 60 * 15) // 15 minutes
+    const interval = setInterval(
+      async () => {
+        const refreshed = await Promise.all(
+          Array.from(itemsRef.current.values()).map(async item => {
+            if (!item.imageUrl) return item
+            const signedUrl = await generateSignedUrl(item.imageUrl)
+            return { ...item, signedUrl }
+          })
+        )
+        setItemsMap(new Map(refreshed.map(item => [item.id, item])))
+      },
+      1000 * 60 * 15
+    ) // 15 minutes
 
     return () => clearInterval(interval)
-  }, [generateSignedUrl])
+  }, [])
 
   useEffect(() => {
     itemsRef.current = itemsMap
   }, [itemsMap])
 
   return { items: Array.from(itemsMap.values()), loading, refresh }
+}
+
+const diffLists = (prev: (string | null)[], next: (string | null)[]) => {
+  const added = next.filter(id => !prev.includes(id))
+  const removed = prev.filter(id => !next.includes(id))
+
+  return { added, removed }
 }
