@@ -2,6 +2,7 @@ import { useState, useEffect, memo } from "react"
 import { LocalItem } from "../ItemManager"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
+import { generateSignedUrl } from "@/utils/generateSignedUrl"
 import isEqual from "lodash.isequal"
 import ItemCardView from "./ItemCardView"
 import ItemCardForm from "./ItemCardForm"
@@ -23,7 +24,11 @@ export const ItemCard = memo(
 
     const [displayItem, setDisplayItem] = useState(item)
 
+    // Helper to safely revoke blob URLs
+
     useEffect(() => {
+      // Always sync with the upstream `item` prop so the form updates
+      // live if the database changes while the user is editing.
       setDisplayItem(item)
     }, [item])
 
@@ -32,6 +37,12 @@ export const ItemCard = memo(
     }
 
     const handleCancelEdit = () => {
+      // Revoke any blob URL created during this edit session before closing
+      if (displayItem.signedUrl?.startsWith("blob:")) {
+        revokeBlobUrl(displayItem.signedUrl)
+        // Reset displayItem to the upstream `item` to discard the blob URL
+        setDisplayItem(item)
+      }
       setIsEditing(false)
     }
 
@@ -76,16 +87,35 @@ export const ItemCard = memo(
 
       if (error || !updatedItem) {
         console.error("Failed to update item:", error)
+        // Revoke any blob URL from the failed optimistic update
+        revokeBlobUrl(optimisticItem.signedUrl)
         setDisplayItem(previousItem)
         return
       }
+
+      // Update displayItem with the actual database response to ensure signedUrl is correct
+      let signedUrl: string | null = null
+      if (updatedItem.imageUrl) {
+        try {
+          signedUrl = await generateSignedUrl(updatedItem.imageUrl)
+        } catch (err) {
+          console.error("Failed to generate signed URL:", err)
+          signedUrl = null
+        }
+      }
+
+      const updatedLocalItem: LocalItem = {
+        ...updatedItem,
+        signedUrl,
+        listName: displayItem.listName
+      }
+      setDisplayItem(updatedLocalItem)
     }
 
+    // Cleanup blob URLs when component unmounts or when displayItem changes
     useEffect(() => {
       return () => {
-        if (displayItem.signedUrl?.startsWith("blob:")) {
-          URL.revokeObjectURL(displayItem.signedUrl)
-        }
+        revokeBlobUrl(displayItem.signedUrl)
       }
     }, [displayItem.signedUrl])
 
@@ -93,8 +123,8 @@ export const ItemCard = memo(
       <li className="border border-gray-300 rounded p-1 mb-1">
         {isEditing ? (
           <ItemCardForm
-            item={item}
-            signedUrl={item.signedUrl}
+            item={displayItem}
+            signedUrl={displayItem.signedUrl}
             onCancelEdit={handleCancelEdit}
             onDeleteItem={handleDeleteItem}
             onSubmit={handleUpdateItem}
@@ -110,5 +140,11 @@ export const ItemCard = memo(
     return prevProps.isPriority === nextProps.isPriority && isEqual(prevProps.item, nextProps.item)
   }
 )
+
+const revokeBlobUrl = (url: string | null) => {
+  if (url?.startsWith("blob:")) {
+    URL.revokeObjectURL(url)
+  }
+}
 
 ItemCard.displayName = "ItemCard"
