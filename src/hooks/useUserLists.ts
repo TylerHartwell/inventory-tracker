@@ -7,15 +7,15 @@ export interface UserLists {
   lists: List[]
   loading: boolean
   error: string | null
-  fetchLists: () => Promise<void>
+  refreshLists: () => Promise<void>
 }
 
-export function useUserLists(userId: string) {
+export function useUserLists(userId: string): UserLists {
   const [lists, setLists] = useState<List[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchLists = useCallback(async () => {
+  const refreshLists = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -47,8 +47,27 @@ export function useUserLists(userId: string) {
       return
     }
 
-    fetchLists()
-  }, [fetchLists, userId])
+    refreshLists()
+  }, [refreshLists, userId])
 
-  return { lists, loading, error, fetchLists }
+  useEffect(() => {
+    if (!userId) return
+
+    const channel = supabase
+      .channel(`user-lists-${userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
+        refreshLists()
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
+        refreshLists()
+      })
+
+    channel.subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [userId, refreshLists])
+
+  return { lists, loading, error, refreshLists }
 }

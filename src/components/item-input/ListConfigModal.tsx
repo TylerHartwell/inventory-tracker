@@ -10,19 +10,19 @@ function ListConfigModal({
   configId,
   lists,
   session,
-  handleDelete,
+  onListDelete,
   nullListName,
-  refresh,
-  fetchLists
+  refreshItems,
+  refreshLists
 }: {
   onClose: () => void
   configId: string
   lists: List[]
   session: Session
-  handleDelete: (id: string) => void
+  onListDelete: (id: string) => void
   nullListName: string
-  refresh: () => Promise<void>
-  fetchLists: () => Promise<void>
+  refreshItems: () => Promise<void>
+  refreshLists: () => Promise<void>
 }) {
   const [isEditingName, setIsEditingName] = useState(false)
   const [isManagingUsers, setIsManagingUsers] = useState(false)
@@ -44,8 +44,8 @@ function ListConfigModal({
     }
 
     setIsEditingName(false)
-    refresh()
-    fetchLists()
+    refreshItems()
+    refreshLists()
   }
 
   const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -181,7 +181,7 @@ function ListConfigModal({
 
               <button
                 type="button"
-                onClick={() => handleDelete(configId)}
+                onClick={() => onListDelete(configId)}
                 className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
               >
                 🗑️ Delete List

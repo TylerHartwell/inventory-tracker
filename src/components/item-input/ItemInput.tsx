@@ -7,13 +7,13 @@ import { UserLists } from "@/hooks/useUserLists"
 
 export const ItemInput = ({
   session,
-  refresh,
+  refreshItems,
   selectedListId,
   onItemInputListChange,
   userLists
 }: {
   session: Session
-  refresh: () => Promise<void>
+  refreshItems: () => Promise<void>
   selectedListId: string | null
   onItemInputListChange: (listId: string | null) => void
   userLists: UserLists
@@ -64,7 +64,7 @@ export const ItemInput = ({
         return
       }
       clear()
-      await refresh()
+      await refreshItems()
     } catch (err) {
       console.error("Unexpected error inserting item:", err)
       alert("Something went wrong while inserting the item.")
@@ -80,7 +80,7 @@ export const ItemInput = ({
         onItemInputListChange={onItemInputListChange}
         session={session}
         userLists={userLists}
-        refresh={refresh}
+        refreshItems={refreshItems}
       />
       <input
         type="text"

@@ -13,10 +13,10 @@ interface ListSelectorProps {
   onItemInputListChange: (listId: string | null) => void
   session: Session
   userLists: UserLists
-  refresh: () => Promise<void>
+  refreshItems: () => Promise<void>
 }
 
-export function ListSelector({ selectedListId, onItemInputListChange, session, userLists, refresh }: ListSelectorProps) {
+export function ListSelector({ selectedListId, onItemInputListChange, session, userLists, refreshItems }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [configId, setConfigId] = useState<string | null>(null)
   const [isConfigOpen, setIsConfigOpen] = useState(false)
@@ -44,7 +44,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
     return () => document.removeEventListener("pointerdown", handlePointerDown)
   }, [open])
 
-  const { lists, loading, error, fetchLists } = userLists
+  const { lists, loading, error, refreshLists } = userLists
 
   const handleItemInputListChange = (selectedValue: string | null) => {
     setIsCreating(false)
@@ -53,7 +53,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
 
   const handleListCreated = async (newListId: string) => {
     handleItemInputListChange(newListId)
-    fetchLists()
+    refreshLists()
   }
 
   const handleDelete = async (listId: string) => {
@@ -66,7 +66,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
     handleItemInputListChange(null)
     setConfigId(null)
     setIsConfigOpen(false)
-    fetchLists()
+    refreshLists()
   }
 
   const getTriggerLabel = () => {
@@ -101,7 +101,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
             <DropdownMenu.Content
               ref={contentRef}
               align="start"
-              className="z-50 bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
+              className="z-50 bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width)"
             >
               {isCreating ? (
                 <DropdownMenu.Item asChild>
@@ -169,10 +169,10 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
           configId={configId}
           lists={lists}
           session={session}
-          handleDelete={handleDelete}
+          onListDelete={handleDelete}
           nullListName={nullListName}
-          refresh={refresh}
-          fetchLists={fetchLists}
+          refreshItems={refreshItems}
+          refreshLists={refreshLists}
         />
       )}
     </div>

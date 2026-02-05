@@ -14,7 +14,7 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
 
   const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
 
-  const refresh = useCallback(async () => {
+  const refreshItems = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -197,7 +197,7 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     itemsRef.current = itemsMap
   }, [itemsMap])
 
-  return { items: Array.from(itemsMap.values()), loading, refresh }
+  return { items: Array.from(itemsMap.values()), loading, refreshItems }
 }
 
 const diffLists = (prev: (string | null)[], next: (string | null)[]) => {
