@@ -6,10 +6,8 @@ export type InviteWithListName = {
   role: string
   status: string
   created_at: string
-  list: {
-    id: string
-    name: string
-  }
+  listId: string
+  listName: string
 }
 
 export function useUserInvites() {
@@ -17,7 +15,7 @@ export function useUserInvites() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchInvites = async () => {
+  const refreshInvites = async () => {
     setLoading(true)
     setError(null)
 
@@ -62,7 +60,8 @@ export function useUserInvites() {
       role: invite.role,
       status: invite.status,
       created_at: invite.created_at,
-      list: invite.lists
+      listName: invite.lists.name,
+      listId: invite.lists.id
     }))
     setInvites(formattedInvites)
     setLoading(false)
@@ -71,8 +70,8 @@ export function useUserInvites() {
   }
 
   useEffect(() => {
-    fetchInvites()
+    refreshInvites()
   }, [])
 
-  return { invites, loading, error, fetchInvites }
+  return { invites, loading, error, refreshInvites }
 }

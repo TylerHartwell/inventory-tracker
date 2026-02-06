@@ -1,22 +1,20 @@
 import { supabase } from "@/supabase-client"
-
-import { deleteImage } from "../image/deleteImage"
 import { Item } from "@/components/ItemManager"
+import { deleteImageWithItemId } from "../image/deleteImageWithItemId"
 
-interface DeleteItemProps {
-  item: Item
+interface DeleteItemParams {
+  itemId: Item["id"]
+  imageUrl?: string | null
 }
 
-export const deleteItem = async ({ item }: DeleteItemProps) => {
-  if (item.imageUrl) {
-    const imageUrl = item.imageUrl
-    const { error } = await deleteImage({ imageUrl })
-    if (error) {
-      return { data: null, error: error }
-    }
+export const deleteItem = async ({ itemId, imageUrl }: DeleteItemParams) => {
+  const { error: deleteImageError } = await deleteImageWithItemId({ itemId, imageUrl, shouldClearItemImageUrl: false })
+  if (deleteImageError) {
+    return { data: null, error: deleteImageError }
   }
 
-  const { data, error } = await supabase.from("items").delete().eq("id", item.id)
+  //Delete the item from the database
+  const { data, error } = await supabase.from("items").delete().eq("id", itemId)
   if (error) {
     return { data: null, error: `Failed to delete item: ${error.message}` }
   }

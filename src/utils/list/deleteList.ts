@@ -17,7 +17,7 @@ export const deleteList = async ({ listId }: DeleteList) => {
   const items = camelize(itemsDb)
 
   for (const item of items || []) {
-    const { error } = await deleteItem({ item })
+    const { error } = await deleteItem({ itemId: item.id, imageUrl: item.imageUrl })
 
     if (error) {
       return { data: null, error: error }

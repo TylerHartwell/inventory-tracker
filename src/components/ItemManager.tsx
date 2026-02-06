@@ -77,7 +77,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
   return (
     <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
-      <Header session={session} onLogout={onLogout} />
+      <Header userEmail={session.user.email ?? ""} onLogout={onLogout} />
       <ItemInput
         session={session}
         refreshItems={refreshItems}

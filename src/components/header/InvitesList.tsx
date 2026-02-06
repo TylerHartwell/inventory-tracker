@@ -6,13 +6,13 @@ interface InvitesListProps {
     invites: InviteWithListName[]
     loading: boolean
     error: string | null
-    fetchInvites: () => Promise<{ data: null; error: string | null }>
+    refreshInvites: () => Promise<{ data: null; error: string | null }>
   }
   spinning: boolean
 }
 
 export function InvitesList({ invitesState, spinning }: InvitesListProps) {
-  const { invites, error, fetchInvites } = invitesState
+  const { invites, error, refreshInvites } = invitesState
 
   if (spinning) return <p>Loading invites…</p>
   if (error) return <p>Error: {error}</p>
@@ -30,7 +30,7 @@ export function InvitesList({ invitesState, spinning }: InvitesListProps) {
     }
 
     // Re-fetch the invites so UI updates
-    const { error: fetchError } = await fetchInvites()
+    const { error: fetchError } = await refreshInvites()
     if (fetchError) {
       console.error("Error fetching invites:", fetchError)
       return
@@ -42,7 +42,7 @@ export function InvitesList({ invitesState, spinning }: InvitesListProps) {
       {invites.map(invite => (
         <li key={invite.id} className="flex justify-between items-center border rounded-md border-gray-500 px-2">
           <div className="flex flex-col justify-between">
-            <span>List: {invite.list?.name ?? "Unknown list"}</span>
+            <span>List: {invite.listName ?? "Unknown list"}</span>
             <span>Role: {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}</span>
           </div>
           <span className="flex gap-2 text-md">

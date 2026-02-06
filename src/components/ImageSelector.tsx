@@ -92,7 +92,7 @@ function ImageSelector({
         role="button"
         tabIndex={0}
         aria-label="Select an image or drag and drop"
-        className={`relative w-1/2 aspect-[16/9] flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer ${
+        className={`relative w-1/2 aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer ${
           isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
         }`}
         onClick={handleFileInputClick}

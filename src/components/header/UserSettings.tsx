@@ -12,15 +12,15 @@ interface UserSettingsProps {
     invites: InviteWithListName[]
     loading: boolean
     error: string | null
-    fetchInvites: () => Promise<{ data: null; error: string | null }>
+    refreshInvites: () => Promise<{ data: null; error: string | null }>
   }
   userProfile: UserProfile
 }
 
 const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSettingsProps) => {
-  const { loading, fetchInvites } = invitesState
+  const { loading, refreshInvites } = invitesState
 
-  const spinning = useMinDurationActive(loading, 300)
+  const spinning = useMinDurationActive(loading, { minDurationMs: 300 })
 
   const hasInvites = invitesState.invites.length > 0
 
@@ -43,22 +43,19 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
             <X />
           </button>
         </div>
-
         <UsernameEditor userProfile={userProfile} />
-
         <div className="border border-gray-400 rounded-md p-1 flex flex-col items-center">
           <div className="flex justify-center items-center  w-full">
             <span className="relative flex gap-1 items-center justify-center">
               {hasInvites && <span className="absolute top-2 -left-3 w-1.75 h-1.75 bg-red-500 rounded-full border border-white"></span>}
               <span className=" text-center text-nowrap">Pending Invites</span>
-              <button onClick={() => fetchInvites()} className="p-1 cursor-pointer disabled:opacity-50" disabled={spinning}>
+              <button onClick={() => refreshInvites()} className="p-1 cursor-pointer disabled:opacity-50" disabled={spinning}>
                 <RefreshCw size={16} className={spinning ? "animate-spin [animation-duration:600ms]" : ""} />
               </button>
             </span>
           </div>
           <InvitesList invitesState={invitesState} spinning={spinning} />
         </div>
-
         <div className="flex justify-center items-center">
           <button
             onClick={async () => {

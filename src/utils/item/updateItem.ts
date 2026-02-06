@@ -1,9 +1,9 @@
 import { supabase } from "@/supabase-client"
 import { uploadImage } from "../image/uploadImage"
 import { Item } from "@/components/ItemManager"
-import { deleteImage } from "../image/deleteImage"
 import { UpdatePayload } from "@/components/sorted-item-results/ItemCard"
 import { camelize } from "../camelize"
+import { deleteImageWithItemId } from "../image/deleteImageWithItemId"
 
 interface UpdateItemParams<T extends Item> {
   item: T
@@ -27,11 +27,14 @@ export const updateItem = async <T extends Item>({
 
   if (updates.itemImage !== undefined) {
     if (item.imageUrl) {
-      const { error } = await deleteImage({ imageUrl: item.imageUrl })
+      const { error } = await deleteImageWithItemId({ itemId: item.id, imageUrl: item.imageUrl, shouldClearItemImageUrl: false })
       if (error) {
+        console.error("Failed to delete existing image:", error)
         return { data: null, error }
       }
     }
+
+    mappedUpdates.image_url = null
 
     if (updates.itemImage) {
       const { data, error } = await uploadImage({
@@ -40,17 +43,17 @@ export const updateItem = async <T extends Item>({
         listId: item.listId
       })
       if (error) {
+        console.error("Failed to upload new image:", error)
         return { data: null, error }
       }
       mappedUpdates.image_url = data
-    } else {
-      mappedUpdates.image_url = null
     }
   }
 
   const { data, error } = await supabase.from("items").update(mappedUpdates).eq("id", item.id).select("*").single()
 
   if (error) {
+    console.error("Error updating item:", error)
     return { data: null, error: `Error updating item: ${error.message}` }
   }
 

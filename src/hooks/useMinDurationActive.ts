@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 
-export function useMinDurationActive(active: boolean, minDurationMs = 300, onFinish?: () => void) {
+type UseMinDurationActiveOptions = {
+  minDurationMs?: number
+  onFinish?: () => void
+}
+
+export function useMinDurationActive(active: boolean, { minDurationMs = 300, onFinish }: UseMinDurationActiveOptions = {}) {
   const [isActive, setIsActive] = useState(false)
   const startTimeRef = useRef<number | null>(null)
 
