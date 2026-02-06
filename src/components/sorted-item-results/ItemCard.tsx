@@ -48,7 +48,7 @@ export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
     if (!window.confirm("Are you sure you want to delete this item?")) return
 
     try {
-      const { error } = await deleteItem({ itemId: item.id, imageUrl: item.imageUrl })
+      const { error } = await deleteItem({ itemId: displayItem.id, imageUrl: displayItem.imageUrl })
       if (error) {
         console.error("Failed to delete item:", error)
         alert("Failed to delete item. Please try again.")
@@ -86,7 +86,7 @@ export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
     setDisplayItem(optimisticItem)
     setIsEditing(false)
 
-    const { data: updatedItem, error } = await updateItem({ item, updates })
+    const { data: updatedItem, error } = await updateItem({ item: displayItem, updates })
 
     if (error || !updatedItem) {
       console.error("Failed to update item:", error)
