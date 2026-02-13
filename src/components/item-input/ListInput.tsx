@@ -27,13 +27,6 @@ export const ListInput = ({
     onCancel()
   }
 
-  // const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-  //   if (event.key === "Enter") {
-  //     event.preventDefault()
-  //     handleSubmit()
-  //   }
-  // }
-
   const handleSubmit = async () => {
     if (!session.user) {
       console.error("Not authenticated")

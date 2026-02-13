@@ -19,7 +19,6 @@ export const deleteImageFileByUrl = async ({ imageUrl }: DeleteImageProps) => {
   }
 
   const path = imageUrl.replace(/^\/+/, "") // Remove leading slashes
-  console.log("Attempting to delete image with path:", path) // DEBUG
 
   if (path.includes("..") || path.includes("//")) {
     return { data: null, error: "Invalid image path: path traversal detected" }
@@ -33,7 +32,6 @@ export const deleteImageFileByUrl = async ({ imageUrl }: DeleteImageProps) => {
   }
 
   const folder = segments[0]
-  console.log("Folder:", folder, "User ID:", user.id) // DEBUG
 
   if (folder === "users") {
     const userId = segments[1]
@@ -57,23 +55,7 @@ export const deleteImageFileByUrl = async ({ imageUrl }: DeleteImageProps) => {
     return { data: null, error: "Invalid image path folder" }
   }
 
-  // Check if file exists before deletion
-  // try {
-  //   const { data: existingFiles, error: listError } = await supabase.storage
-  //     .from("images")
-  //     .list(segments.slice(0, -1).join("/"), { limit: 100 })
-
-  //   if (listError) {
-  //     console.warn("Warning: Could not verify file existence before deletion:", listError.message)
-  //   } else if (existingFiles && !existingFiles.some(f => f.name === segments[segments.length - 1])) {
-  //     console.warn("Warning: File not found in storage at path:", path)
-  //   }
-  // } catch (e) {
-  //   console.warn("Warning: Error checking file existence:", e)
-  // }
-
   const { error, data } = await supabase.storage.from("images").remove([path])
-  console.log("Storage delete result - Error:", error, "Data:", data) // DEBUG
 
   if (error) {
     return { data: null, error: `Failed to remove image: ${error.message}` }
@@ -85,6 +67,5 @@ export const deleteImageFileByUrl = async ({ imageUrl }: DeleteImageProps) => {
     return { data: null, error: `Failed to verify image deletion for path: ${path}` }
   }
 
-  console.log("Successfully deleted image:", path)
   return { data: data, error: null }
 }

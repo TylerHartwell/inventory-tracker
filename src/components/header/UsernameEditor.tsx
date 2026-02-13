@@ -18,7 +18,6 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
 
   const spinning = useMinDurationActive(saving, { minDurationMs: 300, onFinish: handleFinishSaving })
 
-  // Initialize username when profile loads
   useEffect(() => {
     setLocalUsername(profile?.username ?? "")
   }, [profile?.username])

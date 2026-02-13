@@ -48,21 +48,17 @@ export function useUserLists(userId: string): UserLists {
     }
 
     refreshLists()
-  }, [refreshLists, userId])
+  }, [refreshLists])
 
   useEffect(() => {
     if (!userId) return
 
     const channel = supabase
       .channel(`user-lists-${userId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
         refreshLists()
       })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
-        refreshLists()
-      })
-
-    channel.subscribe()
+      .subscribe()
 
     return () => {
       channel.unsubscribe()

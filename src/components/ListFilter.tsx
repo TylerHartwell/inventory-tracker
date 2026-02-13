@@ -2,8 +2,8 @@ import { UserLists } from "@/hooks/useUserLists"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as Switch from "@radix-ui/react-switch"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { ComponentRef, useEffect, useRef, useState } from "react"
 import { nullListName } from "./ItemManager"
+import { useOutsidePointerDownClose } from "@/hooks/useOutsidePointerDownClose"
 
 interface ListFilterProps {
   filteredListIds: (string | null)[]
@@ -15,25 +15,11 @@ interface ListFilterProps {
 }
 
 export function ListFilter({ filteredListIds, onChange, selectedListId, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
-  const [open, setOpen] = useState(false)
-  const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
+  const { open, setOpen, ref } = useOutsidePointerDownClose<HTMLDivElement>()
 
   const { lists, loading, error } = userLists
 
   const onlyNullListSelected = filteredListIds.length === 1 && filteredListIds.includes(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    const handlePointerDown = (e: PointerEvent) => {
-      const target = e.target as Node
-      if (contentRef.current?.contains(target)) return
-      setOpen(false)
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown)
-    return () => document.removeEventListener("pointerdown", handlePointerDown)
-  }, [open])
 
   const handleToggle = (id: string | null) => {
     const isSelected = filteredListIds.includes(id)
@@ -75,12 +61,12 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          ref={contentRef}
+          ref={ref}
           avoidCollisions={false}
           align="start"
           sideOffset={0}
           side="bottom"
-          className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
+          className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width)"
         >
           <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
             <label className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer">

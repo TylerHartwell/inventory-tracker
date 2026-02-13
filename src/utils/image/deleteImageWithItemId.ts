@@ -11,7 +11,7 @@ export const deleteImageWithItemId = async ({ itemId, imageUrl, shouldClearItemI
   let resolvedImageUrl = imageUrl
 
   // Fetch imageUrl only if we don't already have it
-  if (!resolvedImageUrl) {
+  if (resolvedImageUrl === undefined) {
     const { data: item, error: fetchError } = await supabase.from("items").select("image_url").eq("id", itemId).single()
 
     if (fetchError) {
@@ -23,7 +23,6 @@ export const deleteImageWithItemId = async ({ itemId, imageUrl, shouldClearItemI
 
   // Nothing to delete
   if (!resolvedImageUrl) {
-    console.log("No image URL to delete for item:", itemId)
     return { data: null, error: null }
   }
 
@@ -39,10 +38,7 @@ export const deleteImageWithItemId = async ({ itemId, imageUrl, shouldClearItemI
 
   // Optionally clear imageUrl on item
   if (shouldClearItemImageUrl) {
-    const { error: updateError } = await supabase
-      .from("items")
-      .update({ image_url: null }) // or image_url: null
-      .eq("id", itemId)
+    const { error: updateError } = await supabase.from("items").update({ image_url: null }).eq("id", itemId)
 
     if (updateError) {
       const errorMsg = `Image deleted, but failed to clear item image_url: ${updateError.message}`
@@ -54,6 +50,5 @@ export const deleteImageWithItemId = async ({ itemId, imageUrl, shouldClearItemI
     }
   }
 
-  console.log("Successfully deleted image from storage for item:", itemId)
   return { data: null, error: null }
 }

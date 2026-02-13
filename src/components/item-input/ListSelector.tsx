@@ -1,12 +1,13 @@
 import { UserLists } from "@/hooks/useUserLists"
 import { Session } from "@supabase/supabase-js"
-import { ComponentRef, useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { ListInput } from "./ListInput"
 import { ChevronDown, ChevronUp, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { deleteList } from "@/utils/list/deleteList"
 import { nullListName } from "../ItemManager"
 import ListConfigModal from "./ListConfigModal"
+import { useOutsidePointerDownClose } from "@/hooks/useOutsidePointerDownClose"
 
 interface ListSelectorProps {
   selectedListId: string | null
@@ -20,30 +21,8 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
   const [isCreating, setIsCreating] = useState(false)
   const [configId, setConfigId] = useState<string | null>(null)
   const [isConfigOpen, setIsConfigOpen] = useState(false)
-  const [open, setOpen] = useState(false)
-
-  const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
+  const { open, setOpen, ref: contentRef } = useOutsidePointerDownClose<HTMLDivElement>()
   const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (isCreating) {
-      inputRef.current?.focus()
-    }
-  }, [isCreating])
-
-  useEffect(() => {
-    if (!open) return
-
-    const handlePointerDown = (e: PointerEvent) => {
-      const target = e.target as Node
-      if (contentRef.current?.contains(target)) return
-      setOpen(false)
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown)
-    return () => document.removeEventListener("pointerdown", handlePointerDown)
-  }, [open])
-
   const { lists, loading, error, refreshLists } = userLists
 
   const handleItemInputListChange = (selectedValue: string | null) => {
@@ -119,6 +98,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
                   onSelect={e => {
                     e.preventDefault()
                     setIsCreating(true)
+                    inputRef.current?.focus()
                   }}
                   className="flex justify-between items-baseline font-bold px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
                 >

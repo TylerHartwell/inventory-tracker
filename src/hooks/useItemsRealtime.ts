@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase-client"
-import { Session } from "@supabase/supabase-js"
 import useDeepCompareRef from "./useDeepCompareRef"
 import { Item, LocalItem, nullListName } from "@/components/ItemManager"
 import { generateSignedUrl } from "@/utils/generateSignedUrl"
 import { getItemsForListIds } from "@/utils/getItemsForListIds"
+import { diffListIds } from "@/utils/diffListIds"
+import { refreshSignedUrls } from "@/utils/refreshSignedUrls"
 
-export function useItemsRealtime(session: Session, filteredListIds: (string | null)[] = []) {
+export function useItemsRealtime(userId: string, filteredListIds: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
   const prevListsRef = useRef<(string | null)[]>([])
@@ -18,9 +19,9 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     setLoading(true)
 
     try {
-      const fetched = await getItemsForListIds(session.user.id, stableFilteredListIds)
+      const items = await getItemsForListIds(userId, stableFilteredListIds)
 
-      const newMap = new Map(fetched.map(item => [item.id, item]))
+      const newMap = new Map(items.map(item => [item.id, item]))
 
       setItemsMap(newMap)
     } catch (err) {
@@ -30,7 +31,7 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     } finally {
       setLoading(false)
     }
-  }, [session.user.id, stableFilteredListIds])
+  }, [stableFilteredListIds, userId])
 
   useEffect(() => {
     const controller = new AbortController() // for optional fetch cancellation
@@ -39,31 +40,31 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     async function updateItems() {
       const prev = prevListsRef.current
       const current = stableFilteredListIds
-      const { added, removed } = diffLists(prev, current)
+      const { added, removed } = diffListIds(prev, current)
 
       // Skip if nothing changed (except initial load)
       if (added.length === 0 && removed.length === 0 && prev.length > 0) return
 
       setLoading(true)
 
-      try {
-        const newItemsMap = new Map(itemsRef.current)
+      const newItemsMap = new Map(itemsRef.current)
 
-        // Efficient removal using Set
-        if (removed.length > 0) {
-          const removedSet = new Set(removed)
-          for (const [id, item] of newItemsMap.entries()) {
-            if (removedSet.has(item.listId ?? null)) {
-              newItemsMap.delete(id)
-            }
+      // Efficient removal using Set
+      if (removed.length > 0) {
+        const removedSet = new Set(removed)
+        for (const [id, item] of newItemsMap.entries()) {
+          if (removedSet.has(item.listId ?? null)) {
+            newItemsMap.delete(id)
           }
         }
+      }
 
+      try {
         // Fetch items for added lists or initial load
         if (added.length > 0 || prev.length === 0) {
           const listsToFetch = prev.length === 0 ? current : added
 
-          const fetched = await getItemsForListIds(session.user.id, listsToFetch, signal)
+          const fetched = await getItemsForListIds(userId, listsToFetch, signal)
 
           if (signal.aborted) return
 
@@ -90,15 +91,11 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     return () => {
       controller.abort() // cancel ongoing fetch if lists change quickly
     }
-  }, [stableFilteredListIds, session.user.id])
+  }, [stableFilteredListIds, userId])
 
   // Realtime subscription
   useEffect(() => {
     const handleUpsert = async (dbItem: Item) => {
-      const listId = dbItem.listId ?? null
-
-      if (!stableFilteredListIds.includes(listId)) return
-
       let signedUrl: string | null = null
       let listName = nullListName
 
@@ -108,9 +105,9 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
         console.error("Failed to generate signed URL:", e)
       }
 
-      if (listId) {
+      if (dbItem.listId) {
         try {
-          const { data, error } = await supabase.from("lists").select("name").eq("id", listId).single()
+          const { data, error } = await supabase.from("lists").select("name").eq("id", dbItem.listId).single()
 
           if (error) {
             console.error("Error fetching list name:", error)
@@ -143,8 +140,6 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
 
     const handleDelete = (deletedId: string) => {
       setItemsMap(prev => {
-        if (!prev.has(deletedId)) return prev
-
         const newMap = new Map(prev)
 
         newMap.delete(deletedId)
@@ -153,39 +148,43 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
       })
     }
 
-    const channel = supabase.channel(`items-${session.user.id}`)
+    const nonNullIds = stableFilteredListIds.filter(id => id !== null)
+    const hasNull = stableFilteredListIds.includes(null)
 
-    // For items owned by the user
-    channel
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
-        handleUpsert(payload.new as Item)
-      )
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
-        handleUpsert(payload.new as Item)
-      )
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "items", filter: `user_id=eq.${session.user.id}` }, payload =>
-        handleDelete(payload.old.id)
-      )
+    const inFilter = nonNullIds.length > 0 ? `list_id=in.(${nonNullIds.map(id => `"${id}"`).join(",")})` : null
+
+    const channel = supabase.channel(`items-${userId}`)
+
+    // listener for specific list IDs
+    if (inFilter) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table: "items", filter: inFilter }, payload => {
+        if (payload.eventType === "DELETE") handleDelete(payload.old.id)
+        else handleUpsert(payload.new as Item)
+      })
+    }
+
+    // listener for NULL list_id
+    if (hasNull) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `list_id=is.null,user_id=eq.${userId}` }, payload => {
+        if (payload.eventType === "DELETE") handleDelete(payload.old.id)
+        else handleUpsert(payload.new as Item)
+      })
+    }
 
     channel.subscribe()
 
     return () => {
       channel.unsubscribe()
     }
-  }, [stableFilteredListIds, session.user.id])
+  }, [stableFilteredListIds, userId])
 
-  // Auto-refresh only items that have image_url
+  // Periodically refresh signed URLs every 15 minutes to prevent expiration, without refetching all item data
   useEffect(() => {
     const interval = setInterval(
       async () => {
-        const refreshed = await Promise.all(
-          Array.from(itemsRef.current.values()).map(async item => {
-            if (!item.imageUrl) return item
-            const signedUrl = await generateSignedUrl(item.imageUrl)
-            return { ...item, signedUrl }
-          })
-        )
-        setItemsMap(new Map(refreshed.map(item => [item.id, item])))
+        const newMap = await refreshSignedUrls(itemsRef.current)
+
+        setItemsMap(newMap)
       },
       1000 * 60 * 15
     ) // 15 minutes
@@ -193,16 +192,10 @@ export function useItemsRealtime(session: Session, filteredListIds: (string | nu
     return () => clearInterval(interval)
   }, [])
 
+  // Keep ref updated with latest itemsMap for interval refresh
   useEffect(() => {
     itemsRef.current = itemsMap
   }, [itemsMap])
 
   return { items: Array.from(itemsMap.values()), loading, refreshItems }
-}
-
-const diffLists = (prev: (string | null)[], next: (string | null)[]) => {
-  const added = next.filter(id => !prev.includes(id))
-  const removed = prev.filter(id => !next.includes(id))
-
-  return { added, removed }
 }

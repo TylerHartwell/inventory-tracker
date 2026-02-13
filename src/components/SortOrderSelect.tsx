@@ -1,6 +1,6 @@
+import { useOutsidePointerDownClose } from "@/hooks/useOutsidePointerDownClose"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { ComponentRef, useEffect, useRef, useState } from "react"
 
 interface SortOrderSelectProps {
   sortAsc: boolean
@@ -8,21 +8,7 @@ interface SortOrderSelectProps {
 }
 
 export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => {
-  const [open, setOpen] = useState(false)
-  const contentRef = useRef<ComponentRef<typeof DropdownMenu.Content>>(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    const handlePointerDown = (e: PointerEvent) => {
-      const target = e.target as Node
-      if (contentRef.current?.contains(target)) return
-      setOpen(false)
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown)
-    return () => document.removeEventListener("pointerdown", handlePointerDown)
-  }, [open])
+  const { open, setOpen, ref } = useOutsidePointerDownClose<HTMLDivElement>()
 
   return (
     <DropdownMenu.Root open={open} modal={false} onOpenChange={setOpen}>
@@ -32,10 +18,7 @@ export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => 
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          ref={contentRef}
-          className="bg-black text-white rounded shadow-lg border border-white w-[var(--radix-dropdown-menu-trigger-width)]"
-        >
+        <DropdownMenu.Content ref={ref} className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width)">
           <DropdownMenu.Item
             onSelect={() => onChange(false)}
             className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"

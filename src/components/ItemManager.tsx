@@ -52,7 +52,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const userLists = useUserLists(session.user.id)
 
-  const { items, loading, refreshItems } = useItemsRealtime(session, filteredListIds)
+  const { items, loading, refreshItems } = useItemsRealtime(session.user.id, filteredListIds)
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {

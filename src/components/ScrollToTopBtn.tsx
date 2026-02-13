@@ -1,20 +1,11 @@
-import { useEffect, useState } from "react"
+import { useScrollThreshold } from "@/hooks/useScrollThreshold"
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: "smooth" })
 }
 
 const ScrollToTopBtn = () => {
-  const [showScrollToTop, setShowScrollTop] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => {
-      setShowScrollTop(window.scrollY > 10)
-    }
-
-    window.addEventListener("scroll", onScroll)
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
+  const showScrollToTop = useScrollThreshold(10)
 
   return (
     showScrollToTop && (

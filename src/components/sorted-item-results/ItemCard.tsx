@@ -22,14 +22,6 @@ export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
 
   const [displayItem, setDisplayItem] = useState(item)
 
-  // Helper to safely revoke blob URLs
-
-  useEffect(() => {
-    // Always sync with the upstream `item` prop so the form updates
-    // live if the database changes while the user is editing.
-    setDisplayItem(item)
-  }, [item])
-
   const handleEdit = () => {
     setIsEditing(true)
   }
