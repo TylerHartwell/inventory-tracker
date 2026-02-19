@@ -20,6 +20,21 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
 
   const [displayItem, setDisplayItem] = useState(item)
+  const [hasOptimisticUpdate, setHasOptimisticUpdate] = useState(false)
+  const [skipSyncUntilNextItem, setSkipSyncUntilNextItem] = useState(false)
+
+  // Sync prop changes to displayItem state when not editing and not in an optimistic update
+  // This ensures that updates from the parent are reflected, but doesn't override optimistic updates
+  // that are waiting for the async handler to complete.
+  // Also skip syncing if we just completed an update to prevent realtime's stale data from overwriting it
+  useEffect(() => {
+    if (!isEditing && !hasOptimisticUpdate && !skipSyncUntilNextItem) {
+      setDisplayItem(item)
+    } else if (skipSyncUntilNextItem && item.imageUrl === displayItem.imageUrl) {
+      // Once realtime catches up with the correct imageUrl, we can resume normal syncing
+      setSkipSyncUntilNextItem(false)
+    }
+  }, [item, isEditing, hasOptimisticUpdate, skipSyncUntilNextItem, displayItem.imageUrl])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -32,6 +47,8 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       // Reset displayItem to the upstream `item` to discard the blob URL
       setDisplayItem(item)
     }
+    setHasOptimisticUpdate(false)
+    setSkipSyncUntilNextItem(false)
     setIsEditing(false)
   }
 
@@ -76,6 +93,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       })
     }
 
+    setHasOptimisticUpdate(true)
     setDisplayItem(optimisticItem)
     setIsEditing(false)
 
@@ -86,12 +104,17 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       // Revoke any blob URL from the failed optimistic update
       revokeBlobUrl(optimisticItem.signedUrl)
       setDisplayItem(previousItem)
+      setHasOptimisticUpdate(false)
       return
     }
 
     setDisplayItem({
       ...updatedItem
     })
+    setHasOptimisticUpdate(false)
+    // Skip syncing with parent until realtime catches up with the latest imageUrl
+    // This prevents stale realtime data from reverting our update
+    setSkipSyncUntilNextItem(true)
   }
 
   // Cleanup blob URLs when component unmounts or when displayItem changes

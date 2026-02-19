@@ -24,9 +24,7 @@ export const uploadImage = async ({ file, itemId }: UploadImageParams) => {
   const safeName = file.name.replace(/[^\w.-]/g, "_") // Sanitize file name
   const filePath = `${itemId}/${Date.now()}-${safeName}`
 
-  const { error } = await supabase.storage.from("images").upload(filePath, file, {
-    upsert: false
-  })
+  const { error } = await supabase.storage.from("images").upload(filePath, file)
 
   if (error) {
     return { data: null, error: error.message }
