@@ -63,6 +63,7 @@ export function useUserInvites() {
       listName: invite.lists.name,
       listId: invite.lists.id
     }))
+
     setInvites(formattedInvites)
     setLoading(false)
 

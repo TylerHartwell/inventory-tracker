@@ -1,68 +1,63 @@
 import { uploadImage } from "../image/uploadImage"
 import { supabase } from "@/supabase-client"
-import { Item } from "@/components/ItemManager"
-import { camelize } from "../camelize"
+import { InsertableItem, LocalItem, nullListName } from "@/components/ItemManager"
+import { camelize, snakeify } from "../caseChanger"
+import { generateSignedUrl } from "../generateSignedUrl"
 
 interface InsertItemParams {
-  itemName: Item["itemName"]
-  extraDetails?: Item["extraDetails"]
-  itemImage?: File | null
-  selectedListId: string | null
+  newItem: InsertableItem
+  itemImage: File | null
 }
 
 export const insertItem = async ({
-  itemName,
-  extraDetails = "",
-  itemImage,
-  selectedListId
+  newItem,
+  itemImage
 }: InsertItemParams): Promise<
-  | { data: Item; error: null }
+  | { data: LocalItem; error: null }
   | {
       data: null
       error: string
     }
 > => {
-  if (!itemName.trim()) {
+  if (!newItem.itemName.trim()) {
     return { data: null, error: "Item name is required." }
   }
 
-  const { data, error: insertError } = await supabase
-    .from("items")
-    .insert({
-      item_name: itemName,
-      extra_details: extraDetails,
-      list_id: selectedListId
-    })
-    .select("*")
-    .single()
+  const insertPayload = snakeify(newItem)
 
-  if (insertError || !data) {
+  const { data: insertedItemWListName, error: insertError } = await supabase.from("items").insert(insertPayload).select("*, lists(name)").single()
+
+  if (insertError || !insertedItemWListName) {
     return { data: null, error: insertError?.message || "Failed to insert item" }
   }
 
-  const insertedItem = camelize(data)
+  const { lists, ...insertedItem } = camelize(insertedItemWListName)
 
-  let imageUrl: string | null = null
+  const localItem: LocalItem = {
+    ...insertedItem,
+    signedUrl: null,
+    listName: lists?.name ?? nullListName
+  }
 
   if (itemImage) {
-    const { data, error } = await uploadImage({
+    const { data: uploadedImageUrl, error: uploadError } = await uploadImage({
       file: itemImage,
-      itemId: insertedItem.id,
-      listId: selectedListId ?? null
+      itemId: localItem.id
     })
 
-    if (error) {
-      return { data: null, error }
+    if (uploadError || !uploadedImageUrl) {
+      return { data: null, error: uploadError || "Image upload did not return an image url" }
     }
 
-    imageUrl = data
-
-    const { error: updateError } = await supabase.from("items").update({ image_url: imageUrl }).eq("id", insertedItem.id)
+    const { error: updateError } = await supabase.from("items").update({ image_url: uploadedImageUrl }).eq("id", localItem.id)
 
     if (updateError) {
       return { data: null, error: updateError.message }
     }
+
+    localItem.imageUrl = uploadedImageUrl
+    localItem.signedUrl = await generateSignedUrl(uploadedImageUrl)
   }
 
-  return { data: { ...insertedItem, imageUrl: imageUrl }, error: null }
+  return { data: localItem, error: null }
 }

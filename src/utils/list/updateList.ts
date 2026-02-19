@@ -1,6 +1,6 @@
 import { supabase } from "@/supabase-client"
 import { List } from "@/components/ItemManager"
-import { camelize } from "../camelize"
+import { camelize } from "../caseChanger"
 
 interface UpdateListParams {
   list: List

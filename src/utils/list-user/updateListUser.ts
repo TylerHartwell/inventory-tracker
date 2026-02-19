@@ -1,7 +1,7 @@
 import { ListUser } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
-import { camelize } from "../camelize"
+import { camelize } from "../caseChanger"
 
 interface UpdateListUserRoleParams {
   listId: ListUser["listId"]

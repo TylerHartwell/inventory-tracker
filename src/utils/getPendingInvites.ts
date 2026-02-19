@@ -1,5 +1,5 @@
 import { supabase } from "@/supabase-client"
-import { camelize } from "./camelize"
+import { camelize } from "./caseChanger"
 import { ListInvite } from "@/components/ItemManager"
 
 export const getPendingInvites = async (): Promise<

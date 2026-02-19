@@ -1,12 +1,12 @@
 import { Trash2 } from "lucide-react"
 import ImageSelector from "../ImageSelector"
-import { LocalItem } from "../ItemManager"
+import { Item, LocalItem } from "../ItemManager"
 import { ChangeEvent, useState } from "react"
-import { UpdatePayload } from "./ItemCard"
+import { ItemUpdateBundle } from "./ItemCard"
 
 interface ItemCardFormProps {
   item: LocalItem
-  onSubmit: (updates: UpdatePayload) => Promise<void>
+  onSubmit: (updates: ItemUpdateBundle) => Promise<void>
   signedUrl: LocalItem["signedUrl"]
   onCancelEdit: () => void
   onDeleteItem: () => Promise<void>
@@ -46,41 +46,40 @@ const ItemCardForm = ({ item, onSubmit, signedUrl, onCancelEdit, onDeleteItem }:
     onCancelEdit()
   }
 
-  const buildUpdates = (): UpdatePayload => {
-    const updates: UpdatePayload = {}
+  const buildUpdateBundle = (): ItemUpdateBundle => {
+    const updatedFields: Partial<Item> = {}
 
     if (formItem.itemName.trim() !== item.itemName) {
-      updates.itemName = formItem.itemName.trim()
+      updatedFields.itemName = formItem.itemName.trim()
     }
 
     if (formItem.extraDetails?.trim() !== item.extraDetails) {
-      updates.extraDetails = formItem.extraDetails?.trim()
-    }
-
-    if (isChangingImage) {
-      updates.itemImage = formItem.itemImage
+      updatedFields.extraDetails = formItem.extraDetails?.trim()
     }
 
     if (formItem.category !== item.category) {
-      updates.category = formItem.category
+      updatedFields.category = formItem.category
     }
 
     if (formItem.expirationDate !== item.expirationDate) {
-      updates.expirationDate = formItem.expirationDate
+      updatedFields.expirationDate = formItem.expirationDate
     }
 
     if (formItem.listId !== item.listId) {
-      updates.listId = formItem.listId
+      updatedFields.listId = formItem.listId
     }
 
-    return updates
+    return {
+      updatedFields,
+      itemImage: isChangingImage ? formItem.itemImage : undefined
+    }
   }
 
   return (
     <form
       onSubmit={e => {
         e.preventDefault()
-        onSubmit(buildUpdates())
+        onSubmit(buildUpdateBundle())
       }}
     >
       <input

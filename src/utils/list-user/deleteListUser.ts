@@ -1,6 +1,6 @@
 import { supabase } from "@/supabase-client"
 import { List, ListUser } from "@/components/ItemManager"
-import { camelize } from "../camelize"
+import { camelize } from "../caseChanger"
 
 interface DeleteListUserProps {
   listId: List["id"]

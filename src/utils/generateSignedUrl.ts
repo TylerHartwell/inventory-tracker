@@ -1,8 +1,6 @@
 import { supabase } from "@/supabase-client"
 
-export const generateSignedUrl = async (filePath?: string | null): Promise<string | null> => {
-  if (!filePath || typeof filePath !== "string") return null
-
+export const generateSignedUrl = async (filePath: string): Promise<string | null> => {
   // Normalize path: remove leading/trailing slashes and whitespace
   const normalizedPath = filePath.trim().replace(/^\/+/, "").replace(/\/+$/, "")
 

@@ -6,6 +6,7 @@ import { generateSignedUrl } from "@/utils/generateSignedUrl"
 import { getItemsForListIds } from "@/utils/getItemsForListIds"
 import { diffListIds } from "@/utils/diffListIds"
 import { refreshSignedUrls } from "@/utils/refreshSignedUrls"
+import { camelize } from "@/utils/caseChanger"
 
 export function useItemsRealtime(userId: string, filteredListIds: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
@@ -14,6 +15,24 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
   const stableFilteredListIds = useDeepCompareRef(filteredListIds)
 
   const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
+
+  const handleUpsert = (item: LocalItem) => {
+    setItemsMap(prev => {
+      const newMap = new Map(prev)
+      newMap.set(item.id, item) // inserts or replaces
+      return newMap
+    })
+  }
+
+  const handleDelete = (deletedId: string) => {
+    setItemsMap(prev => {
+      const newMap = new Map(prev)
+
+      newMap.delete(deletedId)
+
+      return newMap
+    })
+  }
 
   const refreshItems = useCallback(async () => {
     setLoading(true)
@@ -95,57 +114,70 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
 
   // Realtime subscription
   useEffect(() => {
-    const handleUpsert = async (dbItem: Item) => {
-      let signedUrl: string | null = null
-      let listName = nullListName
+    const handleRealtimeUpsert = async (item: Item) => {
+      const existingItem = itemsRef.current.get(item.id)
+      let signedUrl: string | null = existingItem?.signedUrl ?? null
+      let listName = existingItem?.listName ?? nullListName
 
-      try {
-        signedUrl = dbItem.imageUrl ? await generateSignedUrl(dbItem.imageUrl) : null
-      } catch (e) {
-        console.error("Failed to generate signed URL:", e)
+      if (existingItem === undefined) {
+        if (item.imageUrl) {
+          signedUrl = await generateSignedUrl(item.imageUrl)
+          if (!signedUrl) {
+            console.error("Failed to generate signed URL for new item's image")
+          }
+        }
+
+        if (item.listId) {
+          const { data, error } = await supabase.from("lists").select("name").eq("id", item.listId).single()
+          if (error || !data) {
+            console.error(error ? "Error fetching list name for new item:" : "No data returned when fetching list name for new item", error)
+          }
+          listName = data?.name ?? nullListName
+        }
+
+        const newLocalItem: LocalItem = {
+          ...item,
+          signedUrl,
+          listName
+        }
+
+        handleUpsert(newLocalItem)
+
+        return
       }
 
-      if (dbItem.listId) {
-        try {
-          const { data, error } = await supabase.from("lists").select("name").eq("id", dbItem.listId).single()
-
-          if (error) {
-            console.error("Error fetching list name:", error)
-          } else if (data?.name) {
-            listName = data.name
+      if (existingItem.imageUrl !== item.imageUrl) {
+        if (item.imageUrl) {
+          signedUrl = await generateSignedUrl(item.imageUrl)
+          if (!signedUrl) {
+            console.error("Failed to generate signed URL for new item's image")
           }
-        } catch (e) {
-          console.error("Unexpected error fetching list name:", e)
+        } else {
+          signedUrl = null
         }
       }
 
-      const item: LocalItem = {
-        ...dbItem,
+      if (existingItem.listId !== item.listId) {
+        if (item.listId) {
+          const { data, error } = await supabase.from("lists").select("name").eq("id", item.listId).single()
+          if (error || !data || !data.name) {
+            console.error(error ? "Error fetching list name for new item:" : "No data returned when fetching list name for new item", error)
+          } else {
+            listName = data.name
+          }
+        } else {
+          listName = nullListName
+        }
+      }
+
+      const updatedLocalItem: LocalItem = {
+        ...existingItem,
+        ...item,
         signedUrl,
         listName
       }
 
-      setItemsMap(prev => {
-        const newMap = new Map(prev)
-
-        // Merge incoming item with any existing entry to avoid clobbering fields
-        const existing = newMap.get(item.id)
-        const merged = existing ? { ...existing, ...item } : item
-
-        newMap.set(item.id, merged)
-
-        return newMap
-      })
-    }
-
-    const handleDelete = (deletedId: string) => {
-      setItemsMap(prev => {
-        const newMap = new Map(prev)
-
-        newMap.delete(deletedId)
-
-        return newMap
-      })
+      handleUpsert(updatedLocalItem)
     }
 
     const nonNullIds = stableFilteredListIds.filter(id => id !== null)
@@ -159,7 +191,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     if (inFilter) {
       channel.on("postgres_changes", { event: "*", schema: "public", table: "items", filter: inFilter }, payload => {
         if (payload.eventType === "DELETE") handleDelete(payload.old.id)
-        else handleUpsert(payload.new as Item)
+        else handleRealtimeUpsert(camelize(payload.new) as Item)
       })
     }
 
@@ -167,7 +199,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     if (hasNull) {
       channel.on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `list_id=is.null,user_id=eq.${userId}` }, payload => {
         if (payload.eventType === "DELETE") handleDelete(payload.old.id)
-        else handleUpsert(payload.new as Item)
+        else handleRealtimeUpsert(camelize(payload.new) as Item)
       })
     }
 
@@ -197,5 +229,5 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     itemsRef.current = itemsMap
   }, [itemsMap])
 
-  return { items: Array.from(itemsMap.values()), loading, refreshItems }
+  return { items: Array.from(itemsMap.values()), loading, refreshItems, onDelete: handleDelete, onUpsert: handleUpsert }
 }

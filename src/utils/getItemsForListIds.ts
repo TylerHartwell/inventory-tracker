@@ -1,6 +1,6 @@
 import { DBItem, List, LocalItem, nullListName } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
-import { camelize } from "@/utils/camelize"
+import { camelize } from "@/utils/caseChanger"
 import { generateSignedUrl } from "@/utils/generateSignedUrl"
 import { PostgrestResponse } from "@supabase/supabase-js"
 
@@ -37,7 +37,7 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
   const allDataDb = results.flatMap(result => result.data || [])
   const allData = camelize(allDataDb)
 
-  const itemsWithListName = await Promise.all(
+  const localItems = await Promise.all(
     allData.map(async item => {
       if (signal?.aborted) return null
       const signedUrl = item.imageUrl ? await generateSignedUrl(item.imageUrl) : null
@@ -50,5 +50,5 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
     })
   )
 
-  return itemsWithListName.filter((i): i is NonNullable<typeof i> => i !== null)
+  return localItems.filter((i): i is NonNullable<typeof i> => i !== null)
 }

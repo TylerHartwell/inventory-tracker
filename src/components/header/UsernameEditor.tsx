@@ -24,20 +24,30 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
 
   if (loading || !profile) return <div>Loading…</div>
 
-  const hasChanged = localUsername.trim() !== "" && localUsername !== profile.username
+  const hasChanged = localUsername !== profile.username
+  const isBlank = localUsername.trim() === ""
 
   const focusInput = () => {
     inputRef.current?.focus()
   }
+  const handleCancel = () => {
+    setEditing(false)
+    setError(null)
+    setLocalUsername(profile.username ?? "")
+  }
 
   const handleSubmit = async () => {
-    if (!hasChanged) return
+    if (!hasChanged || isBlank) {
+      handleCancel()
+      return
+    }
 
     setSaving(true)
     setError(null)
 
     const { error } = await updateProfile({
-      newUsername: localUsername.trim()
+      newUsername: localUsername.trim(),
+      userId: profile.userId
     })
 
     if (error) {
@@ -81,9 +91,9 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
 
           <button
             type="submit"
-            disabled={!hasChanged || spinning}
+            disabled={spinning}
             className={`px-2 py-1 rounded-md border border-gray-400 text-white font-medium focus:outline-none focus:ring-1 ${
-              hasChanged && !spinning ? "bg-green-500 hover:bg-green-400" : "bg-gray-500 cursor-not-allowed"
+              !isBlank && !spinning ? "bg-green-500 hover:bg-green-400" : "bg-gray-500 cursor-not-allowed"
             } `}
           >
             <Check />
@@ -92,11 +102,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
             type="button"
             disabled={spinning}
             name="cancel"
-            onClick={() => {
-              setEditing(false)
-              setError(null)
-              setLocalUsername(profile.username ?? "")
-            }}
+            onClick={handleCancel}
             className={`px-2 py-1 rounded-md border border-gray-400 text-white font-medium focus:outline-none focus:ring-1 ${
               !spinning ? "bg-gray-800 hover:bg-gray-600" : "bg-gray-700 cursor-not-allowed"
             } `}

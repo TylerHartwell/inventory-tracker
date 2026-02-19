@@ -6,9 +6,10 @@ import LoadingSpinner from "./LoadingSpinner"
 interface Props {
   loading: boolean
   sortedItems: LocalItem[]
+  onDelete: (id: string) => void
 }
 
-const SortedItemResults = ({ loading, sortedItems }: Props) => {
+const SortedItemResults = ({ loading, sortedItems, onDelete }: Props) => {
   return (
     <ul className="list-none p-0 relative">
       {loading &&
@@ -18,7 +19,7 @@ const SortedItemResults = ({ loading, sortedItems }: Props) => {
           <>
             <LoadingSpinner />
             {sortedItems.map((item, index) => (
-              <ItemCard item={item} key={item.id} isPriority={index <= 3} />
+              <ItemCard item={item} key={item.id} isPriority={index <= 3} onDelete={onDelete} />
             ))}
           </>
         ))}
@@ -28,7 +29,7 @@ const SortedItemResults = ({ loading, sortedItems }: Props) => {
         ) : (
           <>
             {sortedItems.map((item, index) => (
-              <ItemCard item={item} key={item.id} isPriority={index <= 3} />
+              <ItemCard item={item} key={item.id} isPriority={index <= 3} onDelete={onDelete} />
             ))}
           </>
         ))}

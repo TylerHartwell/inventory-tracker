@@ -1,6 +1,6 @@
 import { supabase } from "@/supabase-client"
 import { List } from "@/components/ItemManager"
-import { camelize } from "../camelize"
+import { camelize } from "../caseChanger"
 
 export interface InsertListParams {
   listName: List["name"]
@@ -15,19 +15,11 @@ export const insertList = async ({
       error: string
     }
 > => {
-  const {
-    data: { user }
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { data: null, error: "Not authenticated" }
-  }
-
   if (!listName.trim()) {
     return { data: null, error: "List name is required." }
   }
 
-  const { data: insertedListDb, error } = await supabase.from("lists").insert({ name: listName, owner_id: user.id }).select("*").single()
+  const { data: insertedListDb, error } = await supabase.from("lists").insert({ name: listName }).select("*").single()
 
   if (error) {
     return { data: null, error: error.message }

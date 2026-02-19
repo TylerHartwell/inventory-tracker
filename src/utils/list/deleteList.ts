@@ -1,7 +1,7 @@
 import { supabase } from "@/supabase-client"
 import { deleteItem } from "../item/deleteItem"
 import { List } from "@/components/ItemManager"
-import { camelize } from "../camelize"
+import { camelize } from "../caseChanger"
 
 interface DeleteList {
   listId: List["id"]

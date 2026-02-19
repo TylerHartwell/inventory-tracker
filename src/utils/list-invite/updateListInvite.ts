@@ -1,6 +1,6 @@
 import { ListInvite } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
-import { camelize } from "../camelize"
+import { camelize } from "../caseChanger"
 
 interface UpdateListInviteRoleParams {
   listId: ListInvite["listId"]

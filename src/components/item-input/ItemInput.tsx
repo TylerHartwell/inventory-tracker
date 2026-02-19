@@ -4,27 +4,30 @@ import ImageSelector from "../ImageSelector"
 import { insertItem } from "@/utils/item/insertItem"
 import { ListSelector } from "./ListSelector"
 import { UserLists } from "@/hooks/useUserLists"
+import { InsertableItem, LocalItem } from "../ItemManager"
 
 export const ItemInput = ({
   session,
   refreshItems,
   selectedListId,
   onItemInputListChange,
-  userLists
+  userLists,
+  onUpsert
 }: {
   session: Session
   refreshItems: () => Promise<void>
   selectedListId: string | null
   onItemInputListChange: (listId: string | null) => void
   userLists: UserLists
+  onUpsert: (item: LocalItem) => void
 }) => {
-  const [newItem, setNewItem] = useState({ itemName: "", extraDetails: "" })
+  const [newItem, setNewItem] = useState<InsertableItem>({ itemName: "", listId: selectedListId })
   const [itemImage, setItemImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
 
   const clear = () => {
-    setNewItem({ itemName: "", extraDetails: "" })
+    setNewItem({ itemName: "", listId: selectedListId })
     setItemImage(null)
     setResetId(id => id + 1)
   }
@@ -46,9 +49,7 @@ export const ItemInput = ({
       return
     }
 
-    const { itemName, extraDetails } = newItem
-
-    if (!itemName.trim()) {
+    if (!newItem.itemName.trim()) {
       alert("Item Name is required.")
       return
     }
@@ -56,15 +57,24 @@ export const ItemInput = ({
     setLoading(true)
 
     try {
-      const { error } = await insertItem({ itemName, extraDetails, itemImage, selectedListId })
+      const { data: localItem, error } = await insertItem({
+        newItem: { ...newItem, listId: selectedListId },
+        itemImage
+      })
       if (error) {
         console.error("Insert item error:", error)
         setLoading(false)
         alert(`Failed to insert item: ${error || "An error occurred."}`)
         return
       }
+      if (!localItem) {
+        console.error("Insert item error: No data returned")
+        setLoading(false)
+        alert("Failed to insert item: No data returned.")
+        return
+      }
       clear()
-      await refreshItems()
+      onUpsert(localItem)
     } catch (err) {
       console.error("Unexpected error inserting item:", err)
       alert("Something went wrong while inserting the item.")
@@ -94,7 +104,7 @@ export const ItemInput = ({
       <textarea
         placeholder="Extra Details"
         name="extraDetails"
-        value={newItem.extraDetails}
+        value={newItem.extraDetails ?? ""}
         onKeyDown={handleKeyDown}
         onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
         className="w-full p-1 border border-gray-300 rounded min-h-min"

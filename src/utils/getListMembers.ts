@@ -1,5 +1,5 @@
 import { supabase } from "@/supabase-client"
-import { camelize } from "./camelize"
+import { camelize } from "./caseChanger"
 import { ListMember } from "@/components/ItemManager"
 
 export const getListMembers = async (

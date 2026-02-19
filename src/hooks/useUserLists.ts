@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/supabase-client"
 import { List } from "@/components/ItemManager"
-import { camelize } from "@/utils/camelize"
+import { camelize } from "@/utils/caseChanger"
 
 export interface UserLists {
   lists: List[]

@@ -1,23 +1,22 @@
 import { useState, useEffect } from "react"
-import { LocalItem } from "../ItemManager"
+import { Item, LocalItem } from "../ItemManager"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
-import { generateSignedUrl } from "@/utils/generateSignedUrl"
 import ItemCardView from "./ItemCardView"
 import ItemCardForm from "./ItemCardForm"
 
 interface ItemCardProps {
   item: LocalItem
   isPriority: boolean
+  onDelete: (id: string) => void
 }
 
-export type UpdatePayload = Partial<
-  Pick<LocalItem, "itemName" | "listId" | "extraDetails" | "category" | "expirationDate"> & {
-    itemImage: File | null
-  }
->
+export type ItemUpdateBundle = {
+  updatedFields: Partial<Item>
+  itemImage?: File | null
+}
 
-export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
+export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
 
   const [displayItem, setDisplayItem] = useState(item)
@@ -44,21 +43,24 @@ export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
       if (error) {
         console.error("Failed to delete item:", error)
         alert("Failed to delete item. Please try again.")
+        return
       }
+
+      onDelete(displayItem.id)
     } catch (err) {
       console.error("Failed to delete item:", err)
       alert("An unexpected error occurred while deleting the item.")
     }
   }
 
-  const handleUpdateItem = async (updates: UpdatePayload) => {
-    if (Object.keys(updates).length === 0) {
+  const handleUpdateItem = async ({ updatedFields, itemImage }: ItemUpdateBundle) => {
+    if (Object.values(updatedFields).every(v => v === undefined) && itemImage === undefined) {
       setIsEditing(false)
 
       return
     }
 
-    if (updates.itemName !== undefined && !updates.itemName.trim()) {
+    if (updatedFields.itemName !== undefined && !updatedFields.itemName.trim()) {
       alert("Item Name is required")
 
       return
@@ -68,17 +70,16 @@ export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
 
     const optimisticItem: LocalItem = {
       ...displayItem,
-      ...(updates.itemName !== undefined && { itemName: updates.itemName }),
-      ...(updates.extraDetails !== undefined && { extraDetails: updates.extraDetails }),
-      ...(updates.itemImage !== undefined && {
-        signedUrl: updates.itemImage ? URL.createObjectURL(updates.itemImage) : null
+      ...updatedFields,
+      ...(itemImage !== undefined && {
+        signedUrl: itemImage ? URL.createObjectURL(itemImage) : null
       })
     }
 
     setDisplayItem(optimisticItem)
     setIsEditing(false)
 
-    const { data: updatedItem, error } = await updateItem({ item: displayItem, updates })
+    const { data: updatedItem, error } = await updateItem({ item: displayItem, updatedFields, itemImage })
 
     if (error || !updatedItem) {
       console.error("Failed to update item:", error)
@@ -88,23 +89,9 @@ export const ItemCard = ({ item, isPriority }: ItemCardProps) => {
       return
     }
 
-    // Update displayItem with the actual database response to ensure signedUrl is correct
-    let signedUrl: string | null = null
-    if (updatedItem.imageUrl) {
-      try {
-        signedUrl = await generateSignedUrl(updatedItem.imageUrl)
-      } catch (err) {
-        console.error("Failed to generate signed URL:", err)
-        signedUrl = null
-      }
-    }
-
-    const updatedLocalItem: LocalItem = {
-      ...updatedItem,
-      signedUrl,
-      listName: displayItem.listName
-    }
-    setDisplayItem(updatedLocalItem)
+    setDisplayItem({
+      ...updatedItem
+    })
   }
 
   // Cleanup blob URLs when component unmounts or when displayItem changes

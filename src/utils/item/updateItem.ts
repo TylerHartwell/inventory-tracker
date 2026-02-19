@@ -1,64 +1,73 @@
 import { supabase } from "@/supabase-client"
 import { uploadImage } from "../image/uploadImage"
-import { Item } from "@/components/ItemManager"
-import { UpdatePayload } from "@/components/sorted-item-results/ItemCard"
-import { camelize } from "../camelize"
+import { Item, LocalItem, nullListName } from "@/components/ItemManager"
+import { camelize, snakeify } from "../caseChanger"
 import { deleteImageWithItemId } from "../image/deleteImageWithItemId"
+import { generateSignedUrl } from "../generateSignedUrl"
 
-interface UpdateItemParams<T extends Item> {
-  item: T
-  updates: UpdatePayload
+interface UpdateItemParams {
+  item: LocalItem
+  updatedFields: Partial<Item>
+  itemImage?: File | null
 }
 
-export const updateItem = async <T extends Item>({
+export const updateItem = async ({
   item,
-  updates
-}: UpdateItemParams<T>): Promise<
-  | { data: Item; error: null }
+  updatedFields,
+  itemImage
+}: UpdateItemParams): Promise<
+  | { data: LocalItem; error: null }
   | {
       data: null
       error: string
     }
 > => {
-  const mappedUpdates: Partial<{ item_name: string; extra_details: string | null; image_url: string | null }> = {
-    ...(updates.itemName !== undefined && { item_name: updates.itemName }),
-    ...(updates.extraDetails !== undefined && { extra_details: updates.extraDetails })
-  }
+  const updatePayload = snakeify(updatedFields)
 
-  if (updates.itemImage !== undefined) {
+  if (itemImage !== undefined) {
     if (item.imageUrl) {
-      const { error } = await deleteImageWithItemId({ itemId: item.id, imageUrl: item.imageUrl, shouldClearItemImageUrl: false })
-      if (error) {
-        console.error("Failed to delete existing image:", error)
-        return { data: null, error }
-      }
-    }
-
-    mappedUpdates.image_url = null
-
-    if (updates.itemImage) {
-      const { data, error } = await uploadImage({
-        file: updates.itemImage,
+      const { error: deleteExistingImageError } = await deleteImageWithItemId({
         itemId: item.id,
-        listId: item.listId
+        imageUrl: item.imageUrl,
+        shouldClearItemImageUrl: false
       })
-      if (error) {
-        console.error("Failed to upload new image:", error)
-        return { data: null, error }
+      if (deleteExistingImageError) {
+        return { data: null, error: deleteExistingImageError }
       }
-      mappedUpdates.image_url = data
+    }
+
+    if (itemImage) {
+      const { data: uploadedImageUrl, error: uploadImageError } = await uploadImage({
+        file: itemImage,
+        itemId: item.id
+      })
+      if (uploadImageError || !uploadedImageUrl) {
+        return { data: null, error: uploadImageError || "Image upload did not return an image url" }
+      }
+      updatePayload.image_url = uploadedImageUrl
+    } else {
+      updatePayload.image_url = null
     }
   }
 
-  const { data, error } = await supabase.from("items").update(mappedUpdates).eq("id", item.id).select("*").single()
+  const { data: updatedItemWListName, error: updateItemError } = await supabase
+    .from("items")
+    .update(updatePayload)
+    .eq("id", item.id)
+    .select("*, lists(name)")
+    .single()
 
-  if (error) {
-    console.error("Error updating item:", error)
-    return { data: null, error: `Error updating item: ${error.message}` }
+  if (updateItemError || !updatedItemWListName) {
+    return { data: null, error: updateItemError?.message || "Failed to update item" }
   }
 
-  return {
-    data: camelize(data),
-    error: null
+  const { lists, ...updatedItem } = camelize(updatedItemWListName)
+
+  const localItem: LocalItem = {
+    ...updatedItem,
+    signedUrl: item.imageUrl === updatedItem.imageUrl ? item.signedUrl : updatedItem.imageUrl ? await generateSignedUrl(updatedItem.imageUrl) : null,
+    listName: lists?.name ?? nullListName
   }
+
+  return { data: localItem, error: null }
 }

@@ -7,7 +7,7 @@ import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
 import { useUserLists } from "@/hooks/useUserLists"
 import { Header } from "./header/Header"
-import { Camelize } from "@/utils/camelize"
+import { Camelize } from "@/utils/caseChanger"
 import SortedItemResults from "./sorted-item-results/SortedItemResults"
 import ScrollToTopBtn from "./ScrollToTopBtn"
 import useSessionStorage from "@/hooks/useSessionStorage"
@@ -34,6 +34,9 @@ export type LocalListInvite = ListInvite & {
   listName: string
 }
 
+export type InsertableDBItem = Pick<DBItem, "item_name" | "list_id"> & Partial<Omit<DBItem, "item_name" | "list_id">>
+export type InsertableItem = Camelize<InsertableDBItem>
+
 export const nullListName = "Personal"
 
 const SESSION_KEYS = {
@@ -52,7 +55,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const userLists = useUserLists(session.user.id)
 
-  const { items, loading, refreshItems } = useItemsRealtime(session.user.id, filteredListIds)
+  const { items, loading, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
@@ -84,6 +87,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         selectedListId={selectedListId}
         onItemInputListChange={handleItemInputListSelection}
         userLists={userLists}
+        onUpsert={onUpsert}
       />
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(min-content,25%)] justify-center items-center gap-1">
         <ListFilter
@@ -96,7 +100,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
-      <SortedItemResults loading={loading} sortedItems={sortedItems} />
+      <SortedItemResults loading={loading} sortedItems={sortedItems} onDelete={id => onDelete(id)} />
       <ScrollToTopBtn />
     </div>
   )
