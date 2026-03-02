@@ -1,33 +1,67 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 
-type UseMinDurationActiveOptions = {
-  minDurationMs?: number
-  onFinish?: () => void
-}
-
-export function useMinDurationActive(active: boolean, { minDurationMs = 300, onFinish }: UseMinDurationActiveOptions = {}) {
-  const [isActive, setIsActive] = useState(false)
-  const startTimeRef = useRef<number | null>(null)
+export function useMinDurationActive(active: boolean, minDurationMs = 300, onFinish?: () => void) {
+  const [minDurationActive, setMinDurationActive] = useState(active)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const activeStartedAtRef = useRef<number | null>(null)
+  const prevActiveRef = useRef(active)
+  const minDurationMsRef = useRef(minDurationMs)
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>
+    minDurationMsRef.current = minDurationMs
+  }, [minDurationMs])
 
-    if (active) {
-      startTimeRef.current = Date.now()
-      setIsActive(true)
-    } else if (startTimeRef.current) {
-      const elapsed = Date.now() - startTimeRef.current
-      const remaining = Math.max(minDurationMs - elapsed, 0)
+  const setMinDurationActiveEvent = useEffectEvent((value: boolean) => {
+    setMinDurationActive(prev => (prev === value ? prev : value))
+  })
 
-      timeout = setTimeout(() => {
-        setIsActive(false)
-        onFinish?.()
-        startTimeRef.current = null
-      }, remaining)
+  const finishEvent = useEffectEvent(() => {
+    onFinish?.()
+  })
+
+  useEffect(() => {
+    const wasActive = prevActiveRef.current
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
 
-    return () => clearTimeout(timeout)
-  }, [active, minDurationMs, onFinish])
+    if (active) {
+      activeStartedAtRef.current = Date.now()
+      setMinDurationActiveEvent(true)
+    } else {
+      if (wasActive) {
+        const startedAt = activeStartedAtRef.current ?? Date.now()
+        const elapsedMs = Date.now() - startedAt
+        const remainingMs = Math.max(0, minDurationMsRef.current - elapsedMs)
 
-  return isActive
+        if (remainingMs > 0) {
+          timeoutRef.current = setTimeout(() => {
+            setMinDurationActiveEvent(false)
+            timeoutRef.current = null
+            finishEvent()
+          }, remainingMs)
+        } else {
+          setMinDurationActiveEvent(false)
+          finishEvent()
+        }
+      } else {
+        setMinDurationActiveEvent(false)
+      }
+
+      activeStartedAtRef.current = null
+    }
+
+    prevActiveRef.current = active
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+    }
+  }, [active])
+
+  return minDurationActive
 }

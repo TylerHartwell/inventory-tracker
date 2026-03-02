@@ -7,12 +7,11 @@ import { ItemUpdateBundle } from "./ItemCard"
 interface ItemCardFormProps {
   item: LocalItem
   onSubmit: (updates: ItemUpdateBundle) => Promise<void>
-  signedUrl: LocalItem["signedUrl"]
   onCancelEdit: () => void
   onDeleteItem: () => Promise<void>
 }
 
-const ItemCardForm = ({ item, onSubmit, signedUrl, onCancelEdit, onDeleteItem }: ItemCardFormProps) => {
+const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFormProps) => {
   const initialFormItem = {
     itemName: item.itemName,
     extraDetails: item.extraDetails,
@@ -97,7 +96,7 @@ const ItemCardForm = ({ item, onSubmit, signedUrl, onCancelEdit, onDeleteItem }:
         className="w-full px-1 rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
       />
       <div className="flex items-center mb-2">
-        <ImageSelector onImageFileChange={handleImageFileChange} signedUrl={signedUrl} />
+        <ImageSelector onImageFileChange={handleImageFileChange} signedUrl={item.signedUrl} />
       </div>
       <div className="flex justify-between">
         <button

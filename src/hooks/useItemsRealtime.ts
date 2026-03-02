@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase-client"
-import useDeepCompareRef from "./useDeepCompareRef"
+import useDeepCompare from "./useDeepCompare"
 import { Item, LocalItem, nullListName } from "@/components/ItemManager"
 import { generateSignedUrl } from "@/utils/generateSignedUrl"
 import { getItemsForListIds } from "@/utils/getItemsForListIds"
@@ -12,7 +12,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
   const prevListsRef = useRef<(string | null)[]>([])
-  const stableFilteredListIds = useDeepCompareRef(filteredListIds)
+  const stableFilteredListIds = useDeepCompare(filteredListIds)
 
   const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
 
@@ -114,12 +114,28 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
 
   // Realtime subscription
   useEffect(() => {
+    const getCanEditForList = async (listId: string | null, fallback: boolean): Promise<boolean> => {
+      if (!listId) return true
+
+      const { data, error } = await supabase.from("list_users").select("role").eq("user_id", userId).eq("list_id", listId).maybeSingle()
+
+      if (error) {
+        console.error("Error fetching list role for realtime item:", error)
+        return fallback
+      }
+
+      return data?.role !== "viewer"
+    }
+
     const handleRealtimeUpsert = async (item: Item) => {
       const existingItem = itemsRef.current.get(item.id)
       let signedUrl: string | null = existingItem?.signedUrl ?? null
       let listName = existingItem?.listName ?? nullListName
+      let canEdit = existingItem?.canEdit ?? true
 
       if (existingItem === undefined) {
+        canEdit = await getCanEditForList(item.listId, true)
+
         if (item.imageUrl) {
           signedUrl = await generateSignedUrl(item.imageUrl)
           if (!signedUrl) {
@@ -138,7 +154,8 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
         const newLocalItem: LocalItem = {
           ...item,
           signedUrl,
-          listName
+          listName,
+          canEdit
         }
 
         handleUpsert(newLocalItem)
@@ -158,6 +175,8 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
       }
 
       if (existingItem.listId !== item.listId) {
+        canEdit = await getCanEditForList(item.listId, existingItem.canEdit ?? true)
+
         if (item.listId) {
           const { data, error } = await supabase.from("lists").select("name").eq("id", item.listId).single()
           if (error || !data || !data.name) {
@@ -174,7 +193,8 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
         ...existingItem,
         ...item,
         signedUrl,
-        listName
+        listName,
+        canEdit
       }
 
       handleUpsert(updatedLocalItem)

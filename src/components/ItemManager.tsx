@@ -29,6 +29,7 @@ export type ListMember = Camelize<DBListMember>
 export type LocalItem = Item & {
   signedUrl: string | null
   listName: string
+  canEdit?: boolean
 }
 export type LocalListInvite = ListInvite & {
   listName: string
@@ -72,7 +73,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     }
   }
   const handleToggleFollowInputList = () => {
-    setFollowInputList(prev => !prev)
+    setFollowInputList(!followInputList)
     if (!followInputList) {
       setFilteredListIds([selectedListId])
     }

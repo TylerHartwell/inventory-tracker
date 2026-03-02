@@ -31,8 +31,11 @@
     "@types/node": "^25.2.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "supabase": "^2.75.1",
     "tailwindcss": "^4",
     "typescript": "^5"

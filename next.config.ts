@@ -17,6 +17,7 @@ const getSupabaseHostname = (): string => {
 }
 
 const nextConfig: NextConfig = {
+  reactCompiler: true,
   images: {
     remotePatterns: [
       {

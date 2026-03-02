@@ -1,5 +1,5 @@
 import { supabase } from "@/supabase-client"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 export type InviteWithListName = {
   id: string
@@ -15,7 +15,7 @@ export function useUserInvites() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const refreshInvites = async () => {
+  const refreshInvites = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -35,15 +35,15 @@ export function useUserInvites() {
       .from("list_invites")
       .select(
         `
-    id,
-    role,
-    status,
-    created_at,
-    lists (
       id,
-      name
-    )
-  `
+      role,
+      status,
+      created_at,
+      lists (
+        id,
+        name
+      )
+    `
       )
       .eq("email", user.email.toLowerCase())
       .eq("status", "pending")
@@ -68,11 +68,15 @@ export function useUserInvites() {
     setLoading(false)
 
     return { data: null, error: null }
-  }
+  }, [])
 
   useEffect(() => {
-    refreshInvites()
-  }, [])
+    const fetchInvites = async () => {
+      await refreshInvites()
+    }
+
+    fetchInvites()
+  }, [refreshInvites])
 
   return { invites, loading, error, refreshInvites }
 }

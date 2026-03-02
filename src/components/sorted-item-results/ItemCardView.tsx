@@ -21,11 +21,13 @@ const ItemCardView = ({ viewItem, isPriority, onEdit }: ItemCardViewProps) => {
           <Image src={viewItem.signedUrl} unoptimized alt="Item image" fill priority={isPriority} className="object-contain rounded" />
         </div>
       )}
-      <div className="flex justify-end">
-        <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onEdit} title="Edit item">
-          <Pencil size={16} />
-        </button>
-      </div>
+      {viewItem.canEdit !== false && (
+        <div className="flex justify-end">
+          <button className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onEdit} title="Edit item">
+            <Pencil size={16} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

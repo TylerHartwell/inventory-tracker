@@ -20,7 +20,7 @@ interface UserSettingsProps {
 const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSettingsProps) => {
   const { loading, refreshInvites } = invitesState
 
-  const spinning = useMinDurationActive(loading, { minDurationMs: 300 })
+  const spinning = useMinDurationActive(loading, 300)
 
   const hasInvites = invitesState.invites.length > 0
 

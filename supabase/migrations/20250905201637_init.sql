@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS public.list_users (
   UNIQUE (list_id, user_id)
 );
 
+ALTER TABLE list_users REPLICA IDENTITY FULL;
+
 CREATE INDEX IF NOT EXISTS idx_list_users_user_id
   ON public.list_users(user_id);
 

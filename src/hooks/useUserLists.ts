@@ -24,6 +24,13 @@ export function useUserLists(userId: string): UserLists {
       if (userListsError) throw userListsError
 
       const listIds = userLists?.map(l => l.list_id) ?? []
+
+      if (listIds.length === 0) {
+        setLists([])
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase.from("lists").select("*").in("id", listIds)
 
       if (error) {
@@ -48,22 +55,24 @@ export function useUserLists(userId: string): UserLists {
     }
 
     refreshLists()
-  }, [refreshLists])
+  }, [refreshLists, userId])
 
-  useEffect(() => {
-    if (!userId) return
+  // useEffect(() => {
+  //   if (!userId) return
+  //   const channel = supabase.channel(`user-lists-${userId}`)
 
-    const channel = supabase
-      .channel(`user-lists-${userId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
-        refreshLists()
-      })
-      .subscribe()
+  //   // Listen for changes to the user's list membership
+  //   channel.on("postgres_changes", { event: "*", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
+  //     console.log("[DEBUG] Received realtime update for list_users, refreshing lists")
+  //     refreshLists()
+  //   })
 
-    return () => {
-      channel.unsubscribe()
-    }
-  }, [userId, refreshLists])
+  //   channel.subscribe()
+
+  //   return () => {
+  //     channel.unsubscribe()
+  //   }
+  // }, [userId, refreshLists])
 
   return { lists, loading, error, refreshLists }
 }

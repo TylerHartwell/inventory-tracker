@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Item, LocalItem } from "../ItemManager"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
@@ -18,52 +18,27 @@ export type ItemUpdateBundle = {
 
 export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
-
   const [displayItem, setDisplayItem] = useState(item)
-  const [hasOptimisticUpdate, setHasOptimisticUpdate] = useState(false)
-  const [skipSyncUntilNextItem, setSkipSyncUntilNextItem] = useState(false)
-
-  // Sync prop changes to displayItem state when not editing and not in an optimistic update
-  // This ensures that updates from the parent are reflected, but doesn't override optimistic updates
-  // that are waiting for the async handler to complete.
-  // Also skip syncing if we just completed an update to prevent realtime's stale data from overwriting it
-  useEffect(() => {
-    if (!isEditing && !hasOptimisticUpdate && !skipSyncUntilNextItem) {
-      setDisplayItem(item)
-    } else if (skipSyncUntilNextItem && item.imageUrl === displayItem.imageUrl) {
-      // Once realtime catches up with the correct imageUrl, we can resume normal syncing
-      setSkipSyncUntilNextItem(false)
-    }
-  }, [item, isEditing, hasOptimisticUpdate, skipSyncUntilNextItem, displayItem.imageUrl])
-
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
 
   const handleCancelEdit = () => {
-    // Revoke any blob URL created during this edit session before closing
-    if (displayItem.signedUrl?.startsWith("blob:")) {
-      revokeBlobUrl(displayItem.signedUrl)
-      // Reset displayItem to the upstream `item` to discard the blob URL
-      setDisplayItem(item)
-    }
-    setHasOptimisticUpdate(false)
-    setSkipSyncUntilNextItem(false)
+    setDisplayItem(item)
     setIsEditing(false)
   }
 
   const handleDeleteItem = async () => {
+    if (displayItem.canEdit === false) return
+
     if (!window.confirm("Are you sure you want to delete this item?")) return
 
     try {
-      const { error } = await deleteItem({ itemId: displayItem.id, imageUrl: displayItem.imageUrl })
+      const { error } = await deleteItem({ itemId: item.id, imageUrl: item.imageUrl })
       if (error) {
         console.error("Failed to delete item:", error)
         alert("Failed to delete item. Please try again.")
         return
       }
 
-      onDelete(displayItem.id)
+      onDelete(item.id)
     } catch (err) {
       console.error("Failed to delete item:", err)
       alert("An unexpected error occurred while deleting the item.")
@@ -71,6 +46,11 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
   }
 
   const handleUpdateItem = async ({ updatedFields, itemImage }: ItemUpdateBundle) => {
+    if (displayItem.canEdit === false) {
+      setIsEditing(false)
+      return
+    }
+
     if (Object.values(updatedFields).every(v => v === undefined) && itemImage === undefined) {
       setIsEditing(false)
 
@@ -83,8 +63,6 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       return
     }
 
-    const previousItem = displayItem
-
     const optimisticItem: LocalItem = {
       ...displayItem,
       ...updatedFields,
@@ -93,49 +71,42 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       })
     }
 
-    setHasOptimisticUpdate(true)
     setDisplayItem(optimisticItem)
     setIsEditing(false)
 
-    const { data: updatedItem, error } = await updateItem({ item: displayItem, updatedFields, itemImage })
+    const { data: updatedItem, error } = await updateItem({
+      itemId: item.id,
+      itemImageUrl: item.imageUrl,
+      itemSignedUrl: item.signedUrl,
+      updatedFields,
+      updatedImageFile: itemImage
+    })
+
+    revokeBlobUrl(optimisticItem.signedUrl)
 
     if (error || !updatedItem) {
       console.error("Failed to update item:", error)
-      // Revoke any blob URL from the failed optimistic update
-      revokeBlobUrl(optimisticItem.signedUrl)
-      setDisplayItem(previousItem)
-      setHasOptimisticUpdate(false)
+      setDisplayItem(item)
+
       return
     }
 
-    setDisplayItem({
-      ...updatedItem
-    })
-    setHasOptimisticUpdate(false)
-    // Skip syncing with parent until realtime catches up with the latest imageUrl
-    // This prevents stale realtime data from reverting our update
-    setSkipSyncUntilNextItem(true)
+    setDisplayItem(updatedItem)
   }
-
-  // Cleanup blob URLs when component unmounts or when displayItem changes
-  useEffect(() => {
-    return () => {
-      revokeBlobUrl(displayItem.signedUrl)
-    }
-  }, [displayItem.signedUrl])
 
   return (
     <li className="border border-gray-300 rounded p-1 mb-1">
       {isEditing ? (
-        <ItemCardForm
-          item={displayItem}
-          signedUrl={displayItem.signedUrl}
-          onCancelEdit={handleCancelEdit}
-          onDeleteItem={handleDeleteItem}
-          onSubmit={handleUpdateItem}
-        />
+        <ItemCardForm item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
       ) : (
-        <ItemCardView viewItem={displayItem} isPriority={isPriority} onEdit={handleEdit} />
+        <ItemCardView
+          viewItem={displayItem}
+          isPriority={isPriority}
+          onEdit={() => {
+            if (displayItem.canEdit === false) return
+            setIsEditing(true)
+          }}
+        />
       )}
     </li>
   )
@@ -146,5 +117,3 @@ const revokeBlobUrl = (url: string | null) => {
     URL.revokeObjectURL(url)
   }
 }
-
-ItemCard.displayName = "ItemCard"

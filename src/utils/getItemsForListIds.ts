@@ -12,6 +12,21 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
   if (signal?.aborted || listIds.length === 0) return []
 
   const nonNullListIds = listIds.filter((id): id is string => id !== null)
+  const canEditByListId = new Map<string, boolean>()
+
+  if (nonNullListIds.length > 0) {
+    const { data: listUsers, error: listUsersError } = await supabase
+      .from("list_users")
+      .select("list_id, role")
+      .eq("user_id", userId)
+      .in("list_id", nonNullListIds)
+
+    if (listUsersError) throw listUsersError
+
+    listUsers?.forEach(listUser => {
+      canEditByListId.set(listUser.list_id, listUser.role !== "viewer")
+    })
+  }
 
   const queryPromises: Promise<PostgrestResponse<DBItemWithList>>[] = []
 
@@ -45,7 +60,8 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
       return {
         ...rest,
         signedUrl,
-        listName: lists?.name ?? nullListName
+        listName: lists?.name ?? nullListName,
+        canEdit: item.listId ? (canEditByListId.get(item.listId) ?? false) : true
       }
     })
   )

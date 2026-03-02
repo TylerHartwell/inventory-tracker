@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useRef, useCallback } from "react"
 import { updateProfile } from "@/utils/profile/updateProfile"
 import { UserProfile } from "@/hooks/useUserProfile"
 import { Pencil, Check, X } from "lucide-react"
@@ -16,11 +16,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
     setProfile(prev => (prev ? { ...prev, username: localUsername.trim() } : prev))
   }, [localUsername, setProfile])
 
-  const spinning = useMinDurationActive(saving, { minDurationMs: 300, onFinish: handleFinishSaving })
-
-  useEffect(() => {
-    setLocalUsername(profile?.username ?? "")
-  }, [profile?.username])
+  const spinning = useMinDurationActive(saving, 300, handleFinishSaving)
 
   if (loading || !profile) return <div>Loading…</div>
 
