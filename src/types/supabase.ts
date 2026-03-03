@@ -43,6 +43,8 @@ export type Database = {
           id: string
           image_url: string | null
           item_name: string
+          last_updated_at: string
+          last_updated_by: string | null
           list_id: string | null
           user_id: string
         }
@@ -54,6 +56,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           item_name: string
+          last_updated_at?: string
+          last_updated_by?: string | null
           list_id?: string | null
           user_id?: string
         }
@@ -65,6 +69,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           item_name?: string
+          last_updated_at?: string
+          last_updated_by?: string | null
           list_id?: string | null
           user_id?: string
         }
@@ -197,6 +203,10 @@ export type Database = {
     }
     Functions: {
       accept_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      can_access_item_image_strict: {
+        Args: { p_item_id: string; p_require_edit?: boolean }
+        Returns: boolean
+      }
       decline_invite: { Args: { p_invite_id: string }; Returns: undefined }
       fn_list_has_member_with_email: {
         Args: { _email: string; _list_id: string }

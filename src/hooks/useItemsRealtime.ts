@@ -194,6 +194,10 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
       const oldRow = camelize(payload.old ?? {}) as Partial<Item>
       const newRow = camelize(payload.new ?? {}) as Partial<Item>
 
+      if ((payload.eventType === "INSERT" || payload.eventType === "UPDATE") && newRow.lastUpdatedBy === userId) {
+        return
+      }
+
       if (doesAffectTrackedScope(oldRow, newRow)) {
         scheduleRefresh()
       }
