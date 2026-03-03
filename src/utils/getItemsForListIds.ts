@@ -12,6 +12,7 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
   if (signal?.aborted || listIds.length === 0) return []
 
   const nonNullListIds = listIds.filter((id): id is string => id !== null)
+  let authorizedListIds: string[] = []
   const canEditByListId = new Map<string, boolean>()
 
   if (nonNullListIds.length > 0) {
@@ -22,6 +23,8 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
       .in("list_id", nonNullListIds)
 
     if (listUsersError) throw listUsersError
+
+    authorizedListIds = listUsers?.map(listUser => listUser.list_id) ?? []
 
     listUsers?.forEach(listUser => {
       canEditByListId.set(listUser.list_id, listUser.role !== "viewer")
@@ -37,9 +40,9 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
     )
   }
 
-  if (nonNullListIds.length > 0) {
+  if (authorizedListIds.length > 0) {
     queryPromises.push(
-      (async () => supabase.from("items").select("*, lists(name)").in("list_id", nonNullListIds).order("created_at", { ascending: true }))()
+      (async () => supabase.from("items").select("*, lists(name)").in("list_id", authorizedListIds).order("created_at", { ascending: true }))()
     )
   }
 

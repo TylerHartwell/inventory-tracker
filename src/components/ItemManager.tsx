@@ -1,7 +1,7 @@
 import { Session } from "@supabase/supabase-js"
 import { ItemInput } from "./item-input/ItemInput"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
@@ -57,6 +57,28 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const userLists = useUserLists(session.user.id)
 
   const { items, loading, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
+
+  useEffect(() => {
+    if (userLists.loading) return
+
+    const validListIds = new Set(userLists.lists.map(list => list.id))
+
+    const sanitizedFilteredListIds = filteredListIds.filter(listId => listId === null || validListIds.has(listId))
+    const nextFilteredListIds = sanitizedFilteredListIds.length > 0 ? sanitizedFilteredListIds : [null]
+
+    const didFilteredChange =
+      nextFilteredListIds.length !== filteredListIds.length || nextFilteredListIds.some((listId, index) => listId !== filteredListIds[index])
+
+    if (didFilteredChange) {
+      setFilteredListIds(nextFilteredListIds)
+    }
+
+    const hasValidSelectedList = selectedListId === null || validListIds.has(selectedListId)
+
+    if (!hasValidSelectedList) {
+      setSelectedListId(null)
+    }
+  }, [filteredListIds, selectedListId, setFilteredListIds, setSelectedListId, userLists.lists, userLists.loading])
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {

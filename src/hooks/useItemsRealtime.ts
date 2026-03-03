@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase-client"
 import useDeepCompare from "./useDeepCompare"
-import { Item, LocalItem, nullListName } from "@/components/ItemManager"
-import { generateSignedUrl } from "@/utils/generateSignedUrl"
+import { Item, LocalItem } from "@/components/ItemManager"
 import { getItemsForListIds } from "@/utils/getItemsForListIds"
 import { diffListIds } from "@/utils/diffListIds"
 import { refreshSignedUrls } from "@/utils/refreshSignedUrls"
@@ -12,9 +11,24 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
   const prevListsRef = useRef<(string | null)[]>([])
+  const latestRequestIdRef = useRef(0)
+  const pendingRequestsRef = useRef(0)
   const stableFilteredListIds = useDeepCompare(filteredListIds)
 
   const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
+
+  const startLoading = useCallback(() => {
+    pendingRequestsRef.current += 1
+    setLoading(true)
+  }, [])
+
+  const stopLoading = useCallback(() => {
+    pendingRequestsRef.current = Math.max(0, pendingRequestsRef.current - 1)
+
+    if (pendingRequestsRef.current === 0) {
+      setLoading(false)
+    }
+  }, [])
 
   const handleUpsert = (item: LocalItem) => {
     setItemsMap(prev => {
@@ -35,28 +49,46 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
   }
 
   const refreshItems = useCallback(async () => {
-    setLoading(true)
+    if (!userId) {
+      setItemsMap(new Map())
+      prevListsRef.current = [...stableFilteredListIds]
+      setLoading(false)
+      return
+    }
+
+    const requestId = ++latestRequestIdRef.current
+    startLoading()
 
     try {
       const items = await getItemsForListIds(userId, stableFilteredListIds)
 
+      if (requestId !== latestRequestIdRef.current) return
+
       const newMap = new Map(items.map(item => [item.id, item]))
 
       setItemsMap(newMap)
+      prevListsRef.current = [...stableFilteredListIds]
     } catch (err) {
       if (err instanceof Error) {
         console.error("Error refreshing items:", err.message, err)
       }
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [stableFilteredListIds, userId])
+  }, [stableFilteredListIds, startLoading, stopLoading, userId])
 
   useEffect(() => {
     const controller = new AbortController() // for optional fetch cancellation
     const signal = controller.signal
 
     async function updateItems() {
+      if (!userId) {
+        setItemsMap(new Map())
+        prevListsRef.current = [...stableFilteredListIds]
+        setLoading(false)
+        return
+      }
+
       const prev = prevListsRef.current
       const current = stableFilteredListIds
       const { added, removed } = diffListIds(prev, current)
@@ -64,7 +96,8 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
       // Skip if nothing changed (except initial load)
       if (added.length === 0 && removed.length === 0 && prev.length > 0) return
 
-      setLoading(true)
+      const requestId = ++latestRequestIdRef.current
+      startLoading()
 
       const newItemsMap = new Map(itemsRef.current)
 
@@ -85,10 +118,12 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
 
           const fetched = await getItemsForListIds(userId, listsToFetch, signal)
 
-          if (signal.aborted) return
+          if (signal.aborted || requestId !== latestRequestIdRef.current) return
 
           fetched.forEach(item => newItemsMap.set(item.id, item))
         }
+
+        if (signal.aborted || requestId !== latestRequestIdRef.current) return
 
         setItemsMap(newItemsMap)
         prevListsRef.current = [...current]
@@ -101,7 +136,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
           console.error("Unknown error updating items:", err)
         }
       } finally {
-        setLoading(false)
+        stopLoading()
       }
     }
 
@@ -110,125 +145,126 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     return () => {
       controller.abort() // cancel ongoing fetch if lists change quickly
     }
-  }, [stableFilteredListIds, userId])
+  }, [stableFilteredListIds, startLoading, stopLoading, userId])
 
   // Realtime subscription
   useEffect(() => {
-    const getCanEditForList = async (listId: string | null, fallback: boolean): Promise<boolean> => {
-      if (!listId) return true
+    const hasNullFilter = stableFilteredListIds.includes(null)
+    let pendingRefreshTimeout: ReturnType<typeof setTimeout> | null = null
 
-      const { data, error } = await supabase.from("list_users").select("role").eq("user_id", userId).eq("list_id", listId).maybeSingle()
+    const scheduleRefresh = () => {
+      if (pendingRefreshTimeout !== null) return
 
-      if (error) {
-        console.error("Error fetching list role for realtime item:", error)
-        return fallback
-      }
-
-      return data?.role !== "viewer"
+      pendingRefreshTimeout = setTimeout(() => {
+        pendingRefreshTimeout = null
+        void refreshItems()
+      }, 150)
     }
 
-    const handleRealtimeUpsert = async (item: Item) => {
-      const existingItem = itemsRef.current.get(item.id)
-      let signedUrl: string | null = existingItem?.signedUrl ?? null
-      let listName = existingItem?.listName ?? nullListName
-      let canEdit = existingItem?.canEdit ?? true
+    const isTrackedSharedList = (listId: string | null | undefined) => {
+      if (!listId) return false
+      return stableFilteredListIds.includes(listId)
+    }
 
-      if (existingItem === undefined) {
-        canEdit = await getCanEditForList(item.listId, true)
+    const isTrackedPersonalItem = (row: Partial<Item>) => {
+      if (!hasNullFilter) return false
+      return (row.listId ?? null) === null && row.userId === userId
+    }
 
-        if (item.imageUrl) {
-          signedUrl = await generateSignedUrl(item.imageUrl)
-          if (!signedUrl) {
-            console.error("Failed to generate signed URL for new item's image")
-          }
+    const doesAffectTrackedScope = (oldRow: Partial<Item>, newRow: Partial<Item>) => {
+      if (isTrackedSharedList(oldRow.listId) || isTrackedSharedList(newRow.listId)) return true
+      if (isTrackedPersonalItem(oldRow) || isTrackedPersonalItem(newRow)) return true
+      return false
+    }
+
+    const channel = supabase.channel(`items-${userId}`)
+
+    channel.on("postgres_changes", { event: "*", schema: "public", table: "items" }, payload => {
+      if (payload.eventType === "DELETE") {
+        const deletedId = payload.old?.id as string | undefined
+
+        if (deletedId && itemsRef.current.has(deletedId)) {
+          handleDelete(deletedId)
+          scheduleRefresh()
         }
-
-        if (item.listId) {
-          const { data, error } = await supabase.from("lists").select("name").eq("id", item.listId).single()
-          if (error || !data) {
-            console.error(error ? "Error fetching list name for new item:" : "No data returned when fetching list name for new item", error)
-          }
-          listName = data?.name ?? nullListName
-        }
-
-        const newLocalItem: LocalItem = {
-          ...item,
-          signedUrl,
-          listName,
-          canEdit
-        }
-
-        handleUpsert(newLocalItem)
 
         return
       }
 
-      if (existingItem.imageUrl !== item.imageUrl) {
-        if (item.imageUrl) {
-          signedUrl = await generateSignedUrl(item.imageUrl)
-          if (!signedUrl) {
-            console.error("Failed to generate signed URL for new item's image")
-          }
-        } else {
-          signedUrl = null
-        }
+      const oldRow = camelize(payload.old ?? {}) as Partial<Item>
+      const newRow = camelize(payload.new ?? {}) as Partial<Item>
+
+      if (doesAffectTrackedScope(oldRow, newRow)) {
+        scheduleRefresh()
       }
-
-      if (existingItem.listId !== item.listId) {
-        canEdit = await getCanEditForList(item.listId, existingItem.canEdit ?? true)
-
-        if (item.listId) {
-          const { data, error } = await supabase.from("lists").select("name").eq("id", item.listId).single()
-          if (error || !data || !data.name) {
-            console.error(error ? "Error fetching list name for new item:" : "No data returned when fetching list name for new item", error)
-          } else {
-            listName = data.name
-          }
-        } else {
-          listName = nullListName
-        }
-      }
-
-      const updatedLocalItem: LocalItem = {
-        ...existingItem,
-        ...item,
-        signedUrl,
-        listName,
-        canEdit
-      }
-
-      handleUpsert(updatedLocalItem)
-    }
-
-    const nonNullIds = stableFilteredListIds.filter(id => id !== null)
-    const hasNull = stableFilteredListIds.includes(null)
-
-    const inFilter = nonNullIds.length > 0 ? `list_id=in.(${nonNullIds.map(id => `"${id}"`).join(",")})` : null
-
-    const channel = supabase.channel(`items-${userId}`)
-
-    // listener for specific list IDs
-    if (inFilter) {
-      channel.on("postgres_changes", { event: "*", schema: "public", table: "items", filter: inFilter }, payload => {
-        if (payload.eventType === "DELETE") handleDelete(payload.old.id)
-        else handleRealtimeUpsert(camelize(payload.new) as Item)
-      })
-    }
-
-    // listener for NULL list_id
-    if (hasNull) {
-      channel.on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `list_id=is.null,user_id=eq.${userId}` }, payload => {
-        if (payload.eventType === "DELETE") handleDelete(payload.old.id)
-        else handleRealtimeUpsert(camelize(payload.new) as Item)
-      })
-    }
+    })
 
     channel.subscribe()
 
     return () => {
+      if (pendingRefreshTimeout !== null) {
+        clearTimeout(pendingRefreshTimeout)
+      }
       channel.unsubscribe()
     }
-  }, [stableFilteredListIds, userId])
+  }, [refreshItems, stableFilteredListIds, userId])
+
+  // Realtime subscription for list membership and role changes
+  useEffect(() => {
+    let pendingRefreshTimeout: ReturnType<typeof setTimeout> | null = null
+
+    const scheduleRefresh = () => {
+      if (pendingRefreshTimeout !== null) return
+
+      pendingRefreshTimeout = setTimeout(() => {
+        pendingRefreshTimeout = null
+        void refreshItems()
+      }, 150)
+    }
+
+    const isTrackedList = (listId: string | null | undefined) => {
+      if (!listId) return false
+      return stableFilteredListIds.includes(listId)
+    }
+
+    const doesAffectCurrentUserPermissions = (
+      oldRow: Partial<{ listId: string | null; userId: string | null }>,
+      newRow: Partial<{ listId: string | null; userId: string | null }>
+    ) => {
+      const affectsTrackedList = isTrackedList(oldRow.listId) || isTrackedList(newRow.listId)
+
+      if (!affectsTrackedList) return false
+
+      if (oldRow.userId === userId || newRow.userId === userId) return true
+
+      return !oldRow.userId && !newRow.userId
+    }
+
+    const channel = supabase.channel(`list-users-${userId}`)
+
+    channel.on("postgres_changes", { event: "*", schema: "public", table: "list_users" }, payload => {
+      if (payload.eventType === "DELETE") {
+        scheduleRefresh()
+        return
+      }
+
+      const oldRow = camelize(payload.old ?? {}) as Partial<{ listId: string | null; userId: string | null }>
+      const newRow = camelize(payload.new ?? {}) as Partial<{ listId: string | null; userId: string | null }>
+
+      if (doesAffectCurrentUserPermissions(oldRow, newRow)) {
+        scheduleRefresh()
+      }
+    })
+
+    channel.subscribe()
+
+    return () => {
+      if (pendingRefreshTimeout !== null) {
+        clearTimeout(pendingRefreshTimeout)
+      }
+      channel.unsubscribe()
+    }
+  }, [refreshItems, stableFilteredListIds, userId])
 
   // Periodically refresh signed URLs every 15 minutes to prevent expiration, without refetching all item data
   useEffect(() => {

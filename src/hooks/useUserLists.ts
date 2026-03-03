@@ -57,22 +57,45 @@ export function useUserLists(userId: string): UserLists {
     refreshLists()
   }, [refreshLists, userId])
 
-  // useEffect(() => {
-  //   if (!userId) return
-  //   const channel = supabase.channel(`user-lists-${userId}`)
+  useEffect(() => {
+    if (!userId) return
 
-  //   // Listen for changes to the user's list membership
-  //   channel.on("postgres_changes", { event: "*", schema: "public", table: "list_users", filter: `user_id=eq.${userId}` }, () => {
-  //     console.log("[DEBUG] Received realtime update for list_users, refreshing lists")
-  //     refreshLists()
-  //   })
+    let pendingRefreshTimeout: ReturnType<typeof setTimeout> | null = null
 
-  //   channel.subscribe()
+    const scheduleRefresh = () => {
+      if (pendingRefreshTimeout !== null) return
 
-  //   return () => {
-  //     channel.unsubscribe()
-  //   }
-  // }, [userId, refreshLists])
+      pendingRefreshTimeout = setTimeout(() => {
+        pendingRefreshTimeout = null
+        void refreshLists()
+      }, 150)
+    }
+
+    const channel = supabase.channel(`user-lists-${userId}`)
+
+    channel.on("postgres_changes", { event: "*", schema: "public", table: "list_users" }, payload => {
+      if (payload.eventType === "DELETE") {
+        scheduleRefresh()
+        return
+      }
+
+      const oldUserId = (payload.old as { user_id?: string } | null)?.user_id
+      const newUserId = (payload.new as { user_id?: string } | null)?.user_id
+
+      if (oldUserId === userId || newUserId === userId) {
+        scheduleRefresh()
+      }
+    })
+
+    channel.subscribe()
+
+    return () => {
+      if (pendingRefreshTimeout !== null) {
+        clearTimeout(pendingRefreshTimeout)
+      }
+      channel.unsubscribe()
+    }
+  }, [userId, refreshLists])
 
   return { lists, loading, error, refreshLists }
 }
