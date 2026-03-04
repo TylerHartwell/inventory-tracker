@@ -3,15 +3,19 @@ import { supabase } from "@/supabase-client"
 import { List } from "@/components/ItemManager"
 import { camelize } from "@/utils/caseChanger"
 
+export type UserList = List & {
+  role: string
+}
+
 export interface UserLists {
-  lists: List[]
+  lists: UserList[]
   loading: boolean
   error: string | null
   refreshLists: () => Promise<void>
 }
 
 export function useUserLists(userId: string): UserLists {
-  const [lists, setLists] = useState<List[]>([])
+  const [lists, setLists] = useState<UserList[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -19,7 +23,7 @@ export function useUserLists(userId: string): UserLists {
     setLoading(true)
     setError(null)
     try {
-      const { data: userLists, error: userListsError } = await supabase.from("list_users").select("list_id").eq("user_id", userId)
+      const { data: userLists, error: userListsError } = await supabase.from("list_users").select("list_id, role").eq("user_id", userId)
 
       if (userListsError) throw userListsError
 
@@ -37,7 +41,16 @@ export function useUserLists(userId: string): UserLists {
         setError(error.message)
         setLists([])
       } else {
-        setLists((camelize(data) ?? []) as List[])
+        const userListRolesById = new Map<string, string>()
+        userLists?.forEach(userList => {
+          userListRolesById.set(userList.list_id, userList.role)
+        })
+
+        const listsWithRoles = ((camelize(data) ?? []) as List[]).map(list => ({
+          ...list,
+          role: userListRolesById.get(list.id) ?? "viewer"
+        }))
+        setLists(listsWithRoles)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error")
