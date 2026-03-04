@@ -38,7 +38,7 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
           <span>User Settings</span>
           <button
             onClick={() => onClose()}
-            className="rounded-lg size-5 hover:bg-gray-500 text-center flex items-center justify-center transition cursor-pointer"
+            className="size-5 hover:bg-gray-500 text-center flex items-center justify-center transition cursor-pointer"
           >
             <X />
           </button>

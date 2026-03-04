@@ -56,10 +56,14 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
     setSaving(false)
   }
 
-  const showForm = !localUsername || editing || spinning
+  const hasPersistedUsername = Boolean(profile.username?.trim())
+  const showForm = !hasPersistedUsername || editing || spinning
 
   return (
-    <div className="flex flex-col gap-1 rounded-md px-1">
+    <div className="flex flex-col gap-1 rounded-md px-1 relative ">
+      {!hasPersistedUsername && (
+        <span className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.75 h-1.75 bg-red-500 rounded-full border border-white"></span>
+      )}
       {showForm ? (
         <form
           onSubmit={e => {

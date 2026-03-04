@@ -4,6 +4,7 @@ import { updateList } from "@/utils/list/updateList"
 import { MembersList } from "./MembersList"
 import { insertListInvite } from "@/utils/list-invite/insertListInvite"
 import { UserList } from "@/hooks/useUserLists"
+import { X } from "lucide-react"
 
 function ListConfigModal({
   onClose,
@@ -91,7 +92,7 @@ function ListConfigModal({
         }
       }}
     >
-      <div className="bg-gray-900 text-white rounded-lg p-4 w-80 mt-20" onClick={e => e.stopPropagation()}>
+      <div className="bg-gray-700 text-white rounded-lg p-4 w-80 mt-20 relative" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-semibold mb-3">Configure List</h2>
         <p className="text-sm text-gray-400 mb-4">
           Managing: <strong>{currentList ? currentList.name : nullListName}</strong>
@@ -206,9 +207,13 @@ function ListConfigModal({
           )}
         </div>
 
-        <div className="flex justify-end mt-4">
-          <button type="button" className="text-sm text-gray-400 hover-fine:outline-1 active:outline-1" onClick={() => onClose()}>
-            Close
+        <div className="flex justify-center  absolute top-2 right-2">
+          <button
+            type="button"
+            className="size-5 flex items-center justify-center text-sm text-gray-400 hover-fine:outline-1 active:outline-1"
+            onClick={() => onClose()}
+          >
+            <X />
           </button>
         </div>
       </div>
