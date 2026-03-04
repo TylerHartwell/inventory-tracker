@@ -41,9 +41,14 @@ export function useUserLists(userId: string): UserLists {
         setError(error.message)
         setLists([])
       } else {
+        const userListRolesById = new Map<string, string>()
+        userLists?.forEach(userList => {
+          userListRolesById.set(userList.list_id, userList.role)
+        })
+
         const listsWithRoles = ((camelize(data) ?? []) as List[]).map(list => ({
           ...list,
-          role: userLists?.find(userList => userList.list_id === list.id)?.role ?? "viewer"
+          role: userListRolesById.get(list.id) ?? "viewer"
         }))
         setLists(listsWithRoles)
       }
