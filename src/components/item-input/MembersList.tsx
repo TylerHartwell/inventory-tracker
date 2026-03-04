@@ -114,22 +114,27 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
           <h3 className="text-sm font-semibold text-gray-400 uppercase text-center">Members</h3>
 
           {members.map(user => (
-            <div key={user.userId} className="flex items-center justify-between border rounded p-2">
-              <span className="flex-1">{user.username ?? "Anon"}</span>
+            <div key={user.userId} className="flex flex-col border rounded p-2">
+              <span className="wrap-break-word">{user.username ?? "Anon"}</span>
 
-              <select
-                value={user.role ?? "viewer"} //TODO figure out union type in schema
-                name="member-role"
-                onChange={e => handleRoleChange(user, e.target.value as "editor" | "viewer")}
-                className="border rounded px-2 py-1 bg-gray-900"
-              >
-                <option value="editor">Editor</option>
-                <option value="viewer">Viewer</option>
-              </select>
+              <div className="flex items-center justify-between gap-2">
+                <span>
+                  <span>Role:</span>
+                  <select
+                    value={user.role ?? "viewer"} //TODO figure out union type in schema
+                    name="member-role"
+                    onChange={e => handleRoleChange(user, e.target.value as "editor" | "viewer")}
+                    className="border rounded ml-1 px-0.5 py-1 bg-gray-900"
+                  >
+                    <option value="editor">Editor</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                </span>
 
-              <button onClick={() => handleDelete(user)} className="text-red-500 px-2 py-1">
-                Remove
-              </button>
+                <button onClick={() => handleDelete(user)} className="border border-red-500 rounded text-red-500 px-2 py-1">
+                  Remove
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -141,22 +146,27 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
           <h3 className="text-sm font-semibold text-gray-400 uppercase text-center">Invited</h3>
 
           {invited.map(user => (
-            <div key={user.email} className="flex items-center justify-between border rounded p-2 opacity-75">
-              <span className="flex-1">{user.email}</span>
+            <div key={user.email} className="flex flex-col border rounded p-2 opacity-75">
+              <span className="wrap-break-word">{user.email}</span>
 
-              <select
-                value={user.role ?? "viewer"} //TODO figure out union type in schema
-                name="invited-role"
-                onChange={e => handleRoleChange(user, e.target.value as "editor" | "viewer")}
-                className="border rounded px-2 py-1 bg-gray-900"
-              >
-                <option value="editor">Editor</option>
-                <option value="viewer">Viewer</option>
-              </select>
+              <div className="flex items-center justify-between gap-2">
+                <span>
+                  <span>Role:</span>
+                  <select
+                    value={user.role ?? "viewer"} //TODO figure out union type in schema
+                    name="invited-role"
+                    onChange={e => handleRoleChange(user, e.target.value as "editor" | "viewer")}
+                    className="border rounded ml-1 px-0.5 py-1 bg-gray-900"
+                  >
+                    <option value="editor">Editor</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                </span>
 
-              <button onClick={() => handleDelete(user)} className="text-red-500 px-2 py-1">
-                Cancel
-              </button>
+                <button onClick={() => handleDelete(user)} className="border border-red-500 rounded text-red-500 px-2 py-1">
+                  Cancel
+                </button>
+              </div>
             </div>
           ))}
         </div>

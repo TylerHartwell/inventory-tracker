@@ -74,7 +74,9 @@ export const ListInput = ({
         type="text"
         placeholder="New List Name"
         name="listName"
+        autoComplete="off"
         value={newList.listName}
+        onKeyDownCapture={e => e.stopPropagation()}
         onChange={e => setNewList(prev => ({ ...prev, listName: e.target.value }))}
         className="w-full px-1 border border-gray-300 rounded"
       />

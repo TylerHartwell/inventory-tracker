@@ -20,7 +20,6 @@ export function useUserLists(userId: string): UserLists {
   const [error, setError] = useState<string | null>(null)
 
   const refreshLists = useCallback(async () => {
-    setLoading(true)
     setError(null)
     try {
       const { data: userLists, error: userListsError } = await supabase.from("list_users").select("list_id, role").eq("user_id", userId)
@@ -67,6 +66,7 @@ export function useUserLists(userId: string): UserLists {
       return
     }
 
+    setLoading(true)
     refreshLists()
   }, [refreshLists, userId])
 

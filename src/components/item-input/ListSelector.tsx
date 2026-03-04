@@ -32,8 +32,8 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
   }
 
   const handleListCreated = async (newListId: string) => {
+    await refreshLists()
     handleItemInputListChange(newListId)
-    refreshLists()
   }
 
   const handleDelete = async (listId: string) => {
