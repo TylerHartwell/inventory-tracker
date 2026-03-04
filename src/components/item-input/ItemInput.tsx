@@ -25,6 +25,8 @@ export const ItemInput = ({
   const [itemImage, setItemImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
+  const selectedList = selectedListId ? userLists.lists.find(list => list.id === selectedListId) : null
+  const isViewer = selectedList?.role === "viewer"
 
   const clear = () => {
     setNewItem({ itemName: "", listId: selectedListId })
@@ -44,6 +46,10 @@ export const ItemInput = ({
   }
 
   const handleSubmit = async () => {
+    if (isViewer) {
+      return
+    }
+
     if (!session.user) {
       console.error("Not authenticated")
       return
@@ -92,52 +98,56 @@ export const ItemInput = ({
         userLists={userLists}
         refreshItems={refreshItems}
       />
-      <input
-        type="text"
-        placeholder="Item Name"
-        name="itemName"
-        value={newItem.itemName}
-        onKeyDown={handleKeyDown}
-        onChange={e => setNewItem(prev => ({ ...prev, itemName: e.target.value }))}
-        className="w-full p-1 border border-gray-300 rounded"
-      />
-      <textarea
-        placeholder="Extra Details"
-        name="extraDetails"
-        value={newItem.extraDetails ?? ""}
-        onKeyDown={handleKeyDown}
-        onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
-        className="w-full p-1 border border-gray-300 rounded min-h-min"
-      />
+      {!isViewer && (
+        <>
+          <input
+            type="text"
+            placeholder="Item Name"
+            name="itemName"
+            value={newItem.itemName}
+            onKeyDown={handleKeyDown}
+            onChange={e => setNewItem(prev => ({ ...prev, itemName: e.target.value }))}
+            className="w-full p-1 border border-gray-300 rounded"
+          />
+          <textarea
+            placeholder="Extra Details"
+            name="extraDetails"
+            value={newItem.extraDetails ?? ""}
+            onKeyDown={handleKeyDown}
+            onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
+            className="w-full p-1 border border-gray-300 rounded min-h-min"
+          />
 
-      <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} />
+          <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} />
 
-      <div className="flex justify-between">
-        <button
-          type="button"
-          onClick={clear}
-          disabled={loading}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
-        >
-          Clear
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={loading}
-          className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
-        >
-          {/* Button label */}
-          <span className={loading ? "opacity-30" : ""}>Add Item</span>
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={clear}
+              disabled={loading}
+              className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+            >
+              {/* Button label */}
+              <span className={loading ? "opacity-30" : ""}>Add Item</span>
 
-          {/* Loading overlay */}
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-        </button>
-      </div>
+              {/* Loading overlay */}
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
