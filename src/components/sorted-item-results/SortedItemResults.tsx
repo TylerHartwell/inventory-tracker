@@ -5,15 +5,18 @@ import LoadingSpinner from "./LoadingSpinner"
 
 interface Props {
   loading: boolean
+  hasCompletedInitialLoad: boolean
   sortedItems: LocalItem[]
   onDelete: (id: string) => void
 }
 
-const SortedItemResults = ({ loading, sortedItems, onDelete }: Props) => {
+const SortedItemResults = ({ loading, hasCompletedInitialLoad, sortedItems, onDelete }: Props) => {
+  const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
+
   return (
     <ul className="list-none p-0 relative">
       {loading &&
-        (sortedItems.length === 0 ? (
+        (showInitialSkeleton ? (
           <ItemCardsSkeleton />
         ) : (
           <>

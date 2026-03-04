@@ -8,6 +8,7 @@ import { deleteList } from "@/utils/list/deleteList"
 import { nullListName } from "../ItemManager"
 import ListConfigModal from "./ListConfigModal"
 import { useOutsidePointerDownClose } from "@/hooks/useOutsidePointerDownClose"
+import { deleteListUser } from "@/utils/list-user/deleteListUser"
 
 interface ListSelectorProps {
   selectedListId: string | null
@@ -42,6 +43,25 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
       console.error(error)
       return
     }
+    handleItemInputListChange(null)
+    setConfigId(null)
+    setIsConfigOpen(false)
+    refreshLists()
+  }
+
+  const handleLeave = async (listId: string) => {
+    if (!confirm("Leave this list?")) return
+
+    const { error } = await deleteListUser({
+      listId,
+      userId: session.user.id
+    })
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
     handleItemInputListChange(null)
     setConfigId(null)
     setIsConfigOpen(false)
@@ -150,6 +170,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
           lists={lists}
           session={session}
           onListDelete={handleDelete}
+          onListLeave={handleLeave}
           nullListName={nullListName}
           refreshItems={refreshItems}
           refreshLists={refreshLists}

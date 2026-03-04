@@ -56,7 +56,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const userLists = useUserLists(session.user.id)
 
-  const { items, loading, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
+  const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
 
   useEffect(() => {
     if (userLists.loading) return
@@ -123,7 +123,12 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
-      <SortedItemResults loading={loading} sortedItems={sortedItems} onDelete={id => onDelete(id)} />
+      <SortedItemResults
+        loading={loading}
+        hasCompletedInitialLoad={hasCompletedInitialLoad}
+        sortedItems={sortedItems}
+        onDelete={id => onDelete(id)}
+      />
       <ScrollToTopBtn />
     </div>
   )

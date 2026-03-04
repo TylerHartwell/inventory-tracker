@@ -10,6 +10,7 @@ import { camelize } from "@/utils/caseChanger"
 export function useItemsRealtime(userId: string, filteredListIds: (string | null)[] = []) {
   const [itemsMap, setItemsMap] = useState<Map<string, LocalItem>>(new Map())
   const [loading, setLoading] = useState(true)
+  const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false)
   const prevListsRef = useRef<(string | null)[]>([])
   const latestRequestIdRef = useRef(0)
   const pendingRequestsRef = useRef(0)
@@ -53,6 +54,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
       setItemsMap(new Map())
       prevListsRef.current = [...stableFilteredListIds]
       setLoading(false)
+      setHasCompletedInitialLoad(true)
       return
     }
 
@@ -73,6 +75,9 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
         console.error("Error refreshing items:", err.message, err)
       }
     } finally {
+      if (requestId === latestRequestIdRef.current) {
+        setHasCompletedInitialLoad(true)
+      }
       stopLoading()
     }
   }, [stableFilteredListIds, startLoading, stopLoading, userId])
@@ -86,6 +91,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
         setItemsMap(new Map())
         prevListsRef.current = [...stableFilteredListIds]
         setLoading(false)
+        setHasCompletedInitialLoad(true)
         return
       }
 
@@ -136,6 +142,9 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
           console.error("Unknown error updating items:", err)
         }
       } finally {
+        if (!signal.aborted && requestId === latestRequestIdRef.current) {
+          setHasCompletedInitialLoad(true)
+        }
         stopLoading()
       }
     }
@@ -289,5 +298,5 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     itemsRef.current = itemsMap
   }, [itemsMap])
 
-  return { items: Array.from(itemsMap.values()), loading, refreshItems, onDelete: handleDelete, onUpsert: handleUpsert }
+  return { items: Array.from(itemsMap.values()), loading, hasCompletedInitialLoad, refreshItems, onDelete: handleDelete, onUpsert: handleUpsert }
 }

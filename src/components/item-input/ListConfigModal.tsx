@@ -1,9 +1,9 @@
 import { ChangeEvent, useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import { updateList } from "@/utils/list/updateList"
-import { List } from "../ItemManager"
 import { MembersList } from "./MembersList"
 import { insertListInvite } from "@/utils/list-invite/insertListInvite"
+import { UserList } from "@/hooks/useUserLists"
 
 function ListConfigModal({
   onClose,
@@ -11,15 +11,17 @@ function ListConfigModal({
   lists,
   session,
   onListDelete,
+  onListLeave,
   nullListName,
   refreshItems,
   refreshLists
 }: {
   onClose: () => void
   configId: string
-  lists: List[]
+  lists: UserList[]
   session: Session
   onListDelete: (id: string) => void
+  onListLeave: (id: string) => Promise<void>
   nullListName: string
   refreshItems: () => Promise<void>
   refreshLists: () => Promise<void>
@@ -31,9 +33,10 @@ function ListConfigModal({
   const [membersKey, setMembersKey] = useState(0)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const currentList = lists.find(l => l.id === configId)
+  const isOwner = currentList?.role === "owner"
 
   const handleUpdateName = async () => {
-    if (!currentList || !newName.trim()) return
+    if (!currentList || !newName.trim() || !isOwner) return
     const { error } = await updateList({
       list: currentList,
       updates: { name: newName.trim() }
@@ -58,7 +61,7 @@ function ListConfigModal({
   }
 
   const handleInvite = async (newRole: "editor" | "viewer") => {
-    if (!newUserEmail || !currentList) return
+    if (!newUserEmail || !currentList || !isOwner) return
 
     setInviteError(null)
 
@@ -95,97 +98,110 @@ function ListConfigModal({
         </p>
 
         <div className="space-y-2">
-          {!isEditingName ? (
-            <button
-              type="button"
-              onClick={() => {
-                setNewName(currentList?.name ?? "")
-                setIsEditingName(true)
-              }}
-              className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
-            >
-              ✏️ Edit Name
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newName}
-                name="list-name"
-                placeholder="List Name"
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter") {
-                    e.preventDefault()
-                    handleUpdateName()
-                  }
+          {isOwner &&
+            (!isEditingName ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setNewName(currentList?.name ?? "")
+                  setIsEditingName(true)
                 }}
-                className="flex-1 px-2 py-1 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring"
-                autoFocus
-              />
-              <button onClick={handleUpdateName} className="bg-blue-600 px-2 py-1 rounded hover:bg-blue-800">
-                Save
+                className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+              >
+                ✏️ Edit Name
               </button>
-            </div>
-          )}
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newName}
+                  name="list-name"
+                  placeholder="List Name"
+                  onChange={e => setNewName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      handleUpdateName()
+                    }
+                  }}
+                  className="flex-1 px-2 py-1 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring"
+                  autoFocus
+                />
+                <button onClick={handleUpdateName} className="bg-blue-600 px-2 py-1 rounded hover:bg-blue-800">
+                  Save
+                </button>
+              </div>
+            ))}
 
           {configId !== null && (
             <>
-              {!isManagingUsers ? (
+              {isOwner ? (
+                <>
+                  {!isManagingUsers ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsManagingUsers(true)
+                      }}
+                      className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+                    >
+                      👥 Manage Users
+                    </button>
+                  ) : (
+                    <div className="flex flex-col gap-1 w-full">
+                      {/* Invite form */}
+                      <form
+                        onSubmit={e => {
+                          e.preventDefault()
+                          if (!inviteError) {
+                            handleInvite("viewer")
+                          }
+                        }}
+                        className="flex gap-2"
+                      >
+                        <input
+                          name="email"
+                          type="email"
+                          placeholder="Enter email"
+                          autoComplete="off"
+                          autoFocus
+                          value={newUserEmail}
+                          onChange={handleEmailChange}
+                          className="flex-1 border rounded px-2 py-1"
+                        />
+
+                        <button
+                          type="submit"
+                          disabled={!!inviteError}
+                          className={`bg-blue-500 text-white px-4 py-1 rounded ${inviteError ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                        >
+                          Invite
+                        </button>
+                      </form>
+                      {inviteError && <p className="text-xs text-red-400">{inviteError}</p>}
+
+                      {/* Members list */}
+                      <MembersList key={membersKey} listId={configId} session={session} />
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => onListDelete(configId)}
+                    className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+                  >
+                    🗑️ Delete List
+                  </button>
+                </>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsManagingUsers(true)
-                  }}
-                  className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+                  onClick={() => onListLeave(configId)}
+                  className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
                 >
-                  👥 Manage Users
+                  🚪 Leave List
                 </button>
-              ) : (
-                <div className="flex flex-col gap-1 w-full">
-                  {/* Invite form */}
-                  <form
-                    onSubmit={e => {
-                      e.preventDefault()
-                      if (!inviteError) {
-                        handleInvite("viewer")
-                      }
-                    }}
-                    className="flex gap-2"
-                  >
-                    <input
-                      name="email"
-                      type="email"
-                      placeholder="Enter email"
-                      autoComplete="off"
-                      autoFocus
-                      value={newUserEmail}
-                      onChange={handleEmailChange}
-                      className="flex-1 border rounded px-2 py-1"
-                    />
-
-                    <button
-                      type="submit"
-                      disabled={!!inviteError}
-                      className={`bg-blue-500 text-white px-4 py-1 rounded ${inviteError ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      Invite
-                    </button>
-                  </form>
-                  {inviteError && <p className="text-xs text-red-400">{inviteError}</p>}
-
-                  {/* Members list */}
-                  <MembersList key={membersKey} listId={configId} session={session} />
-                </div>
               )}
-
-              <button
-                type="button"
-                onClick={() => onListDelete(configId)}
-                className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
-              >
-                🗑️ Delete List
-              </button>
             </>
           )}
         </div>
