@@ -7,6 +7,8 @@ It combines authentication, item CRUD, list invites, and realtime sync so multip
 ## Features
 
 - Email/password authentication with Supabase Auth.
+- Google OAuth authentication.
+- Account linking for Google identity from user settings.
 - Create, edit, and delete items with optional extra details.
 - Upload, preview, replace, and remove item images (Supabase Storage).
 - Personal list support plus shared lists.
@@ -73,6 +75,13 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
+OAuth provider credentials are configured in Supabase (Dashboard for hosted projects, `supabase/config.toml` for local CLI projects). Use provider secret env vars like:
+
+```bash
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...
+```
+
 ### Install
 
 ```bash
@@ -102,6 +111,27 @@ Open `http://localhost:3000`.
   - `list_users` table membership/permission changes
   - user invite updates
 - Local Supabase project configuration is in `supabase/config.toml`.
+- For local OAuth redirects, `site_url` and `additional_redirect_urls` in `supabase/config.toml` must match your dev URL exactly (protocol + host + port).
+
+## OAuth Setup (Google)
+
+1. In Supabase Dashboard, go to `Authentication > Providers` and enable `Google`.
+2. Add Google OAuth credentials from Google Cloud to Supabase Auth provider settings.
+3. In Supabase URL configuration, add all exact redirect URLs you use:
+   - local: `http://127.0.0.1:3000`
+   - local: `http://localhost:3000`
+   - production: your deployed app URL(s)
+4. Enable manual identity linking in auth settings (required for linking providers to an already-signed-in account).
+5. In the app:
+   - logged out users can use the `Google` button on the auth form.
+   - logged in users can link providers in `User Settings > Linked Sign-In Methods`.
+
+## OAuth Troubleshooting
+
+- `redirect_to is not allowed`: your redirect URL is missing or mismatched in Supabase Auth URL config.
+- `provider is not enabled`: provider is disabled in Supabase Auth settings.
+- `identity already exists`: provider account is already linked to this or another user.
+- Sign-in works but returns to the wrong URL: check `site_url` and provider callback settings.
 
 ## Core Flow
 

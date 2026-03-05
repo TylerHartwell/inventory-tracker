@@ -1,5 +1,7 @@
-import { useState, FormEvent } from "react"
+import { useState, type SyntheticEvent } from "react"
 import { supabase } from "../supabase-client"
+
+type OAuthProvider = "google"
 
 const Auth = () => {
   const [email, setEmail] = useState("")
@@ -48,9 +50,34 @@ const Auth = () => {
     }
   }
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     await handleAuth("signIn")
+  }
+
+  const handleOAuthSignIn = async (provider: OAuthProvider) => {
+    setLoading(true)
+    setMessage(null)
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin
+        }
+      })
+
+      if (error) throw new Error(error.message)
+
+      setMessage({
+        type: "success",
+        text: "Redirecting to Google..."
+      })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An unknown error occurred."
+      setMessage({ type: "error", text: message })
+      setLoading(false)
+    }
   }
 
   const inputClass = "w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -71,55 +98,87 @@ const Auth = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mb-4 max-w-xs">
-        <input
-          type="email"
-          placeholder="Email"
-          name="email"
-          autoComplete="on"
-          value={email}
-          onChange={e => {
-            setEmail(e.target.value)
-            setMessage(null)
-          }}
-          className={inputClass}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          name="password"
-          value={password}
-          onChange={e => {
-            setPassword(e.target.value)
-            setMessage(null)
-          }}
-          autoComplete="current-password"
-          className={inputClass}
-        />
+      <div className="mb-4 max-w-xs w-full">
+        <button
+          type="button"
+          onClick={() => handleOAuthSignIn("google")}
+          className="w-full py-2 px-3 bg-white text-[#1f1f1f] border border-[#dadce0] rounded-md shadow-sm hover:bg-[#f8f9fa] active:bg-[#f1f3f4] transition disabled:opacity-50 flex items-center justify-center gap-2"
+          disabled={loading}
+        >
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24">
+            <path
+              fill="#4285F4"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.56c2.08-1.92 3.28-4.75 3.28-8.1Z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.65l-3.56-2.77c-.98.66-2.24 1.05-3.72 1.05-2.86 0-5.29-1.93-6.16-4.52H2.18v2.84A11 11 0 0 0 12 23Z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.84 14.11a6.6 6.6 0 0 1-.34-2.11c0-.73.12-1.44.34-2.11V7.05H2.18A11 11 0 0 0 1 12c0 1.77.42 3.45 1.18 4.95l3.66-2.84Z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 5.38c1.62 0 3.06.56 4.2 1.64l3.15-3.15C17.45 2.09 14.96 1 12 1A11 11 0 0 0 2.18 7.05l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38Z"
+            />
+          </svg>
+          <span className="text-sm font-medium">Sign in with Google</span>
+        </button>
 
-        <div className="flex gap-2">
-          <button
-            type="submit" // Default when pressing Enter
-            className="flex-1 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
-            disabled={loading || !email || !password}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAuth("signUp")}
-            className="flex-1 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
-            disabled={loading || !email || !password}
-          >
-            Sign Up
-          </button>
-        </div>
+        <div className="my-3 text-xs text-center text-gray-300">or use email and password</div>
+
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Email"
+            name="email"
+            autoComplete="on"
+            value={email}
+            onChange={e => {
+              setEmail(e.target.value)
+              setMessage(null)
+            }}
+            className={inputClass}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            name="password"
+            value={password}
+            onChange={e => {
+              setPassword(e.target.value)
+              setMessage(null)
+            }}
+            autoComplete="current-password"
+            className={inputClass}
+          />
+
+          <div className="flex gap-2">
+            <button
+              type="submit" // Default when pressing Enter
+              className="flex-1 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
+              disabled={loading || !email || !password}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAuth("signUp")}
+              className="flex-1 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
+              disabled={loading || !email || !password}
+            >
+              Sign Up
+            </button>
+          </div>
+        </form>
+
         {loading && (
           <div className="flex items-center justify-center mt-4">
             <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
-      </form>
+      </div>
 
       <div className="flex flex-col gap-8 mt-4 items-center">
         <h3 className="max-w-lg">
