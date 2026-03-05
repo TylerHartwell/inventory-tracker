@@ -33,8 +33,17 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
   }
 
   const handleSubmit = async () => {
-    if (!hasChanged || isBlank) {
-      handleCancel()
+    const trimmedUsername = localUsername.trim()
+
+    if (!trimmedUsername) {
+      setError("Username cannot be empty.")
+      focusInput()
+      return
+    }
+
+    if (trimmedUsername === (profile.username ?? "")) {
+      setError("Username is unchanged.")
+      focusInput()
       return
     }
 
@@ -42,7 +51,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
     setError(null)
 
     const { error } = await updateProfile({
-      newUsername: localUsername.trim(),
+      newUsername: trimmedUsername,
       userId: profile.userId
     })
 
@@ -83,7 +92,10 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
             ref={inputRef}
             value={localUsername}
             autoComplete="off"
-            onChange={e => setLocalUsername(e.target.value)}
+            onChange={e => {
+              setLocalUsername(e.target.value)
+              if (error) setError(null)
+            }}
             placeholder="Enter new username"
             disabled={spinning}
             className="px-1 -ml-1.25  border border-gray-300 rounded-md shadow-sm  disabled:bg-gray-800 disabled:cursor-not-allowed w-full min-w-0"
