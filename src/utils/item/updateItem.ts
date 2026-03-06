@@ -69,7 +69,12 @@ export const updateItem = async ({
   const itemQuery = supabase.from("items").select("*, lists(name), item_images(id, image_url, display_order, created_at)").eq("id", itemId).single()
 
   const { data: updatedItemWListName, error: updateItemError } = hasItemFieldUpdates
-    ? await supabase.from("items").update(updatePayload).eq("id", itemId).select("*, lists(name), item_images(id, image_url, display_order, created_at)").single()
+    ? await supabase
+        .from("items")
+        .update(updatePayload)
+        .eq("id", itemId)
+        .select("*, lists(name), item_images(id, image_url, display_order, created_at)")
+        .single()
     : await itemQuery
 
   if (updateItemError || !updatedItemWListName) {
