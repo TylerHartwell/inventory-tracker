@@ -3,51 +3,57 @@ import { deleteImageFileByUrl } from "./deleteImageFileByUrl"
 
 interface DeleteImageWithItemIdParams {
   itemId: string
-  imageUrl?: string | null
-  shouldClearItemImageUrl?: boolean
+  imageIds?: string[]
+  imageUrls?: string[]
 }
 
-export const deleteImageWithItemId = async ({ itemId, imageUrl, shouldClearItemImageUrl = true }: DeleteImageWithItemIdParams) => {
-  let resolvedImageUrl = imageUrl
+export const deleteImageWithItemId = async ({ itemId, imageIds, imageUrls }: DeleteImageWithItemIdParams) => {
+  let resolvedImageRows: { id: string; image_url: string }[] = []
 
-  // Fetch imageUrl only if we don't already have it
-  if (resolvedImageUrl === undefined) {
-    const { data: item, error: fetchError } = await supabase.from("items").select("image_url").eq("id", itemId).single()
+  if (imageIds && imageIds.length > 0) {
+    const { data, error } = await supabase.from("item_images").select("id, image_url").eq("item_id", itemId).in("id", imageIds)
 
-    if (fetchError) {
-      return { data: null, error: `Failed to fetch item image_url: ${fetchError.message}` }
+    if (error) {
+      return { data: null, error: `Failed to fetch item_images by ids: ${error.message}` }
     }
 
-    resolvedImageUrl = item?.image_url
+    resolvedImageRows = data ?? []
+  } else if (imageUrls && imageUrls.length > 0) {
+    const { data, error } = await supabase.from("item_images").select("id, image_url").eq("item_id", itemId).in("image_url", imageUrls)
+
+    if (error) {
+      return { data: null, error: `Failed to fetch item_images by urls: ${error.message}` }
+    }
+
+    resolvedImageRows = data ?? []
+  } else {
+    const { data, error } = await supabase.from("item_images").select("id, image_url").eq("item_id", itemId)
+
+    if (error) {
+      return { data: null, error: `Failed to fetch item_images: ${error.message}` }
+    }
+
+    resolvedImageRows = data ?? []
   }
 
-  // Nothing to delete
-  if (!resolvedImageUrl) {
+  if (!resolvedImageRows.length) {
     return { data: null, error: null }
   }
 
-  // Delete image from storage
-  const { error: deleteImageError } = await deleteImageFileByUrl({
-    imageUrl: resolvedImageUrl
-  })
+  for (const imageRow of resolvedImageRows) {
+    const { error: deleteImageError } = await deleteImageFileByUrl({ imageUrl: imageRow.image_url })
 
-  if (deleteImageError) {
-    console.error("Image deletion failed for item", itemId, "with error:", deleteImageError)
-    return { data: null, error: deleteImageError }
+    if (deleteImageError) {
+      console.error("Image deletion failed for item", itemId, "with error:", deleteImageError)
+      return { data: null, error: deleteImageError }
+    }
   }
 
-  // Optionally clear imageUrl on item
-  if (shouldClearItemImageUrl) {
-    const { error: updateError } = await supabase.from("items").update({ image_url: null }).eq("id", itemId)
+  const idsToDelete = resolvedImageRows.map(imageRow => imageRow.id)
+  const { error: deleteRowsError } = await supabase.from("item_images").delete().eq("item_id", itemId).in("id", idsToDelete)
 
-    if (updateError) {
-      const errorMsg = `Image deleted, but failed to clear item image_url: ${updateError.message}`
-      console.error(errorMsg)
-      return {
-        data: null,
-        error: errorMsg
-      }
-    }
+  if (deleteRowsError) {
+    return { data: null, error: `Failed to delete item image rows: ${deleteRowsError.message}` }
   }
 
   return { data: null, error: null }

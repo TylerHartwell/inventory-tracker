@@ -16,9 +16,20 @@ const ItemCardView = ({ viewItem, isPriority, onEdit }: ItemCardViewProps) => {
         <span className="opacity-80">{viewItem.listName}</span>
       </div>
       {viewItem.extraDetails && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{viewItem.extraDetails}</p>}
-      {viewItem.signedUrl && (
-        <div className="relative mb-2 h-40 w-auto">
-          <Image src={viewItem.signedUrl} unoptimized alt="Item image" fill priority={isPriority} className="object-contain rounded" />
+      {viewItem.signedUrls.length > 0 && (
+        <div className="mb-2 grid grid-cols-2 gap-2">
+          {viewItem.signedUrls.map((signedUrl, imageIndex) => (
+            <div key={`${viewItem.id}-${signedUrl}-${imageIndex}`} className="relative h-32 w-auto">
+              <Image
+                src={signedUrl}
+                unoptimized
+                alt="Item image"
+                fill
+                priority={Boolean(isPriority && imageIndex === 0)}
+                className="object-cover rounded"
+              />
+            </div>
+          ))}
         </div>
       )}
       {viewItem.canEdit !== false && (

@@ -279,6 +279,42 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     }
   }, [refreshItems, stableFilteredListIds, userId])
 
+  // Realtime subscription for item image changes
+  useEffect(() => {
+    let pendingRefreshTimeout: ReturnType<typeof setTimeout> | null = null
+
+    const scheduleRefresh = () => {
+      if (pendingRefreshTimeout !== null) return
+
+      pendingRefreshTimeout = setTimeout(() => {
+        pendingRefreshTimeout = null
+        void refreshItems()
+      }, 150)
+    }
+
+    const channel = supabase.channel(`item-images-${userId}`)
+
+    channel.on("postgres_changes", { event: "*", schema: "public", table: "item_images" }, payload => {
+      const oldRow = (payload.old ?? {}) as Record<string, unknown>
+      const newRow = (payload.new ?? {}) as Record<string, unknown>
+      const oldItemId = typeof oldRow.item_id === "string" ? oldRow.item_id : null
+      const newItemId = typeof newRow.item_id === "string" ? newRow.item_id : null
+
+      if ((oldItemId && itemsRef.current.has(oldItemId)) || (newItemId && itemsRef.current.has(newItemId))) {
+        scheduleRefresh()
+      }
+    })
+
+    channel.subscribe()
+
+    return () => {
+      if (pendingRefreshTimeout !== null) {
+        clearTimeout(pendingRefreshTimeout)
+      }
+      channel.unsubscribe()
+    }
+  }, [refreshItems, userId])
+
   // Periodically refresh signed URLs every 15 minutes to prevent expiration, without refetching all item data
   useEffect(() => {
     const interval = setInterval(

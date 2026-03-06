@@ -15,6 +15,7 @@ import useSessionStorage from "@/hooks/useSessionStorage"
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
 export type DBItem = Database["public"]["Tables"]["items"]["Row"]
+export type DBItemImage = Database["public"]["Tables"]["item_images"]["Row"]
 export type DBListUser = Database["public"]["Tables"]["list_users"]["Row"]
 export type DBListInvite = Database["public"]["Tables"]["list_invites"]["Row"]
 export type DBListMember = Database["public"]["Views"]["list_members"]["Row"]
@@ -22,12 +23,15 @@ export type DBListMember = Database["public"]["Views"]["list_members"]["Row"]
 export type Profile = Camelize<DBProfile>
 export type List = Camelize<DBList>
 export type Item = Camelize<DBItem>
+export type ItemImage = Camelize<DBItemImage>
 export type ListUser = Camelize<DBListUser>
 export type ListInvite = Camelize<DBListInvite>
 export type ListMember = Camelize<DBListMember>
 
 export type LocalItem = Item & {
-  signedUrl: string | null
+  imageUrls: string[]
+  imageIds: string[]
+  signedUrls: string[]
   listName: string
   canEdit?: boolean
 }

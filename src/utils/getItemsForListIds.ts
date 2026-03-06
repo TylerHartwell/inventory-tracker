@@ -1,11 +1,12 @@
-import { DBItem, List, LocalItem, nullListName } from "@/components/ItemManager"
+import { DBItem, DBItemImage, List, LocalItem, nullListName } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
 import { camelize } from "@/utils/caseChanger"
-import { generateSignedUrl } from "@/utils/generateSignedUrl"
+import { generateSignedUrls } from "@/utils/generateSignedUrl"
 import { PostgrestResponse } from "@supabase/supabase-js"
 
 type DBItemWithList = DBItem & {
   lists: Pick<List, "name"> | null
+  item_images: Pick<DBItemImage, "id" | "image_url" | "display_order" | "created_at">[] | null
 }
 
 export const getItemsForListIds = async (userId: string, listIds: (string | null)[], signal?: AbortSignal): Promise<LocalItem[]> => {
@@ -36,13 +37,23 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
   if (listIds.includes(null)) {
     queryPromises.push(
       (async () =>
-        supabase.from("items").select("*, lists(name)").is("list_id", null).eq("user_id", userId).order("created_at", { ascending: true }))()
+        supabase
+          .from("items")
+          .select("*, lists(name), item_images(id, image_url, display_order, created_at)")
+          .is("list_id", null)
+          .eq("user_id", userId)
+          .order("created_at", { ascending: true }))()
     )
   }
 
   if (authorizedListIds.length > 0) {
     queryPromises.push(
-      (async () => supabase.from("items").select("*, lists(name)").in("list_id", authorizedListIds).order("created_at", { ascending: true }))()
+      (async () =>
+        supabase
+          .from("items")
+          .select("*, lists(name), item_images(id, image_url, display_order, created_at)")
+          .in("list_id", authorizedListIds)
+          .order("created_at", { ascending: true }))()
     )
   }
 
@@ -58,11 +69,23 @@ export const getItemsForListIds = async (userId: string, listIds: (string | null
   const localItems = await Promise.all(
     allData.map(async item => {
       if (signal?.aborted) return null
-      const signedUrl = item.imageUrl ? await generateSignedUrl(item.imageUrl) : null
+      const imageRows = [...(item.itemImages ?? [])].sort((a, b) => {
+        if (a.displayOrder !== b.displayOrder) {
+          return a.displayOrder - b.displayOrder
+        }
+
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      })
+
+      const imageUrls = imageRows.map(imageRow => imageRow.imageUrl)
+      const imageIds = imageRows.map(imageRow => imageRow.id)
+      const signedUrls = await generateSignedUrls(imageUrls)
       const { lists, ...rest } = item
       return {
         ...rest,
-        signedUrl,
+        imageUrls,
+        imageIds,
+        signedUrls,
         listName: lists?.name ?? nullListName,
         canEdit: item.listId ? (canEditByListId.get(item.listId) ?? false) : true
       }

@@ -18,3 +18,11 @@ export const generateSignedUrl = async (filePath: string): Promise<string | null
 
   return data.signedUrl
 }
+
+export const generateSignedUrls = async (filePaths: string[]): Promise<string[]> => {
+  if (filePaths.length === 0) return []
+
+  const signedUrls = await Promise.all(filePaths.map(path => generateSignedUrl(path)))
+
+  return signedUrls.filter((signedUrl): signedUrl is string => Boolean(signedUrl))
+}

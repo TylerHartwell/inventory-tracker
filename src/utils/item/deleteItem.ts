@@ -4,11 +4,10 @@ import { deleteImageWithItemId } from "../image/deleteImageWithItemId"
 
 interface DeleteItemParams {
   itemId: Item["id"]
-  imageUrl?: string | null
 }
 
-export const deleteItem = async ({ itemId, imageUrl }: DeleteItemParams) => {
-  const { error: deleteImageError } = await deleteImageWithItemId({ itemId, imageUrl, shouldClearItemImageUrl: false })
+export const deleteItem = async ({ itemId }: DeleteItemParams) => {
+  const { error: deleteImageError } = await deleteImageWithItemId({ itemId })
   if (deleteImageError) {
     return { data: null, error: deleteImageError }
   }

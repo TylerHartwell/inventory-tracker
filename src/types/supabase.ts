@@ -34,6 +34,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      item_images: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+          item_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+          item_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+          item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_images_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           category: string | null
@@ -41,7 +73,6 @@ export type Database = {
           expiration_date: string | null
           extra_details: string | null
           id: string
-          image_url: string | null
           item_name: string
           last_updated_at: string
           last_updated_by: string | null
@@ -54,7 +85,6 @@ export type Database = {
           expiration_date?: string | null
           extra_details?: string | null
           id?: string
-          image_url?: string | null
           item_name: string
           last_updated_at?: string
           last_updated_by?: string | null
@@ -67,7 +97,6 @@ export type Database = {
           expiration_date?: string | null
           extra_details?: string | null
           id?: string
-          image_url?: string | null
           item_name?: string
           last_updated_at?: string
           last_updated_by?: string | null

@@ -22,7 +22,7 @@ export const ItemInput = ({
   onUpsert: (item: LocalItem) => void
 }) => {
   const [newItem, setNewItem] = useState<InsertableItem>({ itemName: "", listId: selectedListId })
-  const [itemImage, setItemImage] = useState<File | null>(null)
+  const [itemImages, setItemImages] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; message: string } | null>(null)
@@ -31,13 +31,13 @@ export const ItemInput = ({
 
   const clear = () => {
     setNewItem({ itemName: "", listId: selectedListId })
-    setItemImage(null)
+    setItemImages([])
     setResetId(id => id + 1)
     setFeedback(null)
   }
 
-  const handleItemImageFile = (file: File | null) => {
-    setItemImage(file)
+  const handleItemImageFile = (files: File[]) => {
+    setItemImages(files)
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -68,7 +68,7 @@ export const ItemInput = ({
     try {
       const { data: localItem, error } = await insertItem({
         newItem: { ...newItem, listId: selectedListId },
-        itemImage
+        itemImages
       })
       if (error) {
         console.error("Insert item error:", error)

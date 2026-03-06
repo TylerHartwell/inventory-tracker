@@ -1,8 +1,7 @@
-import { Item } from "@/components/ItemManager"
 import { supabase } from "@/supabase-client"
 
 interface DeleteImageProps {
-  imageUrl: Item["imageUrl"]
+  imageUrl: string | null | undefined
 }
 
 export const deleteImageFileByUrl = async ({ imageUrl }: DeleteImageProps) => {

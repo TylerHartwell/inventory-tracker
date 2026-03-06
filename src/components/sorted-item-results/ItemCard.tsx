@@ -13,7 +13,8 @@ interface ItemCardProps {
 
 export type ItemUpdateBundle = {
   updatedFields: Partial<Item>
-  itemImage?: File | null
+  itemImages?: File[]
+  deletedImageIds?: string[]
 }
 
 type FeedbackTone = "info" | "error"
@@ -39,7 +40,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     if (displayItem.canEdit === false) return
 
     try {
-      const { error } = await deleteItem({ itemId: item.id, imageUrl: item.imageUrl })
+      const { error } = await deleteItem({ itemId: item.id })
       if (error) {
         console.error("Failed to delete item:", error)
         setFeedback({ tone: "error", message: "Failed to delete item. Please try again." })
@@ -53,13 +54,13 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     }
   }
 
-  const handleUpdateItem = async ({ updatedFields, itemImage }: ItemUpdateBundle) => {
+  const handleUpdateItem = async ({ updatedFields, itemImages, deletedImageIds }: ItemUpdateBundle) => {
     if (displayItem.canEdit === false) {
       setIsEditing(false)
       return
     }
 
-    if (Object.values(updatedFields).every(v => v === undefined) && itemImage === undefined) {
+    if (Object.values(updatedFields).every(v => v === undefined) && itemImages === undefined && deletedImageIds === undefined) {
       setFeedback({ tone: "info", message: "No changes to save." })
       setIsEditing(false)
 
@@ -72,12 +73,16 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       return
     }
 
+    const deletedIdsSet = new Set(deletedImageIds ?? [])
+    const remainingExistingImages = displayItem.signedUrls.filter((_signedUrl, index) => !deletedIdsSet.has(displayItem.imageIds[index]))
+    const newImageBlobUrls = (itemImages ?? []).map(file => URL.createObjectURL(file))
+
     const optimisticItem: LocalItem = {
       ...displayItem,
       ...updatedFields,
-      ...(itemImage !== undefined && {
-        signedUrl: itemImage ? URL.createObjectURL(itemImage) : null
-      })
+      imageIds: displayItem.imageIds.filter(imageId => !deletedIdsSet.has(imageId)),
+      imageUrls: displayItem.imageUrls.filter((_imageUrl, index) => !deletedIdsSet.has(displayItem.imageIds[index])),
+      signedUrls: [...remainingExistingImages, ...newImageBlobUrls]
     }
 
     setDisplayItem(optimisticItem)
@@ -86,13 +91,12 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
 
     const { data: updatedItem, error } = await updateItem({
       itemId: item.id,
-      itemImageUrl: item.imageUrl,
-      itemSignedUrl: item.signedUrl,
       updatedFields,
-      updatedImageFile: itemImage
+      updatedImageFiles: itemImages,
+      deletedImageIds
     })
 
-    revokeBlobUrl(optimisticItem.signedUrl)
+    revokeBlobUrls(newImageBlobUrls)
 
     if (error || !updatedItem) {
       console.error("Failed to update item:", error)
@@ -139,8 +143,10 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
   )
 }
 
-const revokeBlobUrl = (url: string | null) => {
-  if (url?.startsWith("blob:")) {
-    URL.revokeObjectURL(url)
+const revokeBlobUrls = (urls: string[]) => {
+  for (const url of urls) {
+    if (url.startsWith("blob:")) {
+      URL.revokeObjectURL(url)
+    }
   }
 }

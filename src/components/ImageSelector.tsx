@@ -1,17 +1,27 @@
-import { Pencil, Trash2, X, RotateCcw } from "lucide-react"
+import { Pencil, RotateCcw, Trash2, X } from "lucide-react"
 import Image from "next/image"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
+type SelectedImage = {
+  key: string
+  file: File
+  previewUrl: string
+}
+
 function ImageSelector({
   onImageFileChange,
-  signedUrl = null
+  signedUrls = [],
+  imageIds = []
 }: {
-  onImageFileChange: (file: File | null, isDeletingExisting?: boolean) => void
-  signedUrl?: string | null
+  onImageFileChange: (files: File[], deletedExistingImageIds?: string[]) => void
+  signedUrls?: string[]
+  imageIds?: string[]
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
-  const [existingRemoved, setExistingRemoved] = useState(false)
+  const selectedImagesRef = useRef<SelectedImage[]>([])
+  const onImageFileChangeRef = useRef(onImageFileChange)
+  const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([])
+  const [removedExistingImageIds, setRemovedExistingImageIds] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFileInputClick = () => {
@@ -19,31 +29,48 @@ function ImageSelector({
   }
 
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
+    const files = Array.from(e.target.files || [])
 
-    if (file) handleFileSelection(file)
+    if (files.length) handleFileSelection(files)
   }
 
-  const handleFileSelection = (file: File) => {
-    onImageFileChange(file)
+  const handleFileSelection = (files: File[]) => {
+    const validImageFiles = files.filter(file => file.type.startsWith("image/"))
+    if (!validImageFiles.length) return
+
     clearFileInputToAllowReselection(fileInputRef)
-    const url = URL.createObjectURL(file)
 
-    setSelectedImageUrl(url)
-  }
-  const handleRemoveSelectedImage = () => {
-    onImageFileChange(null)
-    URL.revokeObjectURL(selectedImageUrl || "")
-    setSelectedImageUrl(null)
+    setSelectedImages(prev => {
+      const newImages = validImageFiles.map((file, index) => ({
+        key: `${Date.now()}-${index}-${file.name}`,
+        file,
+        previewUrl: URL.createObjectURL(file)
+      }))
+
+      return [...prev, ...newImages]
+    })
   }
 
-  const handleRemoveExisting = () => {
-    setExistingRemoved(true)
-    onImageFileChange(null, true)
+  const handleRemoveSelectedImage = (selectedImageKey: string) => {
+    setSelectedImages(prev => {
+      const imageToRemove = prev.find(image => image.key === selectedImageKey)
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.previewUrl)
+      }
+
+      return prev.filter(image => image.key !== selectedImageKey)
+    })
   }
-  const handleUndoRemoveExisting = () => {
-    setExistingRemoved(false)
-    onImageFileChange(null, false)
+
+  const handleRemoveExisting = (imageId: string) => {
+    setRemovedExistingImageIds(prev => {
+      if (prev.includes(imageId)) return prev
+      return [...prev, imageId]
+    })
+  }
+
+  const handleUndoRemoveExisting = (imageId: string) => {
+    setRemovedExistingImageIds(prev => prev.filter(id => id !== imageId))
   }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -59,9 +86,9 @@ function ImageSelector({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
-    const file = e.dataTransfer.files?.[0] || null
+    const files = Array.from(e.dataTransfer.files || [])
 
-    if (file) handleFileSelection(file)
+    if (files.length) handleFileSelection(files)
   }
 
   const clearFileInputToAllowReselection = (fileInputRef: React.RefObject<HTMLInputElement | null>) => {
@@ -70,29 +97,54 @@ function ImageSelector({
     }
   }
 
-  const hasExistingImage = !!signedUrl
-  const showExistingImage = hasExistingImage && !existingRemoved && !selectedImageUrl
-  const showUndoExisting = hasExistingImage && existingRemoved && !selectedImageUrl
-  const showCancelSelected = !!selectedImageUrl
-  const imageToShowUrl = selectedImageUrl || (showExistingImage ? signedUrl : null)
+  const existingImages = signedUrls
+    .map((signedUrl, index) => {
+      const imageId = imageIds[index]
+
+      return imageId
+        ? {
+            imageId,
+            signedUrl
+          }
+        : null
+    })
+    .filter((image): image is { imageId: string; signedUrl: string } => Boolean(image))
+
+  const visibleExistingImages = existingImages.filter(image => !removedExistingImageIds.includes(image.imageId))
+  const removedExistingImages = existingImages.filter(image => removedExistingImageIds.includes(image.imageId))
+
+  useEffect(() => {
+    onImageFileChangeRef.current(
+      selectedImages.map(selectedImage => selectedImage.file),
+      removedExistingImageIds
+    )
+  }, [removedExistingImageIds, selectedImages])
+
+  useEffect(() => {
+    onImageFileChangeRef.current = onImageFileChange
+  }, [onImageFileChange])
+
+  useEffect(() => {
+    selectedImagesRef.current = selectedImages
+  }, [selectedImages])
 
   useEffect(() => {
     return () => {
-      if (selectedImageUrl) {
-        URL.revokeObjectURL(selectedImageUrl)
+      for (const selectedImage of selectedImagesRef.current) {
+        URL.revokeObjectURL(selectedImage.previewUrl)
       }
     }
-  }, [selectedImageUrl])
+  }, [])
 
   return (
-    <div className="w-full flex relative justify-center items-center">
-      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileInputChange} className="hidden" />
+    <div className="w-full flex flex-col gap-2 relative justify-center items-center">
+      <input type="file" multiple accept="image/*" ref={fileInputRef} onChange={handleFileInputChange} className="hidden" />
 
       <div
         role="button"
         tabIndex={0}
-        aria-label="Select an image or drag and drop"
-        className={`relative w-1/2 aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer ${
+        aria-label="Select images or drag and drop"
+        className={`relative w-full min-h-28 flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer ${
           isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
         }`}
         onClick={handleFileInputClick}
@@ -100,26 +152,64 @@ function ImageSelector({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {imageToShowUrl ? (
-          <div className="absolute w-full h-full flex-1  bg-transparent rounded-md ">
-            <Image
-              src={imageToShowUrl}
-              alt="Preview"
-              fill
-              unoptimized
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-contain"
-            />
+        {visibleExistingImages.length || selectedImages.length ? (
+          <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
+            {visibleExistingImages.map(existingImage => (
+              <div key={existingImage.imageId} className="relative h-28 rounded border overflow-hidden bg-gray-100">
+                <Image
+                  src={existingImage.signedUrl}
+                  alt="Existing item image"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 50vw, 20vw"
+                  className="object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={event => {
+                    event.stopPropagation()
+                    handleRemoveExisting(existingImage.imageId)
+                  }}
+                  className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded"
+                  title="Remove existing image"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            {selectedImages.map(selectedImage => (
+              <div key={selectedImage.key} className="relative h-28 rounded border overflow-hidden bg-gray-100">
+                <Image
+                  src={selectedImage.previewUrl}
+                  alt="Selected item image"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 50vw, 20vw"
+                  className="object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={event => {
+                    event.stopPropagation()
+                    handleRemoveSelectedImage(selectedImage.key)
+                  }}
+                  className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded"
+                  title="Remove selected image"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
           </div>
         ) : (
           <span className="text-gray-400 flex gap-1 items-center">
             <span className="pb-1">📷</span>
-            <span className="text-nowrap">Select Image</span>
+            <span className="text-nowrap">Select Images</span>
           </span>
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           name="file-input"
@@ -129,37 +219,35 @@ function ImageSelector({
         >
           <Pencil size={14} />
         </button>
-        {showCancelSelected && (
+        {removedExistingImages.length > 0 && (
           <button
             type="button"
-            onClick={handleRemoveSelectedImage}
-            className="absolute top-0 bg-red-600 h-min bottom-full text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
-            title="Remove selected image"
-          >
-            <X size={14} />
-          </button>
-        )}
-        {showExistingImage && (
-          <button
-            type="button"
-            onClick={handleRemoveExisting}
-            className="absolute top-0 bg-red-600 h-min bottom-full text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
-            title="Remove existing image"
-          >
-            <Trash2 size={14} />
-          </button>
-        )}
-        {showUndoExisting && (
-          <button
-            type="button"
-            onClick={handleUndoRemoveExisting}
-            className="absolute top-0 bg-red-600 h-min bottom-full text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
-            title="Undo remove existing image"
+            onClick={() => {
+              removedExistingImages.forEach(image => handleUndoRemoveExisting(image.imageId))
+            }}
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
+            title="Undo all removed existing images"
           >
             <RotateCcw size={14} />
           </button>
         )}
       </div>
+
+      {removedExistingImages.length > 0 && (
+        <div className="w-full flex flex-wrap gap-2 text-sm">
+          {removedExistingImages.map(image => (
+            <button
+              key={image.imageId}
+              type="button"
+              className="px-2 py-1 rounded bg-gray-100 border border-gray-300"
+              onClick={() => handleUndoRemoveExisting(image.imageId)}
+              title="Undo remove image"
+            >
+              Undo removed image
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

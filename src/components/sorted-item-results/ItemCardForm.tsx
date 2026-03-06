@@ -15,7 +15,8 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
   const initialFormItem = {
     itemName: item.itemName,
     extraDetails: item.extraDetails,
-    itemImage: null as File | null,
+    itemImages: [] as File[],
+    deletedImageIds: [] as string[],
     category: item.category,
     expirationDate: item.expirationDate,
     listId: item.listId
@@ -30,15 +31,16 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
     setFormItem(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleImageFileChange = (file: File | null, isDeletingExisting = false) => {
+  const handleImageFileChange = (files: File[], deletedImageIds: string[] = []) => {
     setFormItem(prev => {
       return {
         ...prev,
-        itemImage: file
+        itemImages: files,
+        deletedImageIds
       }
     })
 
-    setIsChangingImage(Boolean(file) || isDeletingExisting)
+    setIsChangingImage(Boolean(files.length) || Boolean(deletedImageIds.length))
   }
 
   const handleCancelEdit = () => {
@@ -53,8 +55,11 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
       updatedFields.itemName = formItem.itemName.trim()
     }
 
-    if (formItem.extraDetails?.trim() !== item.extraDetails) {
-      updatedFields.extraDetails = formItem.extraDetails?.trim()
+    const normalizedExtraDetails = formItem.extraDetails?.trim() ?? null
+    const currentExtraDetails = item.extraDetails ?? null
+
+    if (normalizedExtraDetails !== currentExtraDetails) {
+      updatedFields.extraDetails = normalizedExtraDetails
     }
 
     if (formItem.category !== item.category) {
@@ -71,7 +76,8 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
 
     return {
       updatedFields,
-      itemImage: isChangingImage ? formItem.itemImage : undefined
+      itemImages: isChangingImage ? formItem.itemImages : undefined,
+      deletedImageIds: isChangingImage ? formItem.deletedImageIds : undefined
     }
   }
 
@@ -97,7 +103,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
         className="w-full px-1 rounded text-base font-normal whitespace-pre-line border border-gray-300 min-h-20"
       />
       <div className="flex items-center mb-2">
-        <ImageSelector onImageFileChange={handleImageFileChange} signedUrl={item.signedUrl} />
+        <ImageSelector onImageFileChange={handleImageFileChange} signedUrls={item.signedUrls} imageIds={item.imageIds} />
       </div>
       <div className="flex justify-between">
         <button

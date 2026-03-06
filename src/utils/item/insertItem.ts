@@ -1,17 +1,17 @@
-import { uploadImage } from "../image/uploadImage"
+import { uploadImages } from "../image/uploadImage"
 import { supabase } from "@/supabase-client"
 import { InsertableItem, LocalItem, nullListName } from "@/components/ItemManager"
 import { camelize, snakeify } from "../caseChanger"
-import { generateSignedUrl } from "../generateSignedUrl"
+import { generateSignedUrls } from "../generateSignedUrl"
 
 interface InsertItemParams {
   newItem: InsertableItem
-  itemImage: File | null
+  itemImages: File[]
 }
 
 export const insertItem = async ({
   newItem,
-  itemImage
+  itemImages
 }: InsertItemParams): Promise<
   | { data: LocalItem; error: null }
   | {
@@ -35,28 +35,41 @@ export const insertItem = async ({
 
   const localItem: LocalItem = {
     ...insertedItem,
-    signedUrl: null,
+    imageUrls: [],
+    imageIds: [],
+    signedUrls: [],
     listName: lists?.name ?? nullListName
   }
 
-  if (itemImage) {
-    const { data: uploadedImageUrl, error: uploadError } = await uploadImage({
-      file: itemImage,
+  if (itemImages.length) {
+    const { data: uploadedImageUrls, error: uploadError } = await uploadImages({
+      files: itemImages,
       itemId: localItem.id
     })
 
-    if (uploadError || !uploadedImageUrl) {
+    if (uploadError || !uploadedImageUrls) {
       return { data: null, error: uploadError || "Image upload did not return an image url" }
     }
 
-    const { error: updateError } = await supabase.from("items").update({ image_url: uploadedImageUrl }).eq("id", localItem.id)
+    const itemImageRows = uploadedImageUrls.map((imageUrl, index) => ({
+      item_id: localItem.id,
+      image_url: imageUrl,
+      display_order: index
+    }))
 
-    if (updateError) {
-      return { data: null, error: updateError.message }
+    const { data: insertedItemImages, error: itemImagesInsertError } = await supabase
+      .from("item_images")
+      .insert(itemImageRows)
+      .select("id, image_url")
+
+    if (itemImagesInsertError) {
+      return { data: null, error: itemImagesInsertError.message }
     }
 
-    localItem.imageUrl = uploadedImageUrl
-    localItem.signedUrl = await generateSignedUrl(uploadedImageUrl)
+    const imageUrls = insertedItemImages?.map(itemImageRow => itemImageRow.image_url) ?? []
+    localItem.imageUrls = imageUrls
+    localItem.imageIds = insertedItemImages?.map(itemImageRow => itemImageRow.id) ?? []
+    localItem.signedUrls = await generateSignedUrls(imageUrls)
   }
 
   return { data: localItem, error: null }

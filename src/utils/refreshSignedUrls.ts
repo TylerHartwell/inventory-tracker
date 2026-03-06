@@ -1,12 +1,12 @@
 import { LocalItem } from "@/components/ItemManager"
-import { generateSignedUrl } from "./generateSignedUrl"
+import { generateSignedUrls } from "./generateSignedUrl"
 
 export async function refreshSignedUrls(items: Map<string, LocalItem>) {
   const refreshed = await Promise.all(
     [...items].map(async ([_id, item]) => {
-      if (!item.imageUrl) return item
-      const signedUrl = await generateSignedUrl(item.imageUrl)
-      return { ...item, signedUrl }
+      if (!item.imageUrls.length) return item
+      const signedUrls = await generateSignedUrls(item.imageUrls)
+      return { ...item, signedUrls }
     })
   )
   return new Map(refreshed.map(item => [item.id, item]))

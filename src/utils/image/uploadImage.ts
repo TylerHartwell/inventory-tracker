@@ -32,3 +32,23 @@ export const uploadImage = async ({ file, itemId }: UploadImageParams) => {
 
   return { data: filePath, error: null }
 }
+
+export const uploadImages = async ({ files, itemId }: { files: File[]; itemId: string }) => {
+  if (!files.length) {
+    return { data: [] as string[], error: null }
+  }
+
+  const uploadedPaths: string[] = []
+
+  for (const file of files) {
+    const { data, error } = await uploadImage({ file, itemId })
+
+    if (error || !data) {
+      return { data: null, error: error || "Image upload did not return a file path" }
+    }
+
+    uploadedPaths.push(data)
+  }
+
+  return { data: uploadedPaths, error: null }
+}
