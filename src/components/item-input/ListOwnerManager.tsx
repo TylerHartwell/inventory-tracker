@@ -32,7 +32,7 @@ const ListOwnerManager = ({ configId, session, currentList, isOwner, onListDelet
           }}
           className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
         >
-          ✏️ Edit Name
+          ✏️ Edit List Name
         </button>
       ) : (
         <ListOwnerNameManager

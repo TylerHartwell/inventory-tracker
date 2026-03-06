@@ -16,32 +16,40 @@ export type ItemUpdateBundle = {
   itemImage?: File | null
 }
 
+type FeedbackTone = "info" | "error"
+
+type FeedbackState = {
+  tone: FeedbackTone
+  message: string
+}
+
 export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [displayItem, setDisplayItem] = useState(item)
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null)
+  const clearFeedback = () => setFeedback(null)
 
   const handleCancelEdit = () => {
     setDisplayItem(item)
+    clearFeedback()
     setIsEditing(false)
   }
 
   const handleDeleteItem = async () => {
     if (displayItem.canEdit === false) return
 
-    if (!window.confirm("Are you sure you want to delete this item?")) return
-
     try {
       const { error } = await deleteItem({ itemId: item.id, imageUrl: item.imageUrl })
       if (error) {
         console.error("Failed to delete item:", error)
-        alert("Failed to delete item. Please try again.")
+        setFeedback({ tone: "error", message: "Failed to delete item. Please try again." })
         return
       }
 
       onDelete(item.id)
     } catch (err) {
       console.error("Failed to delete item:", err)
-      alert("An unexpected error occurred while deleting the item.")
+      setFeedback({ tone: "error", message: "An unexpected error occurred while deleting the item." })
     }
   }
 
@@ -52,13 +60,14 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     }
 
     if (Object.values(updatedFields).every(v => v === undefined) && itemImage === undefined) {
+      setFeedback({ tone: "info", message: "No changes to save." })
       setIsEditing(false)
 
       return
     }
 
     if (updatedFields.itemName !== undefined && !updatedFields.itemName.trim()) {
-      alert("Item Name is required")
+      setFeedback({ tone: "error", message: "Item name is required." })
 
       return
     }
@@ -72,6 +81,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     }
 
     setDisplayItem(optimisticItem)
+    clearFeedback()
     setIsEditing(false)
 
     const { data: updatedItem, error } = await updateItem({
@@ -87,6 +97,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     if (error || !updatedItem) {
       console.error("Failed to update item:", error)
       setDisplayItem(item)
+      setFeedback({ tone: "error", message: "Failed to update item. Please try again." })
 
       return
     }
@@ -94,8 +105,23 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     setDisplayItem(updatedItem)
   }
 
+  const feedbackClass = feedback
+    ? feedback.tone === "error"
+      ? "text-red-700 bg-red-50 border-red-200"
+      : "text-blue-700 bg-blue-50 border-blue-200"
+    : ""
+
   return (
-    <li className="border border-gray-300 rounded p-1 mb-1">
+    <li
+      className="border border-gray-300 rounded p-1 mb-1"
+      onPointerDownCapture={() => {
+        if (feedback) clearFeedback()
+      }}
+      onKeyDownCapture={() => {
+        if (feedback) clearFeedback()
+      }}
+    >
+      {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
       {isEditing ? (
         <ItemCardForm item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
       ) : (
@@ -104,6 +130,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
           isPriority={isPriority}
           onEdit={() => {
             if (displayItem.canEdit === false) return
+            clearFeedback()
             setIsEditing(true)
           }}
         />

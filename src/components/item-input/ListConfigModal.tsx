@@ -38,10 +38,10 @@ function ListConfigModal({
         }
       }}
     >
-      <div className="bg-gray-700 text-white rounded-lg p-4 w-80 mt-20 relative" onClick={e => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold mb-3">Configure List</h2>
-        <p className="text-sm text-gray-400 mb-4">
-          Managing: <strong>{currentList ? currentList.name : nullListName}</strong>
+      <div className="flex flex-col gap-1 bg-gray-700 text-white rounded-lg p-4 w-80 mt-20 relative" onClick={e => e.stopPropagation()}>
+        <h2 className="text-md font-semibold">List Settings</h2>
+        <p className="text-sm text-gray-400">
+          List Name: <strong>{currentList ? currentList.name : nullListName}</strong>
         </p>
 
         <div className="space-y-2">
@@ -68,15 +68,13 @@ function ListConfigModal({
           </>
         </div>
 
-        <div className="flex justify-center  absolute top-2 right-2">
-          <button
-            type="button"
-            className="size-5 flex items-center justify-center text-sm text-gray-400 hover-fine:outline-1 active:outline-1"
-            onClick={() => onClose()}
-          >
-            <X />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="size-5 flex items-center justify-center absolute top-2 right-2 text-sm text-gray-400 hover-fine:outline-1 active:outline-1"
+          onClick={() => onClose()}
+        >
+          <X />
+        </button>
       </div>
     </div>
   )

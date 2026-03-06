@@ -23,6 +23,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
 
   const [formItem, setFormItem] = useState(initialFormItem)
   const [isChangingImage, setIsChangingImage] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -112,7 +113,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
           type="button"
           name="deleteItem"
           className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1"
-          onClick={onDeleteItem}
+          onClick={() => setIsDeleteModalOpen(true)}
           title="Delete item"
         >
           <Trash2 size={16} />
@@ -121,6 +122,41 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
           Save Changes
         </button>
       </div>
+
+      {isDeleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onPointerDown={e => {
+            if (e.target === e.currentTarget) {
+              setIsDeleteModalOpen(false)
+            }
+          }}
+        >
+          <div className="w-full max-w-sm rounded-xl bg-gray-700 p-4 text-white shadow-lg" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold">Delete Item?</h3>
+            <p className="mt-2 text-sm text-gray-200">This action cannot be undone.</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-red-700 text-white rounded hover-fine:outline-1 active:outline-1"
+                onClick={async () => {
+                  await onDeleteItem()
+                  setIsDeleteModalOpen(false)
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }

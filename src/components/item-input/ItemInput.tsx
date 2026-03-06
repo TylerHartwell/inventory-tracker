@@ -25,6 +25,7 @@ export const ItemInput = ({
   const [itemImage, setItemImage] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
+  const [feedback, setFeedback] = useState<{ type: "error" | "success"; message: string } | null>(null)
   const selectedList = selectedListId ? userLists.lists.find(list => list.id === selectedListId) : null
   const isViewer = selectedList?.role === "viewer"
 
@@ -32,6 +33,7 @@ export const ItemInput = ({
     setNewItem({ itemName: "", listId: selectedListId })
     setItemImage(null)
     setResetId(id => id + 1)
+    setFeedback(null)
   }
 
   const handleItemImageFile = (file: File | null) => {
@@ -56,11 +58,12 @@ export const ItemInput = ({
     }
 
     if (!newItem.itemName.trim()) {
-      alert("Item Name is required.")
+      setFeedback({ type: "error", message: "Item Name is required." })
       return
     }
 
     setLoading(true)
+    setFeedback(null)
 
     try {
       const { data: localItem, error } = await insertItem({
@@ -70,20 +73,21 @@ export const ItemInput = ({
       if (error) {
         console.error("Insert item error:", error)
         setLoading(false)
-        alert(`Failed to insert item: ${error || "An error occurred."}`)
+        setFeedback({ type: "error", message: `Failed to insert item: ${error || "An error occurred."}` })
         return
       }
       if (!localItem) {
         console.error("Insert item error: No data returned")
         setLoading(false)
-        alert("Failed to insert item: No data returned.")
+        setFeedback({ type: "error", message: "Failed to insert item: No data returned." })
         return
       }
       clear()
       onUpsert(localItem)
+      setFeedback({ type: "success", message: "Item added." })
     } catch (err) {
       console.error("Unexpected error inserting item:", err)
-      alert("Something went wrong while inserting the item.")
+      setFeedback({ type: "error", message: "Something went wrong while inserting the item." })
     } finally {
       setLoading(false)
     }
@@ -119,6 +123,12 @@ export const ItemInput = ({
           />
 
           <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} />
+
+          {feedback && (
+            <p role="status" aria-live="polite" className={feedback.type === "error" ? "text-red-700 text-sm" : "text-green-700 text-sm"}>
+              {feedback.message}
+            </p>
+          )}
 
           <div className="flex justify-between">
             <button

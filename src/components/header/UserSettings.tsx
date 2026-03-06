@@ -166,28 +166,24 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
             {identitiesLoading && <RefreshCw size={14} className="absolute right-0 animate-spin [animation-duration:600ms]" />}
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          <div className="flex items-center justify-center gap-0.5 flex-wrap">
+            <div className=" px-1 py-1 text-xs">Google:</div>
             {!linkedProviders.google ? (
               <button
                 onClick={() => void handleLinkProvider("google")}
-                className="rounded-md bg-white text-black px-2.5 py-1.5 text-xs font-medium disabled:opacity-50"
+                className="rounded-md bg-white text-black px-2 py-1 text-xs font-medium disabled:opacity-50"
                 disabled={identitiesLoading || linkLoadingProvider !== null}
               >
-                Link Google
+                Link
               </button>
             ) : (
-              <>
-                <button className="rounded-md bg-white text-black px-2 py-1 text-xs" disabled>
-                  Google Connected
-                </button>
-                <button
-                  onClick={() => void handleUnlinkGoogle()}
-                  className="rounded-md bg-red-600 text-white px-2 py-1 text-xs disabled:opacity-50"
-                  disabled={identitiesLoading || linkLoadingProvider !== null || !canUnlinkGoogle}
-                >
-                  Unlink Google
-                </button>
-              </>
+              <button
+                onClick={() => void handleUnlinkGoogle()}
+                className="rounded-md bg-gray-600 text-white px-2 py-1 text-xs disabled:opacity-50"
+                disabled={identitiesLoading || linkLoadingProvider !== null || !canUnlinkGoogle}
+              >
+                Unlink
+              </button>
             )}
           </div>
 

@@ -13,6 +13,7 @@ export const ListInput = ({
 }) => {
   const [newList, setNewList] = useState({ listName: "" })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -24,19 +25,23 @@ export const ListInput = ({
 
   const clear = () => {
     setNewList({ listName: "" })
+    setError(null)
     onCancel()
   }
 
   const handleSubmit = async () => {
+    setError(null)
+
     if (!session.user) {
       console.error("Not authenticated")
+      setError("You must be signed in to create a list.")
       return
     }
 
     const { listName } = newList
 
     if (!listName.trim()) {
-      alert("List name is required.")
+      setError("List name is required.")
       return
     }
 
@@ -45,6 +50,7 @@ export const ListInput = ({
     try {
       const { data: newList, error } = await insertList({ listName })
       if (error) {
+        setError(error || "Failed to create list.")
         return
       }
       clear()
@@ -53,12 +59,11 @@ export const ListInput = ({
       }
     } catch (err) {
       console.error("Failed to insert list:", err)
+      setError("Failed to create list. Please try again.")
       return
     } finally {
       setLoading(false)
     }
-
-    clear()
   }
 
   return (
@@ -77,7 +82,10 @@ export const ListInput = ({
         autoComplete="off"
         value={newList.listName}
         onKeyDownCapture={e => e.stopPropagation()}
-        onChange={e => setNewList(prev => ({ ...prev, listName: e.target.value }))}
+        onChange={e => {
+          if (error) setError(null)
+          setNewList(prev => ({ ...prev, listName: e.target.value }))
+        }}
         className="w-full px-1 border border-gray-300 rounded"
       />
 
@@ -103,6 +111,8 @@ export const ListInput = ({
           Cancel
         </button>
       </div>
+
+      {!error && <p className="absolute left-1 top-[-1.2rem] text-xs text-red-300 bg-black">{error}</p>}
 
       {loading && (
         <div className="absolute flex items-center justify-center bottom-3 left-1/2 -translate-x-1/2">
