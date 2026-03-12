@@ -36,7 +36,7 @@ export function useSignInMethods(currentAccountEmail: string) {
   const loadLinkedProviders = useCallback(async () => {
     setIdentitiesLoading(true)
 
-    const [{ data, error }, { data: userData }] = await Promise.all([supabase.auth.getUserIdentities(), supabase.auth.getUser()])
+    const [{ data: userIdentitiesData, error }, { data: userData }] = await Promise.all([supabase.auth.getUserIdentities(), supabase.auth.getUser()])
 
     if (error) {
       setLinkMessage({ type: "error", text: error.message })
@@ -44,7 +44,7 @@ export function useSignInMethods(currentAccountEmail: string) {
       return
     }
 
-    const identities = (data?.identities ?? []) as UserIdentity[]
+    const identities = (userIdentitiesData?.identities ?? []) as UserIdentity[]
     const googleIdentity = identities.find(identity => identity.provider === "google")
     const googleIdentityEmail = getIdentityEmail(googleIdentity)
     const accountEmail = userData.user?.email?.trim().toLowerCase() ?? currentAccountEmail.toLowerCase()

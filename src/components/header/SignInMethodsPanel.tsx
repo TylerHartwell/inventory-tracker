@@ -1,8 +1,8 @@
 import { RefreshCw } from "lucide-react"
 import { UserProfile } from "@/hooks/useUserProfile"
-import { ProviderConfig, SignInProvider } from "@/types/authProviders"
+import { ProviderConfig } from "@/types/authProviders"
 import { ProviderItem } from "./ProviderItem"
-import { useSignInMethods } from "./useSignInMethods"
+import { useSignInMethods } from "../../hooks/useSignInMethods"
 
 const PROVIDERS: ProviderConfig[] = [
   {
