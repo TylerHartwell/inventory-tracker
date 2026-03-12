@@ -1,7 +1,6 @@
 import { useState, type SyntheticEvent } from "react"
 import { supabase } from "../supabase-client"
-
-type OAuthProvider = "google"
+import { OAuthProvider } from "@/types/authProviders"
 
 const Auth = () => {
   const [email, setEmail] = useState("")
@@ -71,7 +70,7 @@ const Auth = () => {
 
       setMessage({
         type: "success",
-        text: "Redirecting to Google..."
+        text: "Redirecting..."
       })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An unknown error occurred."

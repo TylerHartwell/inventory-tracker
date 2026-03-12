@@ -7,6 +7,25 @@ import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import Auth from "@/components/AuthForm"
 
+async function validateSessionOrClear(session: Session | null): Promise<Session | null> {
+  if (!session) return null
+
+  const {
+    data: { user },
+    error
+  } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Clearing invalid persisted session", error)
+    }
+    await supabase.auth.signOut({ scope: "local" })
+    return null
+  }
+
+  return session
+}
+
 function ErrorFallback({ error, resetErrorBoundary }: { error: unknown; resetErrorBoundary: () => void }) {
   const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
 
@@ -37,9 +56,12 @@ function Home() {
         const {
           data: { session }
         } = await supabase.auth.getSession()
-        setSession(session)
+
+        const validSession = await validateSessionOrClear(session)
+        setSession(validSession)
       } catch (error) {
         console.error("Error fetching session:", error)
+        setSession(null)
       } finally {
         setLoading(false)
       }
@@ -48,8 +70,11 @@ function Home() {
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      void (async () => {
+        const validSession = await validateSessionOrClear(nextSession)
+        setSession(validSession)
+      })()
     })
 
     return () => {
