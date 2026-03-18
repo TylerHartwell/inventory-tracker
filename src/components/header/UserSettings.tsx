@@ -46,7 +46,7 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
         </div>
         <UsernameEditor userProfile={userProfile} />
 
-        <SignInMethodsPanel userProfile={userProfile} />
+        <SignInMethodsPanel userEmail={userProfile.profile?.email?.trim() ?? ""} />
 
         <div className="border border-gray-400 rounded-md p-1 flex flex-col items-center">
           <div className="flex justify-center items-center  w-full">

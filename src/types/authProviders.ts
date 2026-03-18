@@ -1,17 +1,7 @@
 export type OAuthProvider = "google"
-export type PasswordProvider = "email"
+type PasswordProvider = "email"
 
-export type SignInProvider = OAuthProvider | PasswordProvider
-
-export type LinkMessage = {
-  type: "error" | "success"
-  text: string
-}
-
-export type ProviderStatus = {
-  linked: boolean
-  loading: boolean
-}
+type SignInProvider = OAuthProvider | PasswordProvider
 
 export type ProviderConfig = {
   id: SignInProvider
