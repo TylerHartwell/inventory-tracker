@@ -11,11 +11,13 @@ type SelectedImage = {
 function ImageSelector({
   onImageFileChange,
   signedUrls = [],
-  imageIds = []
+  imageIds = [],
+  onFileInputClick
 }: {
   onImageFileChange: (files: File[], deletedExistingImageIds?: string[]) => void
   signedUrls?: string[]
   imageIds?: string[]
+  onFileInputClick?: () => void
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const selectedImagesRef = useRef<SelectedImage[]>([])
@@ -25,6 +27,7 @@ function ImageSelector({
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFileInputClick = () => {
+    onFileInputClick?.()
     fileInputRef.current?.click()
   }
 

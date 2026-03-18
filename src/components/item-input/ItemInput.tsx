@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Session } from "@supabase/supabase-js"
 import ImageSelector from "../ImageSelector"
 import { insertItem } from "@/utils/item/insertItem"
@@ -26,13 +26,50 @@ export const ItemInput = ({
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; message: string } | null>(null)
+  const [feedbackVisible, setFeedbackVisible] = useState(false)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const selectedList = selectedListId ? userLists.lists.find(list => list.id === selectedListId) : null
   const isViewer = selectedList?.role === "viewer"
 
-  const clear = () => {
+  useEffect(() => {
+    if (!feedback) {
+      setFeedbackVisible(false)
+      setIsFadingOut(false)
+      return
+    }
+
+    setFeedbackVisible(true)
+    setIsFadingOut(false)
+
+    if (feedback.type === "success") {
+      const timeout = setTimeout(() => {
+        setIsFadingOut(true)
+      }, 1000) // visible time before fade
+
+      return () => clearTimeout(timeout)
+    }
+  }, [feedback])
+
+  useEffect(() => {
+    if (!isFadingOut) return
+
+    const fadeTimeout = setTimeout(() => {
+      setFeedback(null)
+      setFeedbackVisible(false)
+      setIsFadingOut(false)
+    }, 250) // duration of fade animation in milliseconds
+
+    return () => clearTimeout(fadeTimeout)
+  }, [isFadingOut])
+
+  const resetForm = () => {
     setNewItem({ itemName: "", listId: selectedListId })
     setItemImages([])
     setResetId(id => id + 1)
+  }
+
+  const clear = () => {
+    resetForm()
     setFeedback(null)
   }
 
@@ -57,13 +94,14 @@ export const ItemInput = ({
       return
     }
 
+    // setFeedback(null)
+
     if (!newItem.itemName.trim()) {
       setFeedback({ type: "error", message: "Item Name is required." })
       return
     }
 
     setLoading(true)
-    setFeedback(null)
 
     try {
       const { data: localItem, error } = await insertItem({
@@ -82,7 +120,7 @@ export const ItemInput = ({
         setFeedback({ type: "error", message: "Failed to insert item: No data returned." })
         return
       }
-      clear()
+      resetForm()
       onUpsert(localItem)
       setFeedback({ type: "success", message: "Item added." })
     } catch (err) {
@@ -110,7 +148,10 @@ export const ItemInput = ({
             name="itemName"
             value={newItem.itemName}
             onKeyDown={handleKeyDown}
-            onChange={e => setNewItem(prev => ({ ...prev, itemName: e.target.value }))}
+            onChange={e => {
+              setFeedback(null)
+              setNewItem(prev => ({ ...prev, itemName: e.target.value }))
+            }}
             className="w-full p-1 border border-gray-300 rounded"
           />
           <textarea
@@ -118,19 +159,16 @@ export const ItemInput = ({
             name="extraDetails"
             value={newItem.extraDetails ?? ""}
             onKeyDown={handleKeyDown}
-            onChange={e => setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))}
+            onChange={e => {
+              setFeedback(null)
+              setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))
+            }}
             className="w-full p-1 border border-gray-300 rounded min-h-min"
           />
 
-          <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} />
+          <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} onFileInputClick={() => setFeedback(null)} />
 
-          {feedback && (
-            <p role="status" aria-live="polite" className={feedback.type === "error" ? "text-red-700 text-sm" : "text-green-700 text-sm"}>
-              {feedback.message}
-            </p>
-          )}
-
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <button
               type="button"
               onClick={clear}
@@ -139,6 +177,17 @@ export const ItemInput = ({
             >
               Clear
             </button>
+            {feedback && (
+              <p
+                role="status"
+                aria-live="polite"
+                className={`text-sm ${isFadingOut ? "transition-opacity duration-250 ease-out" : ""} ${
+                  feedbackVisible && !isFadingOut ? "opacity-100" : "opacity-0"
+                } ${feedback.type === "error" ? "text-red-700" : "text-green-700"}`}
+              >
+                {feedback.message}
+              </p>
+            )}
             <button
               type="button"
               onClick={handleSubmit}
