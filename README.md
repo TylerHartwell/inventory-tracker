@@ -113,6 +113,27 @@ Open `http://localhost:3000`.
 - Local Supabase project configuration is in `supabase/config.toml`.
 - For local OAuth redirects, `site_url` and `additional_redirect_urls` in `supabase/config.toml` must match your dev URL exactly (protocol + host + port).
 
+### Local Supabase on Windows (Troubleshooting)
+
+If `npx supabase start` fails with a Docker bind error on `5432x` ports (for example `54322`), Windows may have reserved that port range.
+
+Use this command to verify excluded ranges:
+
+```bash
+netsh int ipv4 show excludedportrange protocol=tcp
+```
+
+This repo is configured to use local Supabase ports in the `1542x` range in `supabase/config.toml` to avoid that conflict.
+
+If restart fails with a container-name conflict like `supabase_vector_inventory-tracker already in use`, remove the stale container and start again:
+
+```bash
+docker rm -f supabase_vector_inventory-tracker
+npx supabase start
+```
+
+Local project data remains in Docker volumes across stop/start cycles.
+
 ## OAuth Setup (Google)
 
 1. In Supabase Dashboard, go to `Authentication > Providers` and enable `Google`.
