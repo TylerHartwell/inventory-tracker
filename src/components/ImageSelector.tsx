@@ -147,7 +147,7 @@ function ImageSelector({
         role="button"
         tabIndex={0}
         aria-label="Select images or drag and drop"
-        className={`relative w-full min-h-28 flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer ${
+        className={`relative w-full min-h-28 flex flex-col items-center justify-center border-2 border-dashed active:border-solid rounded-md cursor-pointer ${
           isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
         }`}
         onClick={handleFileInputClick}
@@ -205,7 +205,7 @@ function ImageSelector({
             ))}
           </div>
         ) : (
-          <span className="text-gray-400 flex gap-1 items-center">
+          <span className="text-gray-400 flex gap-1 items-center select-none">
             <span className="pb-1">📷</span>
             <span className="text-nowrap">Select Images</span>
           </span>
@@ -217,7 +217,7 @@ function ImageSelector({
           type="button"
           name="file-input"
           onClick={handleFileInputClick}
-          className="bg-blue-600 text-white flex items-center w-min px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 transition-colors duration-200 cursor-pointer"
+          className="bg-blue-600 text-white flex items-center w-min px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 active:bg-blue-800 transition-colors duration-200 cursor-pointer"
           title="Select or change image"
         >
           <Pencil size={14} />
