@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Session } from "@supabase/supabase-js"
 import ImageSelector from "../ImageSelector"
 import { insertItem } from "@/utils/item/insertItem"
 import { ListSelector } from "./ListSelector"
 import { UserLists } from "@/hooks/useUserLists"
 import { InsertableItem, LocalItem } from "../ItemManager"
+import { useToast } from "@/hooks/useToast"
+
+type Feedback = { type: "error" | "success"; message: string }
 
 export const ItemInput = ({
   session,
@@ -25,42 +28,19 @@ export const ItemInput = ({
   const [itemImages, setItemImages] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [resetId, setResetId] = useState(0)
-  const [feedback, setFeedback] = useState<{ type: "error" | "success"; message: string } | null>(null)
-  const [feedbackVisible, setFeedbackVisible] = useState(false)
-  const [isFadingOut, setIsFadingOut] = useState(false)
+  const {
+    toast: feedback,
+    setToast: setFeedback,
+    isVisible: feedbackVisible,
+    isFadingIn,
+    isFadingOut,
+    fadeInDuration,
+    fadeOutDuration
+  } = useToast<Feedback>({
+    shouldFadeOut: fb => fb.type === "success"
+  })
   const selectedList = selectedListId ? userLists.lists.find(list => list.id === selectedListId) : null
   const isViewer = selectedList?.role === "viewer"
-
-  useEffect(() => {
-    if (!feedback) {
-      setFeedbackVisible(false)
-      setIsFadingOut(false)
-      return
-    }
-
-    setFeedbackVisible(true)
-    setIsFadingOut(false)
-
-    if (feedback.type === "success") {
-      const timeout = setTimeout(() => {
-        setIsFadingOut(true)
-      }, 1000) // visible time before fade
-
-      return () => clearTimeout(timeout)
-    }
-  }, [feedback])
-
-  useEffect(() => {
-    if (!isFadingOut) return
-
-    const fadeTimeout = setTimeout(() => {
-      setFeedback(null)
-      setFeedbackVisible(false)
-      setIsFadingOut(false)
-    }, 250) // duration of fade animation in milliseconds
-
-    return () => clearTimeout(fadeTimeout)
-  }, [isFadingOut])
 
   const resetForm = () => {
     setNewItem({ itemName: "", listId: selectedListId })
@@ -93,8 +73,6 @@ export const ItemInput = ({
       console.error("Not authenticated")
       return
     }
-
-    // setFeedback(null)
 
     if (!newItem.itemName.trim()) {
       setFeedback({ type: "error", message: "Item Name is required." })
@@ -181,9 +159,12 @@ export const ItemInput = ({
               <p
                 role="status"
                 aria-live="polite"
-                className={`text-sm ${isFadingOut ? "transition-opacity duration-250 ease-out" : ""} ${
-                  feedbackVisible && !isFadingOut ? "opacity-100" : "opacity-0"
+                className={`text-sm ${isFadingIn || isFadingOut ? "transition-opacity" : ""} ${
+                  isFadingIn ? "ease-in" : isFadingOut ? "ease-out" : ""
+                } ${
+                  feedbackVisible && !isFadingIn && !isFadingOut ? "opacity-100" : "opacity-0"
                 } ${feedback.type === "error" ? "text-red-700" : "text-green-700"}`}
+                style={isFadingIn || isFadingOut ? { transitionDuration: `${isFadingIn ? fadeInDuration : fadeOutDuration}ms` } : undefined}
               >
                 {feedback.message}
               </p>
