@@ -1,4 +1,4 @@
-import { Pencil, RotateCcw, Trash2, X } from "lucide-react"
+import { RotateCcw, Trash2, X } from "lucide-react"
 import Image from "next/image"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
@@ -203,25 +203,20 @@ function ImageSelector({
                 </button>
               </div>
             ))}
+            <span className="text-gray-400 h-28 flex gap-1 items-center justify-center select-none rounded border border-dashed border-gray-300">
+              <span className="pb-1">📷</span>
+              <span className="text-nowrap">Add Images</span>
+            </span>
           </div>
         ) : (
           <span className="text-gray-400 flex gap-1 items-center select-none">
             <span className="pb-1">📷</span>
-            <span className="text-nowrap">Select Images</span>
+            <span className="text-nowrap">Add Images</span>
           </span>
         )}
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          name="file-input"
-          onClick={handleFileInputClick}
-          className="bg-blue-600 text-white flex items-center w-min px-4 py-2 rounded-md hover-fine:outline-1 active:outline-1 active:bg-blue-800 transition-colors duration-200 cursor-pointer"
-          title="Select or change image"
-        >
-          <Pencil size={14} />
-        </button>
         {removedExistingImages.length > 0 && (
           <button
             type="button"
@@ -242,7 +237,7 @@ function ImageSelector({
             <button
               key={image.imageId}
               type="button"
-              className="px-2 py-1 rounded bg-gray-100 border border-gray-300"
+              className="px-2 py-1 rounded bg-gray-600 border border-gray-300"
               onClick={() => handleUndoRemoveExisting(image.imageId)}
               title="Undo remove image"
             >

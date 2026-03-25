@@ -9,6 +9,9 @@ interface ItemCardProps {
   item: LocalItem
   isPriority: boolean
   onDelete: (id: string) => void
+  isMultiSelectMode: boolean
+  isSelected: boolean
+  onToggleSelect: (id: string) => void
 }
 
 export type ItemUpdateBundle = {
@@ -24,11 +27,13 @@ type FeedbackState = {
   message: string
 }
 
-export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
+export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSelected, onToggleSelect }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [displayItem, setDisplayItem] = useState(item)
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
   const clearFeedback = () => setFeedback(null)
+
+  const showEditForm = isEditing && !isMultiSelectMode
 
   const handleCancelEdit = () => {
     setDisplayItem(item)
@@ -61,7 +66,6 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     }
 
     if (Object.values(updatedFields).every(v => v === undefined) && itemImages === undefined && deletedImageIds === undefined) {
-      setFeedback({ tone: "info", message: "No changes to save." })
       setIsEditing(false)
 
       return
@@ -74,14 +78,20 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
     }
 
     const deletedIdsSet = new Set(deletedImageIds ?? [])
-    const remainingExistingImages = displayItem.signedUrls.filter((_signedUrl, index) => !deletedIdsSet.has(displayItem.imageIds[index]))
+    const remainingExistingImages = displayItem.signedUrls.filter((_signedUrl, index) => {
+      const id = displayItem.imageIds[index]
+      return id !== undefined && !deletedIdsSet.has(id)
+    })
     const newImageBlobUrls = (itemImages ?? []).map(file => URL.createObjectURL(file))
 
     const optimisticItem: LocalItem = {
       ...displayItem,
       ...updatedFields,
       imageIds: displayItem.imageIds.filter(imageId => !deletedIdsSet.has(imageId)),
-      imageUrls: displayItem.imageUrls.filter((_imageUrl, index) => !deletedIdsSet.has(displayItem.imageIds[index])),
+      imageUrls: displayItem.imageUrls.filter((_imageUrl, index) => {
+        const id = displayItem.imageIds[index]
+        return id !== undefined && !deletedIdsSet.has(id)
+      }),
       signedUrls: [...remainingExistingImages, ...newImageBlobUrls]
     }
 
@@ -106,7 +116,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
       return
     }
 
-    setDisplayItem(updatedItem)
+    setDisplayItem({ ...updatedItem, canEdit: item.canEdit })
   }
 
   const feedbackClass = feedback
@@ -117,7 +127,7 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
 
   return (
     <li
-      className="border border-gray-300 rounded p-1 mb-1"
+      className="border border-gray-300 rounded p-1 mb-1 flex items-center gap-2 relative"
       onPointerDownCapture={() => {
         if (feedback) clearFeedback()
       }}
@@ -125,18 +135,30 @@ export const ItemCard = ({ item, isPriority, onDelete }: ItemCardProps) => {
         if (feedback) clearFeedback()
       }}
     >
-      {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
-      {isEditing ? (
-        <ItemCardForm item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
-      ) : (
-        <ItemCardView
-          viewItem={displayItem}
-          isPriority={isPriority}
-          onEdit={() => {
-            if (displayItem.canEdit === false) return
-            clearFeedback()
-            setIsEditing(true)
-          }}
+      <div className="flex-1 min-w-0">
+        {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
+        {showEditForm ? (
+          <ItemCardForm item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
+        ) : (
+          <ItemCardView
+            viewItem={displayItem}
+            isPriority={isPriority}
+            onEdit={() => {
+              if (isMultiSelectMode || !displayItem.canEdit) return
+              clearFeedback()
+              setIsEditing(true)
+            }}
+            showEditButton={!isMultiSelectMode}
+          />
+        )}
+      </div>
+      {isMultiSelectMode && (
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggleSelect(item.id)}
+          disabled={displayItem.canEdit === false}
+          className="h-4 w-4 shrink-0 accent-blue-500 cursor-pointer disabled:cursor-not-allowed absolute right-0 top-0 -translate-y-1/3 translate-x-1/3"
         />
       )}
     </li>

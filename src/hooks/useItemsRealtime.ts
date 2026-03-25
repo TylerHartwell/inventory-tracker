@@ -190,7 +190,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
 
     channel.on("postgres_changes", { event: "*", schema: "public", table: "items" }, payload => {
       if (payload.eventType === "DELETE") {
-        const deletedId = payload.old?.id as string | undefined
+        const deletedId = payload.old?.["id"] as string | undefined
 
         if (deletedId && itemsRef.current.has(deletedId)) {
           handleDelete(deletedId)
@@ -297,8 +297,8 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     channel.on("postgres_changes", { event: "*", schema: "public", table: "item_images" }, payload => {
       const oldRow = (payload.old ?? {}) as Record<string, unknown>
       const newRow = (payload.new ?? {}) as Record<string, unknown>
-      const oldItemId = typeof oldRow.item_id === "string" ? oldRow.item_id : null
-      const newItemId = typeof newRow.item_id === "string" ? newRow.item_id : null
+      const oldItemId = typeof oldRow["item_id"] === "string" ? oldRow["item_id"] : null
+      const newItemId = typeof newRow["item_id"] === "string" ? newRow["item_id"] : null
 
       if ((oldItemId && itemsRef.current.has(oldItemId)) || (newItemId && itemsRef.current.has(newItemId))) {
         scheduleRefresh()

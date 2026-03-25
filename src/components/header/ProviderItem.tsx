@@ -2,7 +2,6 @@ import { useState } from "react"
 import { ProviderConfig } from "@/types/authProviders"
 import { EmailPasswordProviderDetails } from "./EmailPasswordProviderDetails"
 import { GoogleProviderDetails } from "./GoogleProviderDetails"
-import { supabase } from "@/supabase-client"
 
 interface ProviderItemProps {
   provider: ProviderConfig

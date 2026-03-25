@@ -27,7 +27,7 @@ export const updateItem = async ({
   const rawUpdatePayload = snakeify(updatedFields) as Record<string, unknown>
   const updatePayload = Object.fromEntries(Object.entries(rawUpdatePayload).filter(([, value]) => value !== undefined)) as Record<string, unknown>
 
-  delete updatePayload.image_url
+  delete updatePayload["image_url"]
 
   if (deletedImageIds?.length) {
     const { error: deleteExistingImageError } = await deleteImageWithItemId({ itemId, imageIds: deletedImageIds })

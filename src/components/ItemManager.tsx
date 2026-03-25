@@ -1,7 +1,7 @@
 import { Session } from "@supabase/supabase-js"
 import { ItemInput } from "./item-input/ItemInput"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { SortOrderSelect } from "./SortOrderSelect"
 import { ListFilter } from "./ListFilter"
 import { Database } from "@/types/supabase"
@@ -11,6 +11,9 @@ import { Camelize } from "@/utils/caseChanger"
 import SortedItemResults from "./sorted-item-results/SortedItemResults"
 import ScrollToTopBtn from "./ScrollToTopBtn"
 import useSessionStorage from "@/hooks/useSessionStorage"
+import { deleteItem } from "@/utils/item/deleteItem"
+import BulkDeleteModal from "./BulkDeleteModal"
+import BulkDeleteControl from "./BulkDeleteControl"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -58,6 +61,10 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [selectedListId, setSelectedListId] = useSessionStorage<string | null>(SESSION_KEYS.selectedListId, null, session.user.id)
   const [followInputList, setFollowInputList] = useSessionStorage<boolean>(SESSION_KEYS.followInputList, true, session.user.id)
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
+  const [bulkDeleteError, setBulkDeleteError] = useState<string | null>(null)
   const userLists = useUserLists(session.user.id)
 
   const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
@@ -92,6 +99,12 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     })
   }, [items, sortAsc])
 
+  const selectableItemIds = useMemo(() => {
+    return new Set(sortedItems.filter(item => item.canEdit !== false).map(item => item.id))
+  }, [sortedItems])
+
+  const eligibleSelectedItemIds = useMemo(() => selectedItemIds.filter(id => selectableItemIds.has(id)), [selectedItemIds, selectableItemIds])
+
   const handleItemInputListSelection = (listId: string | null) => {
     setSelectedListId(listId)
     if (followInputList) {
@@ -103,6 +116,65 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     if (!followInputList) {
       setFilteredListIds([selectedListId])
     }
+  }
+
+  const handleStartMultiSelect = () => {
+    setBulkDeleteError(null)
+    setSelectedItemIds([])
+    setIsMultiSelectMode(true)
+  }
+
+  const handleCancelMultiSelect = () => {
+    setBulkDeleteError(null)
+    setSelectedItemIds([])
+    setIsBulkDeleteModalOpen(false)
+    setIsMultiSelectMode(false)
+  }
+
+  const handleToggleSelectedItem = (id: string) => {
+    if (!selectableItemIds.has(id)) return
+
+    setSelectedItemIds(prev => (prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]))
+  }
+
+  const allSelected = selectableItemIds.size > 0 && [...selectableItemIds].every(id => selectedItemIds.includes(id))
+
+  const handleSelectAllChange = (checked: boolean) => {
+    setSelectedItemIds(checked ? [...selectableItemIds] : [])
+  }
+
+  const handleDeleteSelected = async () => {
+    if (eligibleSelectedItemIds.length === 0) {
+      setIsBulkDeleteModalOpen(false)
+      return
+    }
+
+    setBulkDeleteError(null)
+
+    const results = await Promise.all(
+      eligibleSelectedItemIds.map(async id => {
+        const { error } = await deleteItem({ itemId: id })
+        return { id, error }
+      })
+    )
+
+    const failedIds = results.filter(result => result.error).map(result => result.id)
+    const successfulIds = results.filter(result => !result.error).map(result => result.id)
+
+    successfulIds.forEach(id => onDelete(id))
+
+    if (failedIds.length > 0) {
+      setSelectedItemIds(failedIds)
+      setBulkDeleteError(
+        failedIds.length === 1
+          ? "Failed to delete 1 selected item. Please try again."
+          : `Failed to delete ${failedIds.length} selected items. Please try again.`
+      )
+      setIsBulkDeleteModalOpen(false)
+      return
+    }
+
+    handleCancelMultiSelect()
   }
 
   return (
@@ -127,13 +199,35 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
+      <BulkDeleteControl
+        isMultiSelectMode={isMultiSelectMode}
+        canStartMultiSelect={selectableItemIds.size > 0}
+        eligibleSelectedCount={eligibleSelectedItemIds.length}
+        allSelected={allSelected}
+        bulkDeleteError={bulkDeleteError}
+        onStartMultiSelect={handleStartMultiSelect}
+        onCancelMultiSelect={handleCancelMultiSelect}
+        onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
+        onSelectAllChange={handleSelectAllChange}
+      />
       <SortedItemResults
         loading={loading}
         hasCompletedInitialLoad={hasCompletedInitialLoad}
         sortedItems={sortedItems}
         onDelete={id => onDelete(id)}
+        isMultiSelectMode={isMultiSelectMode}
+        selectedItemIds={selectedItemIds}
+        onToggleSelectedItem={handleToggleSelectedItem}
       />
       <ScrollToTopBtn />
+
+      {isBulkDeleteModalOpen && (
+        <BulkDeleteModal
+          selectedCount={eligibleSelectedItemIds.length}
+          onClose={() => setIsBulkDeleteModalOpen(false)}
+          onConfirm={handleDeleteSelected}
+        />
+      )}
     </div>
   )
 }

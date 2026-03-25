@@ -20,7 +20,6 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
 
   if (loading || !profile) return <div>Loading…</div>
 
-  const hasChanged = localUsername !== profile.username
   const isBlank = localUsername.trim() === ""
 
   const focusInput = () => {

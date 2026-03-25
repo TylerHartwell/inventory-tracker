@@ -1,4 +1,3 @@
-import { RefreshCw } from "lucide-react"
 import { ProviderConfig } from "@/types/authProviders"
 import { ProviderItem } from "./ProviderItem"
 

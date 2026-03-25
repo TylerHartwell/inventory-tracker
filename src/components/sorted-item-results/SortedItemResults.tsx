@@ -8,10 +8,22 @@ interface Props {
   hasCompletedInitialLoad: boolean
   sortedItems: LocalItem[]
   onDelete: (id: string) => void
+  isMultiSelectMode: boolean
+  selectedItemIds: string[]
+  onToggleSelectedItem: (id: string) => void
 }
 
-const SortedItemResults = ({ loading, hasCompletedInitialLoad, sortedItems, onDelete }: Props) => {
+const SortedItemResults = ({
+  loading,
+  hasCompletedInitialLoad,
+  sortedItems,
+  onDelete,
+  isMultiSelectMode,
+  selectedItemIds,
+  onToggleSelectedItem
+}: Props) => {
   const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
+  const selectedIdSet = new Set(selectedItemIds)
 
   return (
     <ul className="list-none p-0 relative">
@@ -22,7 +34,15 @@ const SortedItemResults = ({ loading, hasCompletedInitialLoad, sortedItems, onDe
           <>
             <LoadingSpinner />
             {sortedItems.map((item, index) => (
-              <ItemCard item={item} key={item.id} isPriority={index <= 3} onDelete={onDelete} />
+              <ItemCard
+                item={item}
+                key={item.id}
+                isPriority={index <= 3}
+                onDelete={onDelete}
+                isMultiSelectMode={isMultiSelectMode}
+                isSelected={selectedIdSet.has(item.id)}
+                onToggleSelect={onToggleSelectedItem}
+              />
             ))}
           </>
         ))}
@@ -32,7 +52,15 @@ const SortedItemResults = ({ loading, hasCompletedInitialLoad, sortedItems, onDe
         ) : (
           <>
             {sortedItems.map((item, index) => (
-              <ItemCard item={item} key={item.id} isPriority={index <= 3} onDelete={onDelete} />
+              <ItemCard
+                item={item}
+                key={item.id}
+                isPriority={index <= 3}
+                onDelete={onDelete}
+                isMultiSelectMode={isMultiSelectMode}
+                isSelected={selectedIdSet.has(item.id)}
+                onToggleSelect={onToggleSelectedItem}
+              />
             ))}
           </>
         ))}

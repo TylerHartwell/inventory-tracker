@@ -1,6 +1,4 @@
-import { useState } from "react"
 import { Session } from "@supabase/supabase-js"
-import { updateList } from "@/utils/list/updateList"
 import { UserList } from "@/hooks/useUserLists"
 import { X } from "lucide-react"
 import ListOwnerManager from "./ListOwnerManager"
