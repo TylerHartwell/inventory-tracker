@@ -88,19 +88,19 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
   }
 
   return (
-    <div className="border border-gray-400 rounded p-2 flex flex-col gap-1.5">
+    <div className="border border-gray-400 rounded flex flex-col gap-1.5">
       {!linked ? (
         !passwordSetupFormVisible ? (
           <button
             type="button"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-gray-300 p-2 hover:bg-gray-700 hover:text-white rounded disabled:opacity-50 hover-fine:outline-1 active:outline-1 cursor-pointer"
             onClick={() => setPasswordSetupFormVisible(true)}
             disabled={loading}
           >
             Set up password
           </button>
         ) : (
-          <form onSubmit={handlePasswordSetupSubmit} className="flex flex-col gap-1.5">
+          <form onSubmit={handlePasswordSetupSubmit} className="flex flex-col items-center gap-1.5 p-2">
             <input
               type="email"
               name="email"
@@ -109,6 +109,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
               value={userEmail ?? newEmail}
               disabled={!!userEmail}
               onChange={e => setNewEmail(e.target.value)}
+              className="self-stretch"
             />
             <input
               type="password"
@@ -117,14 +118,18 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
               minLength={8}
               onChange={e => setNewPassword(e.target.value)}
               autoComplete="new-password"
-              className="p-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="p-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 self-stretch"
             />
-            <button type="submit" className="text-sm text-blue-600 hover:underline" disabled={loading || !newPassword}>
+            <button
+              type="submit"
+              className="text-sm border border-gray-500 rounded hover-fine:outline-1 active:outline-1 cursor-pointer px-2 py-1"
+              disabled={loading || !newPassword}
+            >
               Save password
             </button>
             <button
               type="button"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm border border-gray-500 rounded hover-fine:outline-1 active:outline-1 cursor-pointer px-2 py-1"
               onClick={() => {
                 setPasswordSetupFormVisible(false)
                 setNewPassword("")

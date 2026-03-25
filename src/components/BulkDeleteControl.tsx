@@ -28,7 +28,7 @@ function BulkDeleteControl({
       <div className="flex flex-wrap items-center justify-end gap-2">
         {!isMultiSelectMode ? (
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-sm text-gray-700">Select multiple for deletion:</span>
+            <span className="text-sm text-gray-500">Select multiple for deletion:</span>
             <button
               type="button"
               className="h-6 px-3 py-1 bg-red-500 text-white rounded hover-fine:outline-1 active:outline-1"
@@ -55,7 +55,7 @@ function BulkDeleteControl({
             >
               Delete {eligibleSelectedCount} Selected
             </button>
-            <label className="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+            <label className="inline-flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer">
               Select All
               <input
                 type="checkbox"
