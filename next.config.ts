@@ -2,7 +2,7 @@ import type { NextConfig } from "next"
 
 // Extract hostname from Supabase URL environment variable
 const getSupabaseHostname = (): string => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]
   if (!supabaseUrl) {
     throw new Error("NEXT_PUBLIC_SUPABASE_URL environment variable is required")
   }
