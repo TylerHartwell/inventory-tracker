@@ -6,6 +6,7 @@ import { ListSelector } from "./ListSelector"
 import { UserLists } from "@/hooks/useUserLists"
 import { InsertableItem, LocalItem } from "../ItemManager"
 import { useToast } from "@/hooks/useToast"
+import { Eye, EyeOff } from "lucide-react"
 
 type Feedback = { type: "error" | "success"; message: string }
 
@@ -27,6 +28,7 @@ export const ItemInput = ({
   const [newItem, setNewItem] = useState<InsertableItem>({ itemName: "", listId: selectedListId })
   const [itemImages, setItemImages] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
   const [resetId, setResetId] = useState(0)
   const {
     toast: feedback,
@@ -110,82 +112,97 @@ export const ItemInput = ({
   }
 
   return (
-    <div className="flex flex-col gap-2 p-2 relative border-2">
-      <ListSelector
-        selectedListId={selectedListId}
-        onItemInputListChange={onItemInputListChange}
-        session={session}
-        userLists={userLists}
-        refreshItems={refreshItems}
-      />
-      {!isViewer && (
+    <div className="flex flex-col gap-2 p-1 relative border-2">
+      <div className="relative flex items-center justify-end">
+        <h2 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold">Item Input</h2>
+        <button
+          type="button"
+          onClick={() => setIsExpanded(prev => !prev)}
+          className="p-1 bg-gray-700 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+        >
+          {isExpanded ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
+
+      {isExpanded && (
         <>
-          <input
-            type="text"
-            placeholder="Item Name"
-            name="itemName"
-            value={newItem.itemName}
-            onKeyDown={handleKeyDown}
-            onChange={e => {
-              setFeedback(null)
-              setNewItem(prev => ({ ...prev, itemName: e.target.value }))
-            }}
-            className="w-full p-1 border border-gray-300 rounded"
+          <ListSelector
+            selectedListId={selectedListId}
+            onItemInputListChange={onItemInputListChange}
+            session={session}
+            userLists={userLists}
+            refreshItems={refreshItems}
           />
-          <textarea
-            placeholder="Extra Details"
-            name="extraDetails"
-            value={newItem.extraDetails ?? ""}
-            onKeyDown={handleKeyDown}
-            onChange={e => {
-              setFeedback(null)
-              setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))
-            }}
-            className="w-full p-1 border border-gray-300 rounded min-h-min"
-          />
+          {!isViewer && (
+            <>
+              <input
+                type="text"
+                placeholder="Item Name"
+                name="itemName"
+                value={newItem.itemName}
+                onKeyDown={handleKeyDown}
+                onChange={e => {
+                  setFeedback(null)
+                  setNewItem(prev => ({ ...prev, itemName: e.target.value }))
+                }}
+                className="w-full p-1 border border-gray-300 rounded"
+              />
+              <textarea
+                placeholder="Extra Details"
+                name="extraDetails"
+                value={newItem.extraDetails ?? ""}
+                onKeyDown={handleKeyDown}
+                onChange={e => {
+                  setFeedback(null)
+                  setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))
+                }}
+                className="w-full p-1 border border-gray-300 rounded min-h-min"
+              />
 
-          <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} onFileInputClick={() => setFeedback(null)} />
+              <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} onFileInputClick={() => setFeedback(null)} />
 
-          <div className="flex justify-between items-center">
-            <button
-              type="button"
-              onClick={clear}
-              disabled={loading}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
-            >
-              Clear
-            </button>
-            {feedback && (
-              <p
-                role="status"
-                aria-live="polite"
-                className={`text-sm ${isFadingIn || isFadingOut ? "transition-opacity" : ""} ${
-                  isFadingIn ? "ease-in" : isFadingOut ? "ease-out" : ""
-                } ${
-                  feedbackVisible && !isFadingIn && !isFadingOut ? "opacity-100" : "opacity-0"
-                } ${feedback.type === "error" ? "text-red-700" : "text-green-700"}`}
-                style={isFadingIn || isFadingOut ? { transitionDuration: `${isFadingIn ? fadeInDuration : fadeOutDuration}ms` } : undefined}
-              >
-                {feedback.message}
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
-            >
-              {/* Button label */}
-              <span className={loading ? "opacity-30" : ""}>Add Item</span>
+              <div className="flex justify-between items-center">
+                <button
+                  type="button"
+                  onClick={clear}
+                  disabled={loading}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+                >
+                  Clear
+                </button>
+                {feedback && (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className={`text-sm ${isFadingIn || isFadingOut ? "transition-opacity" : ""} ${
+                      isFadingIn ? "ease-in" : isFadingOut ? "ease-out" : ""
+                    } ${
+                      feedbackVisible && !isFadingIn && !isFadingOut ? "opacity-100" : "opacity-0"
+                    } ${feedback.type === "error" ? "text-red-700" : "text-green-700"}`}
+                    style={isFadingIn || isFadingOut ? { transitionDuration: `${isFadingIn ? fadeInDuration : fadeOutDuration}ms` } : undefined}
+                  >
+                    {feedback.message}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+                >
+                  {/* Button label */}
+                  <span className={loading ? "opacity-30" : ""}>Add Item</span>
 
-              {/* Loading overlay */}
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </button>
-          </div>
+                  {/* Loading overlay */}
+                  {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

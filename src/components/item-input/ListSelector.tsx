@@ -2,7 +2,7 @@ import { UserLists } from "@/hooks/useUserLists"
 import { Session } from "@supabase/supabase-js"
 import { useRef, useState } from "react"
 import { ListInput } from "./ListInput"
-import { ChevronDown, ChevronUp, Settings } from "lucide-react"
+import { ChevronDown, ChevronUp, List, Settings } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { deleteList } from "@/utils/list/deleteList"
 import { nullListName } from "../ItemManager"
@@ -76,7 +76,10 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="font-medium whitespace-nowrap">List:</span>
+        <span className="font-medium whitespace-nowrap flex items-center">
+          List
+          <List size={16} className="ml-1" />
+        </span>
         {loading ? (
           <div className="text-gray-500">Loading lists...</div>
         ) : error ? (

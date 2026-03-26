@@ -1,6 +1,8 @@
-import { Pencil } from "lucide-react"
+import { List, Pencil } from "lucide-react"
 import Image from "next/image"
+import { useState } from "react"
 import { LocalItem } from "../ItemManager"
+import ImageLightbox from "./ImageLightbox"
 
 type ItemCardViewProps = {
   viewItem: LocalItem
@@ -10,17 +12,30 @@ type ItemCardViewProps = {
 }
 
 const ItemCardView = ({ viewItem, isPriority, onEdit, showEditButton = true }: ItemCardViewProps) => {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const urls = viewItem.signedUrls
+  const isOpen = lightboxIndex !== null
+
   return (
     <div className="relative">
       <div className="flex">
         <p className="w-full text-base font-normal flex-1">{viewItem.itemName}</p>
-        <span className="opacity-80 pr-6">{viewItem.listName}</span>
+        <span className="opacity-80 pr-6 flex items-center">
+          <List size={16} />
+          <span className="ml-1">{viewItem.listName}</span>
+        </span>
       </div>
       {viewItem.extraDetails && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{viewItem.extraDetails}</p>}
-      {viewItem.signedUrls.length > 0 && (
+      {urls.length > 0 && (
         <div className="mb-2 grid grid-cols-2 gap-2">
-          {viewItem.signedUrls.map((signedUrl, imageIndex) => (
-            <div key={`${viewItem.id}-${signedUrl}-${imageIndex}`} className="relative h-32 w-auto">
+          {urls.map((signedUrl, imageIndex) => (
+            <button
+              key={`${viewItem.id}-${signedUrl}-${imageIndex}`}
+              type="button"
+              className="relative h-32 w-auto cursor-zoom-in focus:outline-2 focus:outline-blue-400 rounded"
+              onClick={() => setLightboxIndex(imageIndex)}
+              aria-label={`View image ${imageIndex + 1} of ${urls.length}`}
+            >
               <Image
                 src={signedUrl}
                 unoptimized
@@ -29,7 +44,7 @@ const ItemCardView = ({ viewItem, isPriority, onEdit, showEditButton = true }: I
                 priority={Boolean(isPriority && imageIndex === 0)}
                 className="object-cover rounded"
               />
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -42,6 +57,10 @@ const ItemCardView = ({ viewItem, isPriority, onEdit, showEditButton = true }: I
         >
           <Pencil size={16} />
         </button>
+      )}
+
+      {isOpen && lightboxIndex !== null && (
+        <ImageLightbox urls={urls} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
       )}
     </div>
   )
