@@ -97,7 +97,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
             onClick={() => setPasswordSetupFormVisible(true)}
             disabled={loading}
           >
-            Set up password
+            Set up or change password
           </button>
         ) : (
           <form onSubmit={handlePasswordSetupSubmit} className="flex flex-col items-center gap-1.5 p-2">
@@ -106,6 +106,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
               name="email"
               id="email"
               placeholder="Email"
+              autoComplete="email"
               value={userEmail ?? newEmail}
               disabled={!!userEmail}
               onChange={e => setNewEmail(e.target.value)}
@@ -113,6 +114,8 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
             />
             <input
               type="password"
+              name="create-password"
+              id="create-password"
               placeholder="Create password"
               value={newPassword}
               minLength={8}
@@ -150,6 +153,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
           <input
             type="password"
             placeholder="New password (min. 8 characters)"
+            name="new-password"
             value={newPassword}
             minLength={8}
             onChange={e => {
