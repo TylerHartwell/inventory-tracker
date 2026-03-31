@@ -213,6 +213,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
             </span>
             <select
               value={displayMode}
+              name="display-mode"
               onChange={e => setDisplayMode(e.target.value as "stack" | "grid")}
               className="h-7 rounded border border-gray-300 bg-black px-1 text-sm text-white"
               title="Display mode"
@@ -230,6 +231,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
               Cols
               <select
                 value={gridColumns}
+                name="grid-cols"
                 onChange={e => setGridColumns(Number(e.target.value) as 1 | 2 | 3 | 4)}
                 className="h-7 rounded border border-gray-300 bg-black px-1 text-sm text-white"
                 title="Grid columns"

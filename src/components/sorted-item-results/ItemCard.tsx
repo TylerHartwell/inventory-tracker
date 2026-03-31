@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Pencil } from "lucide-react"
+import { Pencil, Images } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Item, LocalItem } from "../ItemManager"
 import { deleteItem } from "@/utils/item/deleteItem"
@@ -44,6 +44,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
   const detailFields = useMemo(() => {
     const hiddenKeys = new Set([
       "id",
+      "itemName",
       "signedUrls",
       "itemImages",
       "imageUrls",
@@ -56,7 +57,14 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
       "lastUpdatedBy"
     ])
 
-    return Object.entries(displayItem).filter(([key]) => !hiddenKeys.has(key))
+    return Object.entries(displayItem).filter(([key, value]) => {
+      if (hiddenKeys.has(key)) {
+        return false
+      }
+
+      const displayValue = key === "listId" ? displayItem.listName : value
+      return hasDisplayFieldValue(displayValue)
+    })
   }, [displayItem])
 
   const createdByName = useMemo(() => {
@@ -225,6 +233,9 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
         {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
         <ItemCardView viewItem={displayItem} isPriority={isPriority} isGridMode={isGridMode} />
       </div>
+      {isGridMode && displayItem.signedUrls.length > 1 && (
+        <Images size={20} className="absolute bottom-1 right-1 bg-black/30 rounded p-1 text-white pointer-events-none" />
+      )}
       {isMultiSelectMode && (
         <input
           type="checkbox"
@@ -246,10 +257,10 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
           }}
         >
           <div
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-gray-800 p-4 text-white shadow-lg"
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border rounded-xl bg-black p-3 text-white shadow-lg"
             onClick={e => e.stopPropagation()}
           >
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between border-b border-gray-700 pb-2">
               <h3 className="text-lg font-semibold">Item Details</h3>
               <div className="flex items-center gap-2">
                 {!!displayItem.canEdit && (
@@ -296,40 +307,45 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
             )}
 
             <div className="grid gap-2">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded border border-gray-600 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Created At</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
-                    {formatFieldValue(displayItem.createdAt, "createdAt", usernamesById)}
-                  </p>
-                </div>
-                <div className="rounded border border-gray-600 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Created By</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{createdByName}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded border border-gray-600 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Last Updated At</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
-                    {formatFieldValue(displayItem.lastUpdatedAt, "lastUpdatedAt", usernamesById)}
-                  </p>
-                </div>
-                <div className="rounded border border-gray-600 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Last Updated By</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{lastUpdatedByName}</p>
-                </div>
+              <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
+                <p className="text-xs uppercase tracking-wide text-gray-300">Item Name</p>
+                <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{displayItem.itemName}</p>
               </div>
 
               {detailFields.map(([key, value]) => (
-                <div key={key} className="rounded border border-gray-600 px-2 py-1">
+                <div key={key} className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
                   <p className="text-xs uppercase tracking-wide text-gray-300">{key === "listId" ? "List Name" : toReadableLabel(key)}</p>
                   <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
                     {key === "listId" ? formatFieldValue(displayItem.listName) : formatFieldValue(value, key, usernamesById)}
                   </p>
                 </div>
               ))}
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
+                  <p className="text-xs uppercase tracking-wide text-gray-300">Created At</p>
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
+                    {formatFieldValue(displayItem.createdAt, "createdAt", usernamesById)}
+                  </p>
+                </div>
+                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
+                  <p className="text-xs uppercase tracking-wide text-gray-300">Created By</p>
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{createdByName}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
+                  <p className="text-xs uppercase tracking-wide text-gray-300">Last Updated At</p>
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
+                    {formatFieldValue(displayItem.lastUpdatedAt, "lastUpdatedAt", usernamesById)}
+                  </p>
+                </div>
+                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
+                  <p className="text-xs uppercase tracking-wide text-gray-300">Last Updated By</p>
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{lastUpdatedByName}</p>
+                </div>
+              </div>
             </div>
 
             {detailsLightboxIndex !== null && (
@@ -392,6 +408,22 @@ const formatFieldValue = (value: unknown, key?: string, usernamesById?: Record<s
   }
 
   return String(value)
+}
+
+const hasDisplayFieldValue = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return false
+  }
+
+  if (typeof value === "string") {
+    return value.trim().length > 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0
+  }
+
+  return true
 }
 
 const isTimestampField = (key: string) => {
