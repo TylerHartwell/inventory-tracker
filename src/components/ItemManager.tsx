@@ -14,6 +14,7 @@ import useSessionStorage from "@/hooks/useSessionStorage"
 import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
 import BulkDeleteControl from "./BulkDeleteControl"
+import { LayoutGrid, LayoutList } from "lucide-react"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -51,7 +52,9 @@ const SESSION_KEYS = {
   filteredListIds: "filteredListIds",
   selectedListId: "selectedListId",
   followInputList: "followInputList",
-  sortAsc: "sortAsc"
+  sortAsc: "sortAsc",
+  displayMode: "displayMode",
+  gridColumns: "gridColumns"
 } as const
 
 export type SessionKey = (typeof SESSION_KEYS)[keyof typeof SESSION_KEYS]
@@ -61,6 +64,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [selectedListId, setSelectedListId] = useSessionStorage<string | null>(SESSION_KEYS.selectedListId, null, session.user.id)
   const [followInputList, setFollowInputList] = useSessionStorage<boolean>(SESSION_KEYS.followInputList, true, session.user.id)
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
+  const [displayMode, setDisplayMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.displayMode, "stack", session.user.id)
+  const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
@@ -199,17 +204,66 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
-      <BulkDeleteControl
-        isMultiSelectMode={isMultiSelectMode}
-        canStartMultiSelect={selectableItemIds.size > 0}
-        eligibleSelectedCount={eligibleSelectedItemIds.length}
-        allSelected={allSelected}
-        bulkDeleteError={bulkDeleteError}
-        onStartMultiSelect={handleStartMultiSelect}
-        onCancelMultiSelect={handleCancelMultiSelect}
-        onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
-        onSelectAllChange={handleSelectAllChange}
-      />
+      <div className="flex gap-2">
+        <div className="border border-gray-300 rounded flex flex-1 items-center gap-2 text-sm">
+          <label className="flex items-center gap-1 pl-2">
+            Display
+            <span aria-hidden="true" className="text-gray-600">
+              {displayMode === "grid" ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
+            </span>
+            <select
+              value={displayMode}
+              onChange={e => setDisplayMode(e.target.value as "stack" | "grid")}
+              className="h-7 rounded border border-gray-300 bg-black px-1 text-sm text-white"
+              title="Display mode"
+            >
+              <option value="stack" className="bg-black text-white">
+                Stack
+              </option>
+              <option value="grid" className="bg-black text-white">
+                Grid
+              </option>
+            </select>
+          </label>
+          {displayMode === "grid" && (
+            <label className="text-xs text-gray-600 flex items-center gap-1">
+              Cols
+              <select
+                value={gridColumns}
+                onChange={e => setGridColumns(Number(e.target.value) as 1 | 2 | 3 | 4)}
+                className="h-7 rounded border border-gray-300 bg-black px-1 text-sm text-white"
+                title="Grid columns"
+              >
+                <option value={1} className="bg-black text-white">
+                  1
+                </option>
+                <option value={2} className="bg-black text-white">
+                  2
+                </option>
+                <option value={3} className="bg-black text-white">
+                  3
+                </option>
+                <option value={4} className="bg-black text-white">
+                  4
+                </option>
+              </select>
+            </label>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <BulkDeleteControl
+            isMultiSelectMode={isMultiSelectMode}
+            canStartMultiSelect={selectableItemIds.size > 0}
+            eligibleSelectedCount={eligibleSelectedItemIds.length}
+            allSelected={allSelected}
+            bulkDeleteError={bulkDeleteError}
+            onStartMultiSelect={handleStartMultiSelect}
+            onCancelMultiSelect={handleCancelMultiSelect}
+            onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
+            onSelectAllChange={handleSelectAllChange}
+          />
+        </div>
+      </div>
       <SortedItemResults
         loading={loading}
         hasCompletedInitialLoad={hasCompletedInitialLoad}
@@ -218,6 +272,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         isMultiSelectMode={isMultiSelectMode}
         selectedItemIds={selectedItemIds}
         onToggleSelectedItem={handleToggleSelectedItem}
+        displayMode={displayMode}
+        gridColumns={gridColumns}
       />
       <ScrollToTopBtn />
 

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Session } from "@supabase/supabase-js"
 import ImageSelector from "../ImageSelector"
 import { insertItem } from "@/utils/item/insertItem"
@@ -6,7 +6,7 @@ import { ListSelector } from "./ListSelector"
 import { UserLists } from "@/hooks/useUserLists"
 import { InsertableItem, LocalItem } from "../ItemManager"
 import { useToast } from "@/hooks/useToast"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Plus } from "lucide-react"
 
 type Feedback = { type: "error" | "success"; message: string }
 
@@ -43,6 +43,13 @@ export const ItemInput = ({
   })
   const selectedList = selectedListId ? userLists.lists.find(list => list.id === selectedListId) : null
   const isViewer = selectedList?.role === "viewer"
+  const itemNameRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isExpanded && !isViewer) {
+      itemNameRef.current?.focus()
+    }
+  }, [isExpanded, isViewer])
 
   const resetForm = () => {
     setNewItem({ itemName: "", listId: selectedListId })
@@ -113,11 +120,14 @@ export const ItemInput = ({
 
   return (
     <div className="flex flex-col gap-2 p-1 relative border-2">
-      <div className="relative flex items-center justify-end">
-        <h2 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold">Item Input</h2>
+      <div className="relative flex items-center justify-end cursor-pointer" onClick={() => setIsExpanded(prev => !prev)}>
+        <h2 className="absolute left-1/2 -translate-x-1/2 text-md flex items-center gap-1">Item Input {!isExpanded && <Plus size={16} />}</h2>
         <button
           type="button"
-          onClick={() => setIsExpanded(prev => !prev)}
+          onClick={e => {
+            e.stopPropagation()
+            setIsExpanded(prev => !prev)
+          }}
           className="p-1 bg-gray-700 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
         >
           {isExpanded ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -136,6 +146,7 @@ export const ItemInput = ({
           {!isViewer && (
             <>
               <input
+                ref={itemNameRef}
                 type="text"
                 placeholder="Item Name"
                 name="itemName"

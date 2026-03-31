@@ -11,6 +11,8 @@ interface Props {
   isMultiSelectMode: boolean
   selectedItemIds: string[]
   onToggleSelectedItem: (id: string) => void
+  displayMode: "stack" | "grid"
+  gridColumns: 1 | 2 | 3 | 4
 }
 
 const SortedItemResults = ({
@@ -20,13 +22,17 @@ const SortedItemResults = ({
   onDelete,
   isMultiSelectMode,
   selectedItemIds,
-  onToggleSelectedItem
+  onToggleSelectedItem,
+  displayMode,
+  gridColumns
 }: Props) => {
   const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
   const selectedIdSet = new Set(selectedItemIds)
+  const isGridMode = displayMode === "grid"
+  const gridColumnClass = gridColumns === 1 ? "grid-cols-1" : gridColumns === 2 ? "grid-cols-2" : gridColumns === 3 ? "grid-cols-3" : "grid-cols-4"
 
   return (
-    <ul className="list-none p-0 relative">
+    <ul className={`list-none p-0 relative${isGridMode ? ` grid ${gridColumnClass} gap-2` : ""}`}>
       {loading &&
         (showInitialSkeleton ? (
           <ItemCardsSkeleton />
@@ -42,13 +48,14 @@ const SortedItemResults = ({
                 isMultiSelectMode={isMultiSelectMode}
                 isSelected={selectedIdSet.has(item.id)}
                 onToggleSelect={onToggleSelectedItem}
+                isGridMode={isGridMode}
               />
             ))}
           </>
         ))}
       {!loading &&
         (sortedItems.length === 0 ? (
-          <div className="text-center">- No Results -</div>
+          <div className={`text-center${isGridMode ? " col-span-full" : ""}`}>- No Results -</div>
         ) : (
           <>
             {sortedItems.map((item, index) => (
@@ -60,11 +67,14 @@ const SortedItemResults = ({
                 isMultiSelectMode={isMultiSelectMode}
                 isSelected={selectedIdSet.has(item.id)}
                 onToggleSelect={onToggleSelectedItem}
+                isGridMode={isGridMode}
               />
             ))}
           </>
         ))}
-      {sortedItems.length !== 0 && <div className="h-10 flex items-center text-center justify-center ">- End -</div>}
+      {sortedItems.length !== 0 && (
+        <div className={`h-10 flex items-center text-center justify-center${isGridMode ? " col-span-full" : ""}`}>- End -</div>
+      )}
     </ul>
   )
 }

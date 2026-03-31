@@ -1,20 +1,82 @@
-import { List, Pencil } from "lucide-react"
+import { List } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { LocalItem } from "../ItemManager"
-import ImageLightbox from "./ImageLightbox"
 
 type ItemCardViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
-  onEdit: () => void
-  showEditButton?: boolean
+  isGridMode?: boolean
 }
 
-const ItemCardView = ({ viewItem, isPriority, onEdit, showEditButton = true }: ItemCardViewProps) => {
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+const ItemCardView = ({ viewItem, isPriority, isGridMode = false }: ItemCardViewProps) => {
+  const [gridTitleLines, setGridTitleLines] = useState(1)
+  const gridTitleFrameRef = useRef<HTMLParagraphElement>(null)
+  const gridTitleTextRef = useRef<HTMLSpanElement>(null)
   const urls = viewItem.signedUrls
-  const isOpen = lightboxIndex !== null
+
+  useEffect(() => {
+    if (!isGridMode) return
+
+    const frame = gridTitleFrameRef.current
+    const text = gridTitleTextRef.current
+
+    if (!frame || !text) return
+
+    const updateGridTitleLines = () => {
+      const frameHeight = frame.clientHeight
+      const computedStyle = window.getComputedStyle(text)
+      const lineHeight = Number.parseFloat(computedStyle.lineHeight)
+      const verticalPadding = Number.parseFloat(computedStyle.paddingTop) + Number.parseFloat(computedStyle.paddingBottom)
+
+      if (!Number.isFinite(lineHeight) || lineHeight <= 0 || frameHeight <= verticalPadding) {
+        setGridTitleLines(1)
+        return
+      }
+
+      const availableHeight = frameHeight - 16
+      const nextLines = Math.max(1, Math.floor((availableHeight - verticalPadding) / lineHeight))
+
+      setGridTitleLines(nextLines)
+    }
+
+    updateGridTitleLines()
+
+    const resizeObserver = new ResizeObserver(updateGridTitleLines)
+    resizeObserver.observe(frame)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [isGridMode, viewItem.itemName])
+
+  if (isGridMode) {
+    return (
+      <div className="relative h-full w-full">
+        {urls.length > 0 && (
+          <div className="absolute inset-0 rounded overflow-hidden">
+            <Image src={urls[0]!} unoptimized alt="Item image" fill priority={isPriority} className="object-cover object-center rounded" />
+          </div>
+        )}
+        <p
+          ref={gridTitleFrameRef}
+          className="absolute inset-0 z-10 flex items-center justify-center px-2 text-center text-sm font-medium text-white pointer-events-none overflow-hidden"
+        >
+          <span
+            ref={gridTitleTextRef}
+            className="max-w-full overflow-hidden wrap-break-word whitespace-normal bg-black/30 rounded px-2 py-1"
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: gridTitleLines
+            }}
+          >
+            {viewItem.itemName}
+          </span>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="relative">
@@ -29,13 +91,7 @@ const ItemCardView = ({ viewItem, isPriority, onEdit, showEditButton = true }: I
       {urls.length > 0 && (
         <div className="mb-2 grid grid-cols-2 gap-2">
           {urls.map((signedUrl, imageIndex) => (
-            <button
-              key={`${viewItem.id}-${signedUrl}-${imageIndex}`}
-              type="button"
-              className="relative h-32 w-auto cursor-zoom-in focus:outline-2 focus:outline-blue-400 rounded"
-              onClick={() => setLightboxIndex(imageIndex)}
-              aria-label={`View image ${imageIndex + 1} of ${urls.length}`}
-            >
+            <div key={`${viewItem.id}-${signedUrl}-${imageIndex}`} className="relative h-32 w-auto rounded">
               <Image
                 src={signedUrl}
                 unoptimized
@@ -44,23 +100,9 @@ const ItemCardView = ({ viewItem, isPriority, onEdit, showEditButton = true }: I
                 priority={Boolean(isPriority && imageIndex === 0)}
                 className="object-cover rounded"
               />
-            </button>
+            </div>
           ))}
         </div>
-      )}
-
-      {!!viewItem.canEdit && showEditButton && (
-        <button
-          className="h-5 w-5 px-0.5 py-0.5 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1 absolute right-0 top-0 -translate-y-1/3 translate-x-1/3 flex items-center justify-center"
-          onClick={onEdit}
-          title="Edit item"
-        >
-          <Pencil size={16} />
-        </button>
-      )}
-
-      {isOpen && lightboxIndex !== null && (
-        <ImageLightbox urls={urls} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
       )}
     </div>
   )
