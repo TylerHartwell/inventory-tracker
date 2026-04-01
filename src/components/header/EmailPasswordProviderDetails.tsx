@@ -96,6 +96,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
             className="text-sm text-gray-300 p-2 hover:bg-gray-700 hover:text-white rounded disabled:opacity-50 hover-fine:outline-1 active:outline-1 cursor-pointer"
             onClick={() => setPasswordSetupFormVisible(true)}
             disabled={loading}
+            title="Set up or change password"
           >
             Set up or change password
           </button>
@@ -127,6 +128,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
               type="submit"
               className="text-sm border border-gray-500 rounded hover-fine:outline-1 active:outline-1 cursor-pointer px-2 py-1"
               disabled={loading || !newPassword}
+              title="Save password"
             >
               Save password
             </button>
@@ -139,13 +141,20 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
                 setNewEmail("")
               }}
               disabled={loading}
+              title="Cancel password setup"
             >
               Cancel
             </button>
           </form>
         )
       ) : !passwordChangeFormVisible ? (
-        <button type="button" className="text-sm text-blue-600 hover:underline" onClick={() => setPasswordChangeFormVisible(true)}>
+        <button
+          type="button"
+          className="text-sm text-blue-600 hover:underline"
+          onClick={() => setPasswordChangeFormVisible(true)}
+          disabled={loading}
+          title="Change password"
+        >
           Change password
         </button>
       ) : (
@@ -168,6 +177,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
               type="submit"
               disabled={!newPassword || loading}
               className="flex-1 rounded-md py-1 bg-blue-600 text-white text-xs font-medium disabled:opacity-50"
+              title="Save new password"
             >
               Save
             </button>
@@ -180,6 +190,7 @@ export function EmailPasswordProviderDetails({ userEmail, onErrorMessage }: Emai
               }}
               disabled={loading}
               className="flex-1 rounded-md py-1 bg-gray-200 text-gray-700 text-xs font-medium disabled:opacity-50"
+              title="Cancel"
             >
               Cancel
             </button>

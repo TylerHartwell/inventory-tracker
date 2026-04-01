@@ -34,6 +34,7 @@ function BulkDeleteControl({
               className="h-6 px-3 py-1 bg-red-500 text-white rounded hover-fine:outline-1 active:outline-1"
               onClick={onStartMultiSelect}
               disabled={!canStartMultiSelect}
+              title={!canStartMultiSelect ? "No items available to select for deletion" : "Start multi-select mode for deletion"}
             >
               <CopyX size={16} />
             </button>
@@ -44,6 +45,7 @@ function BulkDeleteControl({
               type="button"
               className="h-6 px-3 py-1 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1 flex items-center"
               onClick={onCancelMultiSelect}
+              title="Cancel multi-select mode"
             >
               Cancel
             </button>
@@ -52,6 +54,11 @@ function BulkDeleteControl({
               className="h-6 px-3 py-1 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50 flex items-center"
               onClick={onOpenBulkDeleteModal}
               disabled={eligibleSelectedCount === 0}
+              title={
+                eligibleSelectedCount === 0
+                  ? "No eligible items selected for deletion"
+                  : `Delete ${eligibleSelectedCount} selected item${eligibleSelectedCount > 1 ? "s" : ""}`
+              }
             >
               Delete {eligibleSelectedCount} Selected
             </button>

@@ -37,7 +37,12 @@ function ForgotPasswordModal({ initialEmail, onClose }: ForgotPasswordModalProps
             <h3 className="text-lg font-semibold mb-1">Check Your Email</h3>
             <p className="text-sm text-gray-300 mb-4">We sent a password reset link to {email}.</p>
             <div className="flex justify-end">
-              <button type="button" className="px-4 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onClose}>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1"
+                onClick={onClose}
+                title="Close password reset modal"
+              >
                 Close
               </button>
             </div>
@@ -58,13 +63,19 @@ function ForgotPasswordModal({ initialEmail, onClose }: ForgotPasswordModalProps
                 autoFocus
               />
               <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onClose}>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1"
+                  onClick={onClose}
+                  title="Cancel password reset"
+                >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
                   disabled={!email}
+                  title="Send password reset link"
                 >
                   Send Reset Link
                 </button>

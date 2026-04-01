@@ -156,6 +156,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
           type="button"
           className="self-start px-3 py-1 bg-gray-700 text-white rounded hover-fine:outline-1 active:outline-1"
           onClick={() => setShowUnsetFields(prev => !prev)}
+          title={showUnsetFields ? "Hide unset fields" : "Show unset fields"}
         >
           {showUnsetFields ? "Hide unset fields" : "Show unset fields"}
         </button>
@@ -201,6 +202,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
                 type="button"
                 className="px-4 py-2 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1"
                 onClick={() => setIsDeleteModalOpen(false)}
+                title="Cancel delete"
               >
                 Cancel
               </button>
@@ -211,6 +213,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
                   await onDeleteItem()
                   setIsDeleteModalOpen(false)
                 }}
+                title="Delete item"
               >
                 Delete
               </button>

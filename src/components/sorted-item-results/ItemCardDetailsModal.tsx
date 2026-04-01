@@ -61,7 +61,12 @@ const ItemCardDetailsModal = ({
                 <Pencil size={16} />
               </button>
             )}
-            <button type="button" className="px-3 py-1 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onClose}>
+            <button
+              type="button"
+              className="px-3 py-1 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1"
+              onClick={onClose}
+              title="Close details"
+            >
               Close
             </button>
           </div>
@@ -76,6 +81,7 @@ const ItemCardDetailsModal = ({
                 className="relative h-40 rounded cursor-zoom-in focus:outline-2 focus:outline-blue-400"
                 onClick={() => setDetailsLightboxIndex(imageIndex)}
                 aria-label={`View image ${imageIndex + 1} of ${displayItem.signedUrls.length}`}
+                title="View full image"
               >
                 <Image
                   src={signedUrl}

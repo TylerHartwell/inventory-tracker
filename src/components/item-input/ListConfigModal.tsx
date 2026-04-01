@@ -59,6 +59,7 @@ function ListConfigModal({
                 type="button"
                 onClick={() => onListLeave(configId)}
                 className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+                title="Leave list"
               >
                 🚪 Leave List
               </button>
@@ -70,6 +71,7 @@ function ListConfigModal({
           type="button"
           className="size-5 flex items-center justify-center absolute top-2 right-2 text-sm text-gray-400 hover-fine:outline-1 active:outline-1"
           onClick={() => onClose()}
+          title="Close settings"
         >
           <X />
         </button>

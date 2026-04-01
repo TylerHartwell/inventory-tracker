@@ -63,7 +63,7 @@ const ListOwnerNameManager = ({ currentList, isOwner, onFinish }: Props) => {
           className="flex-1 px-2 py-1 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring"
           autoFocus
         />
-        <button onClick={handleUpdateName} className="bg-blue-600 px-2 py-1 rounded hover:bg-blue-800">
+        <button onClick={handleUpdateName} className="bg-blue-600 px-2 py-1 rounded hover:bg-blue-800" title="Save list name">
           Save
         </button>
       </div>

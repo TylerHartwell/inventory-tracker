@@ -129,6 +129,7 @@ export function GoogleProviderDetails({ userEmail, onErrorMessage }: GoogleProvi
       onClick={handleClick}
       disabled={loading}
       className={`rounded-md px-2 py-1 text-xs font-medium disabled:opacity-50 ${linked ? "bg-gray-600 text-white" : "bg-blue-600 text-white"} hover-fine:outline-1 active:outline-1 cursor-pointer`}
+      title={linked ? "Unlink Google sign-in" : "Link Google sign-in"}
     >
       {linked ? "Unlink" : "Link"}
     </button>

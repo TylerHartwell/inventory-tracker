@@ -75,6 +75,7 @@ const ListOwnerUserManager = ({ configId, session, currentList, isOwner }: Props
           type="submit"
           disabled={!!inviteError}
           className={`bg-blue-500 text-white px-4 py-1 rounded ${inviteError ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          title="Send invite"
         >
           Invite
         </button>

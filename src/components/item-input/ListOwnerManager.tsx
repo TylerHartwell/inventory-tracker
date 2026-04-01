@@ -31,6 +31,7 @@ const ListOwnerManager = ({ configId, session, currentList, isOwner, onListDelet
             handleIsEditingName(true)
           }}
           className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+          title="Edit list name"
         >
           ✏️ Edit List Name
         </button>
@@ -52,6 +53,7 @@ const ListOwnerManager = ({ configId, session, currentList, isOwner, onListDelet
             setIsManagingUsers(true)
           }}
           className="w-full text-left bg-gray-800 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+          title="Manage users"
         >
           👥 Manage Users
         </button>
@@ -62,6 +64,7 @@ const ListOwnerManager = ({ configId, session, currentList, isOwner, onListDelet
         type="button"
         onClick={() => onListDelete(configId)}
         className="w-full text-left bg-red-700 px-2 py-1 rounded hover-fine:outline-1 active:outline-1"
+        title="Delete list"
       >
         🗑️ Delete List
       </button>

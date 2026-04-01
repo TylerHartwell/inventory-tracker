@@ -131,7 +131,7 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
                   </select>
                 </span>
 
-                <button onClick={() => handleDelete(user)} className="border border-red-500 rounded text-red-500 px-2 py-1">
+                <button onClick={() => handleDelete(user)} className="border border-red-500 rounded text-red-500 px-2 py-1" title="Remove member">
                   Remove
                 </button>
               </div>
@@ -163,7 +163,7 @@ export const MembersList = ({ listId, session }: MembersListProps) => {
                   </select>
                 </span>
 
-                <button onClick={() => handleDelete(user)} className="border border-red-500 rounded text-red-500 px-2 py-1">
+                <button onClick={() => handleDelete(user)} className="border border-red-500 rounded text-red-500 px-2 py-1" title="Cancel invite">
                   Cancel
                 </button>
               </div>

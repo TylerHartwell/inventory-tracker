@@ -22,10 +22,20 @@ function BulkDeleteModal({ selectedCount, onClose, onConfirm }: BulkDeleteModalP
             : `This will permanently delete ${selectedCount} items. This action cannot be undone.`}
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="px-4 py-2 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onClose}>
+          <button
+            type="button"
+            className="px-4 py-2 bg-gray-500 text-white rounded hover-fine:outline-1 active:outline-1"
+            onClick={onClose}
+            title="Cancel delete"
+          >
             Cancel
           </button>
-          <button type="button" className="px-4 py-2 bg-red-700 text-white rounded hover-fine:outline-1 active:outline-1" onClick={onConfirm}>
+          <button
+            type="button"
+            className="px-4 py-2 bg-red-700 text-white rounded hover-fine:outline-1 active:outline-1"
+            onClick={onConfirm}
+            title="Delete selected items"
+          >
             Delete Selected
           </button>
         </div>

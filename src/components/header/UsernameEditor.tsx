@@ -106,6 +106,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
             className={`px-2 py-1 rounded-md border border-gray-400 text-white font-medium focus:outline-none focus:ring-1 ${
               !isBlank && !spinning ? "bg-green-500 hover:bg-green-400" : "bg-gray-500 cursor-not-allowed"
             } `}
+            title="Save username"
           >
             <Check />
           </button>
@@ -117,6 +118,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
             className={`px-2 py-1 rounded-md border border-gray-400 text-white font-medium focus:outline-none focus:ring-1 ${
               !spinning ? "bg-gray-800 hover:bg-gray-600" : "bg-gray-700 cursor-not-allowed"
             } `}
+            title="Cancel"
           >
             <X />
           </button>
@@ -129,6 +131,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
             type="button"
             onClick={() => setEditing(true)}
             className="px-2 py-1 rounded-md border border-gray-400 text-white font-medium hover:bg-gray-500 focus:outline-none focus:ring-1"
+            title="Edit username"
           >
             <Pencil />
           </button>

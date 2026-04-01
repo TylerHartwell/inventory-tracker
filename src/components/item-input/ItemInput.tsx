@@ -120,7 +120,11 @@ export const ItemInput = ({
 
   return (
     <div className="flex flex-col gap-2 p-1 relative border-2">
-      <div className="relative flex items-center justify-end cursor-pointer" onClick={() => setIsExpanded(prev => !prev)}>
+      <div
+        className="relative flex items-center justify-end cursor-pointer"
+        onClick={() => setIsExpanded(prev => !prev)}
+        title={isExpanded ? "Collapse item input" : "Expand item input"}
+      >
         <h2 className="absolute left-1/2 -translate-x-1/2 text-md flex items-center gap-1">Item Input {!isExpanded && <Plus size={16} />}</h2>
         <button
           type="button"
@@ -129,6 +133,7 @@ export const ItemInput = ({
             setIsExpanded(prev => !prev)
           }}
           className="p-1 bg-gray-700 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+          title={isExpanded ? "Collapse item input" : "Expand item input"}
         >
           {isExpanded ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -178,6 +183,7 @@ export const ItemInput = ({
                   onClick={clear}
                   disabled={loading}
                   className="px-4 py-2 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+                  title="Clear input"
                 >
                   Clear
                 </button>
@@ -200,6 +206,7 @@ export const ItemInput = ({
                   onClick={handleSubmit}
                   disabled={loading}
                   className="relative px-4 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit cursor-pointer"
+                  title="Add item"
                 >
                   {/* Button label */}
                   <span className={loading ? "opacity-30" : ""}>Add Item</span>

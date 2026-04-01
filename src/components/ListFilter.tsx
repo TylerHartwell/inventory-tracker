@@ -38,6 +38,9 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
     onChange(allFiltered ? [null] : allIds)
   }
 
+  const allIds = [null, ...lists.map(l => l.id)]
+  const allFiltered = allIds.length > 0 && allIds.every(id => filteredListIds.includes(id))
+
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
       <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full h-full flex justify-between items-center min-w-0 cursor-pointer">
@@ -107,12 +110,9 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
               type="button"
               onClick={handleFilterAll}
               className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:outline-1 active:outline-1 bg-black text-white"
+              title={allFiltered ? `Only Show ${nullListName}` : "Include All"}
             >
-              {(() => {
-                const allIds = [null, ...lists.map(l => l.id)]
-                const allFiltered = allIds.length > 0 && allIds.every(id => filteredListIds.includes(id))
-                return allFiltered ? nullListName : "Include All"
-              })()}
+              {allFiltered ? nullListName : "Include All"}
             </button>
             <label className="flex gap-1 flex-wrap items-center justify-center cursor-pointer">
               <Switch.Root
@@ -120,6 +120,7 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
                 checked={followInputList}
                 onClick={onToggleFollowInputList}
                 className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500  flex justify-between cursor-pointer"
+                title={followInputList ? "Following input list - toggle to disable" : "Not following input list - toggle to enable"}
               >
                 <Switch.Thumb
                   className="h-full aspect-square inline-block rounded-full bg-white transition-transform duration-300 ease-in-out

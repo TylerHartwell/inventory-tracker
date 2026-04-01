@@ -98,6 +98,7 @@ export const ListInput = ({
          disabled:bg-gray-700 disabled:text-gray-400 
          disabled:cursor-not-allowed 
          transition-colors w-fit"
+          title="Create list"
         >
           Add
         </button>
@@ -107,6 +108,7 @@ export const ListInput = ({
           onClick={clear}
           disabled={loading}
           className="px-1 text-sm bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 w-fit"
+          title="Cancel"
         >
           Cancel
         </button>

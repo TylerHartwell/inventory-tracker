@@ -232,7 +232,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
   }
 
   const handleOpenDetails = () => {
-    if (isMultiSelectMode || isEditing) return
+    if (isEditing) return
 
     setIsDetailsOpen(true)
   }
@@ -255,7 +255,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
 
   return (
     <li
-      className={`border border-gray-300 rounded p-1${isGridMode ? " aspect-square w-full" : " mb-1"} flex items-center gap-2 relative`}
+      className={`border border-gray-300 rounded p-1${isGridMode ? " aspect-square w-full" : " mb-1"} flex items-center gap-2 relative cursor-pointer`}
       onClick={handleOpenDetails}
       onPointerDownCapture={() => {
         if (feedback) clearFeedback()
@@ -263,6 +263,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
       onKeyDownCapture={() => {
         if (feedback) clearFeedback()
       }}
+      title="View item details"
     >
       <div className={`flex-1 min-w-0${isGridMode ? " h-full" : ""}`}>
         {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
@@ -279,10 +280,11 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
           onClick={e => e.stopPropagation()}
           disabled={displayItem.canEdit === false}
           className="h-4 w-4 shrink-0 accent-blue-500 cursor-pointer disabled:cursor-not-allowed absolute right-0 top-0 -translate-y-1/3 translate-x-1/3"
+          title={isSelected ? "Deselect item" : "Select item"}
         />
       )}
 
-      {isDetailsOpen && !isMultiSelectMode && (
+      {isDetailsOpen && (
         <ItemCardDetailsModal
           displayItem={displayItem}
           isPriority={isPriority}
@@ -296,7 +298,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
         />
       )}
 
-      {isEditing && !isMultiSelectMode && (
+      {isEditing && (
         <ItemCardEditModal item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
       )}
     </li>

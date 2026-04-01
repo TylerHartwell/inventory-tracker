@@ -38,6 +38,7 @@ export const Header = ({ userEmail, onLogout }: HeaderProps) => {
               setIsOpen(true)
             }}
             className="relative rounded-lg px-2 py-1 font-medium bg-black hover:bg-gray-600 transition cursor-pointer"
+            title="User settings"
           >
             <Settings size={16} />
             {(hasInvites || (!hasPersistedUsername && !userProfile.loading)) && (

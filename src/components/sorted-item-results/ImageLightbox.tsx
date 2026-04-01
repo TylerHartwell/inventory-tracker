@@ -32,6 +32,7 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
         onClick={onClose}
         onPointerDown={e => e.stopPropagation()}
         aria-label="Close image viewer"
+        title="Close image viewer"
       >
         <X size={22} />
       </button>
@@ -43,6 +44,7 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
           onClick={() => onNavigate(index - 1)}
           onPointerDown={e => e.stopPropagation()}
           aria-label="Previous image"
+          title="View previous image"
         >
           <ChevronLeft size={48} />
         </button>
@@ -72,6 +74,7 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
           onClick={() => onNavigate(index + 1)}
           onPointerDown={e => e.stopPropagation()}
           aria-label="Next image"
+          title="View next image"
         >
           <ChevronRight size={48} />
         </button>

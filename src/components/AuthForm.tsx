@@ -106,6 +106,7 @@ const Auth = () => {
             onClick={() => handleOAuthSignIn("google")}
             className="w-full py-2 px-3 bg-white text-[#1f1f1f] border border-[#dadce0] rounded-md shadow-sm hover:bg-[#f8f9fa] active:bg-[#f1f3f4] transition disabled:opacity-50 flex items-center justify-center gap-2"
             disabled={loading}
+            title="Sign in with Google"
           >
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24">
               <path
@@ -161,6 +162,7 @@ const Auth = () => {
                 type="submit" // Default when pressing Enter
                 className="flex-1 py-2 bg-blue-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
                 disabled={loading || !email || !password}
+                title="Sign in with email and password"
               >
                 Sign In
               </button>
@@ -169,12 +171,18 @@ const Auth = () => {
                 onClick={() => handleAuth("signUp")}
                 className="flex-1 py-2 bg-green-600 text-white rounded hover-fine:outline-1 active:outline-1 disabled:opacity-50"
                 disabled={loading || !email || !password}
+                title="Sign up with email and password"
               >
                 Sign Up
               </button>
             </div>
             <div className="mt-2 text-center">
-              <button type="button" className="text-xs text-blue-400 hover:underline" onClick={() => setForgotPasswordOpen(true)}>
+              <button
+                type="button"
+                className="text-xs text-blue-400 hover:underline"
+                onClick={() => setForgotPasswordOpen(true)}
+                title="Forgot password?"
+              >
                 Forgot password?
               </button>
             </div>

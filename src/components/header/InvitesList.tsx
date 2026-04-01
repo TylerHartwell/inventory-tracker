@@ -46,10 +46,10 @@ export function InvitesList({ invitesState, spinning }: InvitesListProps) {
             <span>Role: {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}</span>
           </div>
           <span className="flex gap-2 text-md">
-            <button className="border rounded-full px-2 cursor-pointer" onClick={() => handleRespond(invite.id, "accepted")}>
+            <button className="border rounded-full px-2 cursor-pointer" onClick={() => handleRespond(invite.id, "accepted")} title="Accept invite">
               Accept
             </button>
-            <button className="border rounded-full px-2 cursor-pointer" onClick={() => handleRespond(invite.id, "declined")}>
+            <button className="border rounded-full px-2 cursor-pointer" onClick={() => handleRespond(invite.id, "declined")} title="Decline invite">
               Decline
             </button>
           </span>

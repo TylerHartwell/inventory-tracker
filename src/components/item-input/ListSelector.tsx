@@ -156,6 +156,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
                       setIsConfigOpen(true)
                     }}
                     className="py-1 hover-fine:outline-1 active:outline-1 px-2 flex justify-end"
+                    title="Configure list"
                   >
                     <Settings size={14} />
                   </button>

@@ -154,6 +154,7 @@ function ImageSelector({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        title="Click to select images or drag and drop images here"
       >
         {visibleExistingImages.length || selectedImages.length ? (
           <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
@@ -173,7 +174,7 @@ function ImageSelector({
                     event.stopPropagation()
                     handleRemoveExisting(existingImage.imageId)
                   }}
-                  className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded"
+                  className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded cursor-pointer"
                   title="Remove existing image"
                 >
                   <Trash2 size={12} />

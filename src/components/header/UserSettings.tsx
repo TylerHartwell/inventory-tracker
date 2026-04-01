@@ -40,6 +40,7 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
           <button
             onClick={() => onClose()}
             className="size-5 hover:bg-gray-500 text-center flex items-center justify-center transition cursor-pointer"
+            title="Close settings"
           >
             <X />
           </button>
@@ -53,7 +54,7 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
             <span className="relative flex gap-1 items-center justify-center">
               {hasInvites && <span className="absolute top-2 -left-3 w-1.75 h-1.75 bg-red-500 rounded-full border border-white"></span>}
               <span className="text-sm text-center text-nowrap">Pending Invites</span>
-              <button onClick={() => refreshInvites()} className="p-1 cursor-pointer disabled:opacity-50" disabled={spinning}>
+              <button onClick={() => refreshInvites()} className="p-1 cursor-pointer disabled:opacity-50" disabled={spinning} title="Refresh invites">
                 <RefreshCw size={16} className={spinning ? "animate-spin [animation-duration:600ms]" : ""} />
               </button>
             </span>
@@ -67,6 +68,7 @@ const UserSettings = ({ onLogout, onClose, invitesState, userProfile }: UserSett
               onClose()
             }}
             className="rounded-lg bg-red-500 px-4 py-2 w-max text-white hover:bg-red-600 transition cursor-pointer"
+            title="Log out"
           >
             Log Out
           </button>
