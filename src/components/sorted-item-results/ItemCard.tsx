@@ -1,12 +1,11 @@
-import Image from "next/image"
-import { Pencil, Images } from "lucide-react"
+import { Images } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Item, LocalItem } from "../ItemManager"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
 import ItemCardView from "./ItemCardView"
-import ItemCardForm from "./ItemCardForm"
-import ImageLightbox from "./ImageLightbox"
+import ItemCardDetailsModal from "./ItemCardDetailsModal"
+import ItemCardEditModal from "./ItemCardEditModal"
 import { supabase } from "@/supabase-client"
 
 interface ItemCardProps {
@@ -35,7 +34,6 @@ type FeedbackState = {
 export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSelected, onToggleSelect, isGridMode = false }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const [detailsLightboxIndex, setDetailsLightboxIndex] = useState<number | null>(null)
   const [displayItem, setDisplayItem] = useState(item)
   const [usernamesById, setUsernamesById] = useState<Record<string, string | null>>({})
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
@@ -75,6 +73,22 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
     return resolveUserLabel(displayItem.lastUpdatedBy, usernamesById)
   }, [displayItem.lastUpdatedBy, usernamesById])
 
+  const detailDisplayFields = useMemo(() => {
+    return detailFields.map(([key, value]) => ({
+      key,
+      label: key === "listId" ? "List Name" : toReadableLabel(key),
+      value: key === "listId" ? formatFieldValue(displayItem.listName) : formatFieldValue(value, key, usernamesById)
+    }))
+  }, [detailFields, displayItem.listName, usernamesById])
+
+  const createdAtDisplay = useMemo(() => {
+    return formatFieldValue(displayItem.createdAt, "createdAt", usernamesById)
+  }, [displayItem.createdAt, usernamesById])
+
+  const lastUpdatedAtDisplay = useMemo(() => {
+    return formatFieldValue(displayItem.lastUpdatedAt, "lastUpdatedAt", usernamesById)
+  }, [displayItem.lastUpdatedAt, usernamesById])
+
   useEffect(() => {
     const userIds = [...new Set(collectUserIds(displayItem))]
 
@@ -109,6 +123,28 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
       cancelled = true
     }
   }, [displayItem])
+
+  useEffect(() => {
+    if (!isDetailsOpen && !isEditing) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    const previousPaddingRight = document.body.style.paddingRight
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+
+    document.body.style.overflow = "hidden"
+
+    // Prevent layout shift when the vertical scrollbar disappears.
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.body.style.paddingRight = previousPaddingRight
+    }
+  }, [isDetailsOpen, isEditing])
 
   const handleCancelEdit = () => {
     setDisplayItem(item)
@@ -203,7 +239,6 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
 
   const handleCloseDetails = () => {
     setIsDetailsOpen(false)
-    setDetailsLightboxIndex(null)
   }
 
   const handleOpenEditModal = () => {
@@ -248,131 +283,21 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
       )}
 
       {isDetailsOpen && !isMultiSelectMode && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onPointerDown={e => {
-            if (e.target === e.currentTarget) {
-              handleCloseDetails()
-            }
-          }}
-        >
-          <div
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border rounded-xl bg-black p-3 text-white shadow-lg"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="mb-3 flex items-center justify-between border-b border-gray-700 pb-2">
-              <h3 className="text-lg font-semibold">Item Details</h3>
-              <div className="flex items-center gap-2">
-                {!!displayItem.canEdit && (
-                  <button
-                    type="button"
-                    className="h-8 w-8 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1 flex items-center justify-center"
-                    onClick={handleOpenEditModal}
-                    title="Edit item"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="px-3 py-1 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1"
-                  onClick={handleCloseDetails}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-
-            {displayItem.signedUrls.length > 0 && (
-              <div className="mb-4 grid grid-cols-2 gap-2">
-                {displayItem.signedUrls.map((signedUrl, imageIndex) => (
-                  <button
-                    key={`${displayItem.id}-${signedUrl}-${imageIndex}`}
-                    type="button"
-                    className="relative h-40 rounded cursor-zoom-in focus:outline-2 focus:outline-blue-400"
-                    onClick={() => setDetailsLightboxIndex(imageIndex)}
-                    aria-label={`View image ${imageIndex + 1} of ${displayItem.signedUrls.length}`}
-                  >
-                    <Image
-                      src={signedUrl}
-                      unoptimized
-                      alt="Item image"
-                      fill
-                      priority={Boolean(isPriority && imageIndex === 0)}
-                      className="object-cover rounded"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="grid gap-2">
-              <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
-                <p className="text-xs uppercase tracking-wide text-gray-300">Item Name</p>
-                <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{displayItem.itemName}</p>
-              </div>
-
-              {detailFields.map(([key, value]) => (
-                <div key={key} className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">{key === "listId" ? "List Name" : toReadableLabel(key)}</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
-                    {key === "listId" ? formatFieldValue(displayItem.listName) : formatFieldValue(value, key, usernamesById)}
-                  </p>
-                </div>
-              ))}
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Created At</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
-                    {formatFieldValue(displayItem.createdAt, "createdAt", usernamesById)}
-                  </p>
-                </div>
-                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Created By</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{createdByName}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Last Updated At</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">
-                    {formatFieldValue(displayItem.lastUpdatedAt, "lastUpdatedAt", usernamesById)}
-                  </p>
-                </div>
-                <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
-                  <p className="text-xs uppercase tracking-wide text-gray-300">Last Updated By</p>
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-all">{lastUpdatedByName}</p>
-                </div>
-              </div>
-            </div>
-
-            {detailsLightboxIndex !== null && (
-              <ImageLightbox
-                urls={displayItem.signedUrls}
-                index={detailsLightboxIndex}
-                onClose={() => setDetailsLightboxIndex(null)}
-                onNavigate={setDetailsLightboxIndex}
-              />
-            )}
-          </div>
-        </div>
+        <ItemCardDetailsModal
+          displayItem={displayItem}
+          isPriority={isPriority}
+          detailDisplayFields={detailDisplayFields}
+          createdAtDisplay={createdAtDisplay}
+          createdByName={createdByName}
+          lastUpdatedAtDisplay={lastUpdatedAtDisplay}
+          lastUpdatedByName={lastUpdatedByName}
+          onClose={handleCloseDetails}
+          onOpenEdit={handleOpenEditModal}
+        />
       )}
 
       {isEditing && !isMultiSelectMode && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onPointerDown={e => {
-            if (e.target === e.currentTarget) {
-              handleCancelEdit()
-            }
-          }}
-        >
-          <div className="w-full max-w-xl border rounded-xl bg-black p-3 shadow-lg" onClick={e => e.stopPropagation()}>
-            <ItemCardForm item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
-          </div>
-        </div>
+        <ItemCardEditModal item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
       )}
     </li>
   )
@@ -392,6 +317,10 @@ const formatFieldValue = (value: unknown, key?: string, usernamesById?: Record<s
 
   if (key && isUserIdField(key)) {
     return resolveUserLabel(value, usernamesById)
+  }
+
+  if (key && isDateOnlyField(key) && typeof value === "string") {
+    return formatDateOnly(value)
   }
 
   if (key && isTimestampField(key) && typeof value === "string") {
@@ -430,6 +359,10 @@ const isTimestampField = (key: string) => {
   return key.endsWith("At") || key.endsWith("Date")
 }
 
+const isDateOnlyField = (key: string) => {
+  return key.endsWith("Date")
+}
+
 const isUserIdField = (key: string) => {
   return key === "userId" || key.endsWith("UserId") || key.endsWith("By")
 }
@@ -447,6 +380,19 @@ const formatTimestamp = (rawValue: string) => {
   const min = parsed.getMinutes().toString().padStart(2, "0")
 
   return `${month} ${dd}, ${yyyy} ${hh}:${min}`
+}
+
+const formatDateOnly = (rawValue: string) => {
+  const parsed = new Date(rawValue)
+  if (Number.isNaN(parsed.getTime())) {
+    return rawValue
+  }
+
+  const month = parsed.toLocaleString("en-US", { month: "long" })
+  const dd = parsed.getDate().toString().padStart(2, "0")
+  const yyyy = parsed.getFullYear().toString().padStart(4, "0")
+
+  return `${month} ${dd}, ${yyyy}`
 }
 
 const collectUserIds = (item: LocalItem): string[] => {

@@ -1,0 +1,66 @@
+import { List } from "lucide-react"
+import Image from "next/image"
+import { LocalItem } from "../ItemManager"
+
+type ItemCardStackViewProps = {
+  viewItem: LocalItem
+  isPriority?: boolean
+}
+
+const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => {
+  const urls = viewItem.signedUrls
+
+  return (
+    <div className="relative">
+      <div className="flex items-start">
+        <p className="w-full text-base font-normal flex-1">{viewItem.itemName}</p>
+        <span className="opacity-60 pr-6 flex items-center">
+          <List size={16} />
+          <span className="ml-1">{viewItem.listName}</span>
+        </span>
+      </div>
+      {(viewItem.category?.trim() || viewItem.expirationDate) && (
+        <div className="mt-1 flex flex-wrap gap-1 text-xs text-gray-200">
+          {viewItem.category?.trim() && (
+            <span className="rounded border border-gray-600 bg-gray-900 px-2 py-0.5">Category: {viewItem.category.trim()}</span>
+          )}
+          {viewItem.expirationDate && (
+            <span className="rounded border border-gray-600 bg-gray-900 px-2 py-0.5">Expires: {formatStackDate(viewItem.expirationDate)}</span>
+          )}
+        </div>
+      )}
+      {viewItem.extraDetails && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{viewItem.extraDetails}</p>}
+      {urls.length > 0 && (
+        <div className="mb-2 grid grid-cols-2 gap-2">
+          {urls.map((signedUrl, imageIndex) => (
+            <div key={`${viewItem.id}-${signedUrl}-${imageIndex}`} className="relative h-32 w-auto rounded">
+              <Image
+                src={signedUrl}
+                unoptimized
+                alt="Item image"
+                fill
+                priority={Boolean(isPriority && imageIndex === 0)}
+                className="object-cover rounded"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const formatStackDate = (rawValue: string) => {
+  const parsed = new Date(rawValue)
+  if (Number.isNaN(parsed.getTime())) {
+    return rawValue
+  }
+
+  return parsed.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  })
+}
+
+export default ItemCardStackView
