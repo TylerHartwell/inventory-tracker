@@ -141,7 +141,15 @@ function ImageSelector({
 
   return (
     <div className="w-full flex flex-col gap-2 relative justify-center items-center">
-      <input type="file" multiple accept="image/*" ref={fileInputRef} onChange={handleFileInputChange} className="hidden" />
+      <input
+        type="file"
+        multiple
+        accept="image/*, application/pdf"
+        ref={fileInputRef}
+        onChange={handleFileInputChange}
+        capture="environment"
+        className="hidden"
+      />
 
       <div
         role="button"
