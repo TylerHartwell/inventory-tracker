@@ -12,6 +12,9 @@ const ItemCardGridView = ({ viewItem, isPriority }: ItemCardGridViewProps) => {
   const gridTitleFrameRef = useRef<HTMLParagraphElement>(null)
   const gridTitleTextRef = useRef<HTMLSpanElement>(null)
   const urls = viewItem.signedUrls
+  const heroUrl = urls[0]
+  const isBlobUrl = Boolean(heroUrl?.startsWith("blob:"))
+  const isLocalDevUrl = Boolean(heroUrl?.startsWith("http://127.0.0.1:") || heroUrl?.startsWith("http://localhost:"))
 
   useEffect(() => {
     const frame = gridTitleFrameRef.current
@@ -50,7 +53,17 @@ const ItemCardGridView = ({ viewItem, isPriority }: ItemCardGridViewProps) => {
     <div className="relative h-full w-full">
       {urls.length > 0 && (
         <div className="absolute inset-0 rounded overflow-hidden">
-          <Image src={urls[0]!} unoptimized alt="Item image" fill priority={isPriority} className="object-cover object-center rounded" />
+          <Image
+            src={heroUrl!}
+            unoptimized={isBlobUrl || isLocalDevUrl}
+            alt="Item image"
+            fill
+            priority={isPriority}
+            loading={isPriority ? "eager" : "lazy"}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={25}
+            className="object-cover object-center rounded"
+          />
         </div>
       )}
       <p

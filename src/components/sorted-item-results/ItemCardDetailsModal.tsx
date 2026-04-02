@@ -85,10 +85,15 @@ const ItemCardDetailsModal = ({
               >
                 <Image
                   src={signedUrl}
-                  unoptimized
+                  unoptimized={
+                    signedUrl.startsWith("blob:") || signedUrl.startsWith("http://127.0.0.1:") || signedUrl.startsWith("http://localhost:")
+                  }
                   alt="Item image"
                   fill
                   priority={Boolean(isPriority && imageIndex === 0)}
+                  loading={isPriority && imageIndex === 0 ? "eager" : "lazy"}
+                  sizes="(max-width: 640px) 50vw, 320px"
+                  quality={70}
                   className="object-cover rounded"
                 />
               </button>

@@ -1,5 +1,6 @@
 import { Images } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import useDeepCompare from "@/hooks/useDeepCompare"
 import { Item, LocalItem } from "../ItemManager"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
@@ -30,6 +31,9 @@ type FeedbackState = {
   tone: FeedbackTone
   message: string
 }
+
+const usernamesCache = new Map<string, string | null>()
+const pendingUsernameLoads = new Map<string, Promise<void>>()
 
 export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSelected, onToggleSelect, isGridMode = false }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
@@ -89,32 +93,77 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
     return formatFieldValue(displayItem.lastUpdatedAt, "lastUpdatedAt", usernamesById)
   }, [displayItem.lastUpdatedAt, usernamesById])
 
-  useEffect(() => {
-    const userIds = [...new Set(collectUserIds(displayItem))]
+  const userIds = useDeepCompare(useMemo(() => [...new Set(collectUserIds(displayItem))], [displayItem]))
 
+  useEffect(() => {
     if (userIds.length === 0) {
       return
     }
 
     let cancelled = false
 
+    const mapFromCache = () => {
+      const nextMap: Record<string, string | null> = {}
+      for (const id of userIds) {
+        if (usernamesCache.has(id)) {
+          nextMap[id] = usernamesCache.get(id) ?? null
+        }
+      }
+      return nextMap
+    }
+
     const loadUsernames = async () => {
-      const { data, error } = await supabase.from("profiles").select("id, username").in("id", userIds)
+      setUsernamesById(mapFromCache())
 
-      if (cancelled) return
+      const missingIds = userIds.filter(id => !usernamesCache.has(id))
 
-      if (error || !data) {
-        console.error("Failed to load usernames for item details:", error)
-        setUsernamesById({})
+      if (missingIds.length === 0) {
         return
       }
 
-      const nextMap: Record<string, string | null> = {}
-      for (const profile of data) {
-        nextMap[profile.id] = profile.username
+      const idsToFetch = missingIds.filter(id => !pendingUsernameLoads.has(id))
+
+      if (idsToFetch.length > 0) {
+        const requestPromise = (async () => {
+          const { data, error } = await supabase.from("profiles").select("id, username").in("id", idsToFetch)
+
+          if (error || !data) {
+            console.error("Failed to load usernames for item details:", error)
+            return
+          }
+
+          const foundIds = new Set<string>()
+
+          for (const profile of data) {
+            usernamesCache.set(profile.id, profile.username)
+            foundIds.add(profile.id)
+          }
+
+          for (const id of idsToFetch) {
+            if (!foundIds.has(id)) {
+              usernamesCache.set(id, null)
+            }
+          }
+        })()
+
+        for (const id of idsToFetch) {
+          pendingUsernameLoads.set(id, requestPromise)
+        }
+
+        requestPromise.finally(() => {
+          for (const id of idsToFetch) {
+            pendingUsernameLoads.delete(id)
+          }
+        })
       }
 
-      setUsernamesById(nextMap)
+      await Promise.all(missingIds.map(id => pendingUsernameLoads.get(id)))
+
+      if (cancelled) {
+        return
+      }
+
+      setUsernamesById(mapFromCache())
     }
 
     loadUsernames()
@@ -122,7 +171,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
     return () => {
       cancelled = true
     }
-  }, [displayItem])
+  }, [userIds])
 
   useEffect(() => {
     if (!isDetailsOpen && !isEditing) {
