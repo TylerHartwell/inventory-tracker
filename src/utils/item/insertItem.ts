@@ -38,7 +38,8 @@ export const insertItem = async ({
     imageUrls: [],
     imageIds: [],
     signedUrls: [],
-    listName: lists?.name ?? nullListName
+    listName: lists?.name ?? nullListName,
+    canEdit: true
   }
 
   if (itemImages.length) {

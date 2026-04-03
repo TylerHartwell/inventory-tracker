@@ -17,7 +17,7 @@ interface ItemCardEditModalProps {
 const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit }: ItemCardEditModalProps) => {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
       onPointerDown={e => {
         if (e.target === e.currentTarget) {
           onCancelEdit()

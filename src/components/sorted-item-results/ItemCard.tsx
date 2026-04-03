@@ -8,6 +8,7 @@ import ItemCardView from "./ItemCardView"
 import ItemCardDetailsModal from "./ItemCardDetailsModal"
 import ItemCardEditModal from "./ItemCardEditModal"
 import { supabase } from "@/supabase-client"
+import { generateSignedUrls } from "@/utils/generateSignedUrl"
 
 interface ItemCardProps {
   item: LocalItem
@@ -16,6 +17,13 @@ interface ItemCardProps {
   isMultiSelectMode: boolean
   isSelected: boolean
   onToggleSelect: (id: string) => void
+  isDetailsOpen: boolean
+  hasPreviousItem: boolean
+  hasNextItem: boolean
+  onOpenDetails: () => void
+  onCloseDetails: () => void
+  onOpenPreviousDetails: () => void
+  onOpenNextDetails: () => void
   isGridMode?: boolean
 }
 
@@ -35,13 +43,31 @@ type FeedbackState = {
 const usernamesCache = new Map<string, string | null>()
 const pendingUsernameLoads = new Map<string, Promise<void>>()
 
-export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSelected, onToggleSelect, isGridMode = false }: ItemCardProps) => {
+export const ItemCard = ({
+  item,
+  isPriority,
+  onDelete,
+  isMultiSelectMode,
+  isSelected,
+  onToggleSelect,
+  isDetailsOpen,
+  hasPreviousItem,
+  hasNextItem,
+  onOpenDetails,
+  onCloseDetails,
+  onOpenPreviousDetails,
+  onOpenNextDetails,
+  isGridMode = false
+}: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [displayItem, setDisplayItem] = useState(item)
   const [usernamesById, setUsernamesById] = useState<Record<string, string | null>>({})
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
   const clearFeedback = () => setFeedback(null)
+
+  useEffect(() => {
+    setDisplayItem(item)
+  }, [item])
 
   const detailFields = useMemo(() => {
     const hiddenKeys = new Set([
@@ -179,19 +205,11 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
     }
 
     const previousOverflow = document.body.style.overflow
-    const previousPaddingRight = document.body.style.paddingRight
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
 
     document.body.style.overflow = "hidden"
 
-    // Prevent layout shift when the vertical scrollbar disappears.
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`
-    }
-
     return () => {
       document.body.style.overflow = previousOverflow
-      document.body.style.paddingRight = previousPaddingRight
     }
   }, [isDetailsOpen, isEditing])
 
@@ -258,7 +276,7 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
     setDisplayItem(optimisticItem)
     clearFeedback()
     setIsEditing(false)
-    setIsDetailsOpen(false)
+    onCloseDetails()
 
     const { data: updatedItem, error } = await updateItem({
       itemId: item.id,
@@ -280,18 +298,23 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
     setDisplayItem({ ...updatedItem, canEdit: item.canEdit })
   }
 
-  const handleOpenDetails = () => {
+  const handleOpenDetails = async () => {
     if (isEditing) return
 
-    setIsDetailsOpen(true)
-  }
+    if (displayItem.imageUrls.length > 0) {
+      const refreshedSignedUrls = await generateSignedUrls(displayItem.imageUrls)
 
-  const handleCloseDetails = () => {
-    setIsDetailsOpen(false)
+      setDisplayItem(prev => ({
+        ...prev,
+        signedUrls: refreshedSignedUrls
+      }))
+    }
+
+    onOpenDetails()
   }
 
   const handleOpenEditModal = () => {
-    handleCloseDetails()
+    onCloseDetails()
     clearFeedback()
     setIsEditing(true)
   }
@@ -342,7 +365,11 @@ export const ItemCard = ({ item, isPriority, onDelete, isMultiSelectMode, isSele
           createdByName={createdByName}
           lastUpdatedAtDisplay={lastUpdatedAtDisplay}
           lastUpdatedByName={lastUpdatedByName}
-          onClose={handleCloseDetails}
+          hasPreviousItem={hasPreviousItem}
+          hasNextItem={hasNextItem}
+          onPreviousItem={onOpenPreviousDetails}
+          onNextItem={onOpenNextDetails}
+          onClose={onCloseDetails}
           onOpenEdit={handleOpenEditModal}
         />
       )}
