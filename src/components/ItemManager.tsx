@@ -14,7 +14,7 @@ import useSessionStorage from "@/hooks/useSessionStorage"
 import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
 import BulkDeleteControl from "./BulkDeleteControl"
-import { LayoutGrid, LayoutList } from "lucide-react"
+import DisplayControl from "./DisplayControl"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -54,7 +54,8 @@ const SESSION_KEYS = {
   followInputList: "followInputList",
   sortAsc: "sortAsc",
   displayMode: "displayMode",
-  gridColumns: "gridColumns"
+  gridColumns: "gridColumns",
+  showUnsetItemFields: "showUnsetItemFields"
 } as const
 
 export type SessionKey = (typeof SESSION_KEYS)[keyof typeof SESSION_KEYS]
@@ -66,6 +67,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const [displayMode, setDisplayMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.displayMode, "stack", session.user.id)
   const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
+  const [showUnsetItemFields, setShowUnsetItemFields] = useSessionStorage<boolean>(SESSION_KEYS.showUnsetItemFields, false, session.user.id)
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
@@ -116,6 +118,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       setFilteredListIds([listId])
     }
   }
+
   const handleToggleFollowInputList = () => {
     setFollowInputList(!followInputList)
     if (!followInputList) {
@@ -205,53 +208,12 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
       </div>
       <div className="flex gap-2">
-        <div className="border border-gray-300 rounded flex flex-1 items-center gap-2 text-sm">
-          <label className="flex items-center gap-1 pl-2">
-            Display
-            <span aria-hidden="true" className="text-gray-600">
-              {displayMode === "grid" ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
-            </span>
-            <select
-              value={displayMode}
-              name="display-mode"
-              onChange={e => setDisplayMode(e.target.value as "stack" | "grid")}
-              className="h-7 rounded border border-gray-300 bg-black  text-sm text-white"
-              title="Display mode"
-            >
-              <option value="stack" className="bg-black text-white">
-                Stack
-              </option>
-              <option value="grid" className="bg-black text-white">
-                Grid
-              </option>
-            </select>
-          </label>
-          {displayMode === "grid" && (
-            <label className="text-xs text-gray-600 flex items-center gap-1">
-              Cols
-              <select
-                value={gridColumns}
-                name="grid-cols"
-                onChange={e => setGridColumns(Number(e.target.value) as 1 | 2 | 3 | 4)}
-                className="h-7 rounded border border-gray-300 bg-black text-sm text-white"
-                title="Grid columns"
-              >
-                <option value={1} className="bg-black text-white">
-                  1
-                </option>
-                <option value={2} className="bg-black text-white">
-                  2
-                </option>
-                <option value={3} className="bg-black text-white">
-                  3
-                </option>
-                <option value={4} className="bg-black text-white">
-                  4
-                </option>
-              </select>
-            </label>
-          )}
-        </div>
+        <DisplayControl
+          displayMode={displayMode}
+          gridColumns={gridColumns}
+          onDisplayModeChange={setDisplayMode}
+          onGridColumnsChange={setGridColumns}
+        />
         <div className="flex-1 min-w-0">
           <BulkDeleteControl
             isMultiSelectMode={isMultiSelectMode}
@@ -276,6 +238,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onToggleSelectedItem={handleToggleSelectedItem}
         displayMode={displayMode}
         gridColumns={gridColumns}
+        showUnsetItemFields={showUnsetItemFields}
+        onShowUnsetItemFieldsChange={setShowUnsetItemFields}
       />
       <ScrollToTopBtn />
 

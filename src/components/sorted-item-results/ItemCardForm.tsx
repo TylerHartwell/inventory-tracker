@@ -9,9 +9,11 @@ interface ItemCardFormProps {
   onSubmit: (updates: ItemUpdateBundle) => Promise<void>
   onCancelEdit: () => void
   onDeleteItem: () => Promise<void>
+  showUnsetFields: boolean
+  onShowUnsetFieldsChange: (value: boolean) => void
 }
 
-const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFormProps) => {
+const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem, showUnsetFields, onShowUnsetFieldsChange }: ItemCardFormProps) => {
   const initialFormItem = {
     itemName: item.itemName,
     extraDetails: item.extraDetails,
@@ -25,7 +27,6 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
   const [formItem, setFormItem] = useState(initialFormItem)
   const [isChangingImage, setIsChangingImage] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [showUnsetFields, setShowUnsetFields] = useState(false)
 
   const hasExistingImages = item.signedUrls.length > 0
   const hadExtraDetails = Boolean((item.extraDetails ?? "").trim())
@@ -52,7 +53,6 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
 
   const handleCancelEdit = () => {
     setFormItem(initialFormItem)
-    setShowUnsetFields(false)
     onCancelEdit()
   }
 
@@ -155,7 +155,7 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem }: ItemCardFo
         <button
           type="button"
           className="self-start px-3 py-1 bg-gray-700 text-white rounded hover-fine:outline-1 active:outline-1"
-          onClick={() => setShowUnsetFields(prev => !prev)}
+          onClick={() => onShowUnsetFieldsChange(!showUnsetFields)}
           title={showUnsetFields ? "Hide unset fields" : "Show unset fields"}
         >
           {showUnsetFields ? "Hide unset fields" : "Show unset fields"}

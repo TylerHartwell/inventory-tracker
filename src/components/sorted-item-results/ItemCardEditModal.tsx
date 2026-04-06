@@ -12,9 +12,11 @@ interface ItemCardEditModalProps {
   onCancelEdit: () => void
   onDeleteItem: () => Promise<void>
   onSubmit: ({ updatedFields, itemImages, deletedImageIds }: ItemUpdateBundle) => Promise<void>
+  showUnsetFields: boolean
+  onShowUnsetFieldsChange: (value: boolean) => void
 }
 
-const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit }: ItemCardEditModalProps) => {
+const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit, showUnsetFields, onShowUnsetFieldsChange }: ItemCardEditModalProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
@@ -25,7 +27,14 @@ const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit }: ItemC
       }}
     >
       <div className="w-full max-w-xl border rounded-xl bg-black p-3 shadow-lg" onClick={e => e.stopPropagation()}>
-        <ItemCardForm item={item} onCancelEdit={onCancelEdit} onDeleteItem={onDeleteItem} onSubmit={onSubmit} />
+        <ItemCardForm
+          item={item}
+          onCancelEdit={onCancelEdit}
+          onDeleteItem={onDeleteItem}
+          onSubmit={onSubmit}
+          showUnsetFields={showUnsetFields}
+          onShowUnsetFieldsChange={onShowUnsetFieldsChange}
+        />
       </div>
     </div>
   )

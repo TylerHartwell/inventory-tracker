@@ -25,6 +25,8 @@ interface ItemCardProps {
   onOpenPreviousDetails: () => void
   onOpenNextDetails: () => void
   isGridMode?: boolean
+  showUnsetItemFields: boolean
+  onShowUnsetItemFieldsChange: (value: boolean) => void
 }
 
 export type ItemUpdateBundle = {
@@ -57,7 +59,9 @@ export const ItemCard = ({
   onCloseDetails,
   onOpenPreviousDetails,
   onOpenNextDetails,
-  isGridMode = false
+  isGridMode = false,
+  showUnsetItemFields,
+  onShowUnsetItemFieldsChange
 }: ItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [displayItem, setDisplayItem] = useState(item)
@@ -375,7 +379,14 @@ export const ItemCard = ({
       )}
 
       {isEditing && (
-        <ItemCardEditModal item={displayItem} onCancelEdit={handleCancelEdit} onDeleteItem={handleDeleteItem} onSubmit={handleUpdateItem} />
+        <ItemCardEditModal
+          item={displayItem}
+          onCancelEdit={handleCancelEdit}
+          onDeleteItem={handleDeleteItem}
+          onSubmit={handleUpdateItem}
+          showUnsetFields={showUnsetItemFields}
+          onShowUnsetFieldsChange={onShowUnsetItemFieldsChange}
+        />
       )}
     </li>
   )

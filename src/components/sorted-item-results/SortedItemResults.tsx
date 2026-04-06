@@ -14,6 +14,8 @@ interface Props {
   onToggleSelectedItem: (id: string) => void
   displayMode: "stack" | "grid"
   gridColumns: 1 | 2 | 3 | 4
+  showUnsetItemFields: boolean
+  onShowUnsetItemFieldsChange: (value: boolean) => void
 }
 
 const SortedItemResults = ({
@@ -25,7 +27,9 @@ const SortedItemResults = ({
   selectedItemIds,
   onToggleSelectedItem,
   displayMode,
-  gridColumns
+  gridColumns,
+  showUnsetItemFields,
+  onShowUnsetItemFieldsChange
 }: Props) => {
   const [openDetailsItemId, setOpenDetailsItemId] = useState<string | null>(null)
   const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
@@ -81,6 +85,8 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
+                showUnsetItemFields={showUnsetItemFields}
+                onShowUnsetItemFieldsChange={onShowUnsetItemFieldsChange}
               />
             ))}
           </>
@@ -107,6 +113,8 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
+                showUnsetItemFields={showUnsetItemFields}
+                onShowUnsetItemFieldsChange={onShowUnsetItemFieldsChange}
               />
             ))}
           </>
