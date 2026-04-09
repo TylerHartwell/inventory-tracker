@@ -186,7 +186,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   }
 
   return (
-    <div className="max-w-xl mx-auto p-2 flex flex-col gap-2 ">
+    // max-w starts at 100% on small screens until md breakpoint of 768px, then linearly scales to 5/6 of the screen width at lg breakpoint of 1024px, and remains at 5/6 on larger screens
+    <div className="max-w-[clamp((100%*5/6),calc(100%-((100vw-768px)/(1024px-768px))*(100%-(100%*5/6))),100%)] mx-auto p-2 flex flex-col gap-2 ">
       <Header userEmail={session.user.email ?? ""} onLogout={onLogout} />
       <ItemInput
         session={session}

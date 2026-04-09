@@ -12,7 +12,7 @@ type DisplayControlProps = {
 
 function DisplayControl({ displayMode, gridColumns, onDisplayModeChange, onGridColumnsChange }: DisplayControlProps) {
   return (
-    <div className="border border-gray-300 rounded flex flex-1 items-center gap-2 text-sm">
+    <div className=" rounded flex flex-1 items-center gap-2 text-sm">
       <label className="flex items-center gap-1 pl-2">
         Display
         <span aria-hidden="true" className="text-gray-600">

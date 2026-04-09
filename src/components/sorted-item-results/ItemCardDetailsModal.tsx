@@ -78,7 +78,7 @@ const ItemCardDetailsModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/80  pt-4 cursor-default"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80  pt-4 cursor-default"
       onClick={e => e.stopPropagation()}
       onPointerDown={e => {
         if (e.target === e.currentTarget) {
@@ -105,7 +105,7 @@ const ItemCardDetailsModal = ({
 
       <div
         ref={modalScrollRef}
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto pl-3 [scrollbar-gutter:stable] border rounded-xl bg-black  text-white shadow-lg"
+        className="w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto pl-3 [scrollbar-gutter:stable] border rounded-xl bg-black  text-white shadow-lg"
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 z-20  flex items-center justify-between border-b border-gray-700 bg-black p-2">
@@ -216,7 +216,7 @@ const ItemCardDetailsModal = ({
       {hasNextItem && detailsLightboxIndex === null && (
         <button
           type="button"
-          className="absolute top-1/2 right-2 -translate-y-1/2 z-10 text-white rounded-full flex items-center justify-center hover-fine:scale-110 active:scale-110 transition-transform cursor-pointer"
+          className="absolute top-1/2 -right-1 -translate-y-1/2 z-10 text-white rounded-full flex items-center justify-center hover-fine:scale-110 active:scale-110 transition-transform cursor-pointer"
           onClick={e => {
             e.stopPropagation()
             onNextItem()

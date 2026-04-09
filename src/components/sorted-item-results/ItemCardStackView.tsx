@@ -12,11 +12,11 @@ const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => 
 
   return (
     <div className="relative">
-      <div className="flex items-start">
-        <p className="w-full text-base font-normal flex-1">{viewItem.itemName}</p>
-        <span className="opacity-60 pr-6 flex items-center">
-          <List size={16} />
-          <span className="ml-1">{viewItem.listName}</span>
+      <div className="flex items-between">
+        <p className="text-base font-normal flex-2">{viewItem.itemName}</p>
+        <span className="opacity-60 ml-4 pr-2 flex items-center justify-end  flex-1">
+          <span className="ml-1 text-xs text-right text-balance">{viewItem.listName}</span>
+          <List size={16} className="shrink-0 " />
         </span>
       </div>
       {(viewItem.category?.trim() || viewItem.expirationDate) && (
