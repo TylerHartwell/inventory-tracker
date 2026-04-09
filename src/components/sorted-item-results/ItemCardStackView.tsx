@@ -1,4 +1,4 @@
-import { List } from "lucide-react"
+import { Images, List } from "lucide-react"
 import Image from "next/image"
 import { LocalItem } from "../ItemManager"
 
@@ -9,6 +9,8 @@ type ItemCardStackViewProps = {
 
 const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => {
   const urls = viewItem.signedUrls
+  const visibleUrls = urls.slice(0, 4)
+  const hasMoreImages = urls.length > 4
 
   return (
     <div className="relative">
@@ -30,9 +32,9 @@ const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => 
         </div>
       )}
       {viewItem.extraDetails && <p className="w-full text-base font-normal whitespace-pre-line max-h-30 overflow-y-auto">{viewItem.extraDetails}</p>}
-      {urls.length > 0 && (
-        <div className="mb-2 grid grid-cols-2 gap-2">
-          {urls.map((signedUrl, imageIndex) => (
+      {visibleUrls.length > 0 && (
+        <div className="mb-2 grid grid-cols-2 gap-2 relative">
+          {visibleUrls.map((signedUrl, imageIndex) => (
             <div key={`${viewItem.id}-${signedUrl}-${imageIndex}`} className="relative h-32 w-auto rounded">
               <Image
                 src={signedUrl}
@@ -43,10 +45,11 @@ const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => 
                 loading={isPriority && imageIndex === 0 ? "eager" : "lazy"}
                 sizes="(max-width: 640px) 50vw, 160px"
                 quality={70}
-                className="object-cover rounded"
+                className="object-contain rounded"
               />
             </div>
           ))}
+          {hasMoreImages && <Images size={20} className="absolute bottom-1 right-1 bg-black/30 rounded p-1 text-white pointer-events-none" />}
         </div>
       )}
     </div>

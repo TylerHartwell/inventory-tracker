@@ -166,7 +166,7 @@ const ItemCardDetailsModal = ({
                     loading={isPriority && imageIndex === 0 ? "eager" : "lazy"}
                     sizes="(max-width: 640px) 50vw, 320px"
                     quality={70}
-                    className="object-cover rounded"
+                    className="object-contain rounded"
                   />
                 </button>
               ))}

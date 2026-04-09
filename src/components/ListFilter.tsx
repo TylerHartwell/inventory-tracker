@@ -72,6 +72,38 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
           side="bottom"
           className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width) max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto"
         >
+          <div className="text-center">Choose List(s) to View</div>
+          <div className="flex justify-between  items-center p-1">
+            <button
+              type="button"
+              onClick={handleFilterAll}
+              className=" border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer hover-fine:outline-1 active:outline-1 bg-black text-white"
+              title={allFiltered ? `Only Show ${nullListName}` : "Include All"}
+            >
+              {allFiltered ? nullListName : "Include All"}
+            </button>
+            <label className="flex gap-1 flex-wrap items-center justify-center cursor-pointer">
+              <span className="text-xs select-none text-center">Follow Item Input List Change</span>
+              <Switch.Root
+                id="follow-input-list"
+                checked={followInputList}
+                onClick={onToggleFollowInputList}
+                className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 flex items-center justify-between cursor-pointer"
+                title={followInputList ? "Following input list - toggle to disable" : "Not following input list - toggle to enable"}
+              >
+                <Switch.Thumb
+                  className="h-full aspect-square inline-block rounded-full bg-white transition-transform duration-300 ease-in-out
+        translate-x-0 data-[state=checked]:translate-x-5 "
+                />
+                <span
+                  className="h-full text-[8px] leading-none grow flex items-center justify-center transition-transform duration-300 ease-in-out 
+        translate-y-[0.5px] translate-x-0 group-data-[state=checked]:-translate-x-4 "
+                >
+                  {followInputList ? "ON" : "OFF"}
+                </span>
+              </Switch.Root>
+            </label>
+          </div>
           <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
             <label className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer">
               <input
@@ -105,38 +137,6 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
               </DropdownMenu.Item>
             ))
           )}
-
-          <div className="flex justify-between  items-center p-1">
-            <button
-              type="button"
-              onClick={handleFilterAll}
-              className=" border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer hover-fine:outline-1 active:outline-1 bg-black text-white"
-              title={allFiltered ? `Only Show ${nullListName}` : "Include All"}
-            >
-              {allFiltered ? nullListName : "Include All"}
-            </button>
-            <label className="flex gap-1 flex-wrap items-center justify-center cursor-pointer">
-              <Switch.Root
-                id="follow-input-list"
-                checked={followInputList}
-                onClick={onToggleFollowInputList}
-                className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500  flex justify-between cursor-pointer"
-                title={followInputList ? "Following input list - toggle to disable" : "Not following input list - toggle to enable"}
-              >
-                <Switch.Thumb
-                  className="h-full aspect-square inline-block rounded-full bg-white transition-transform duration-300 ease-in-out
-        translate-x-0 data-[state=checked]:translate-x-5 "
-                />
-                <span
-                  className="text-[8px] grow flex items-center justify-center transition-transform duration-300 ease-in-out
-        translate-x-0 group-data-[state=checked]:-translate-x-4 "
-                >
-                  {followInputList ? "ON" : "OFF"}
-                </span>
-              </Switch.Root>
-              <span className="text-[12px] select-none text-center">Follow Input List</span>
-            </label>
-          </div>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
