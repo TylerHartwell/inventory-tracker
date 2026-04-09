@@ -22,7 +22,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
   const [isCreating, setIsCreating] = useState(false)
   const [configId, setConfigId] = useState<string | null>(null)
   const [isConfigOpen, setIsConfigOpen] = useState(false)
-  const { open, setOpen, ref: contentRef } = useOutsidePointerDownClose<HTMLDivElement>()
+  const { open, setOpen, ref: contentRef } = useOutsidePointerDownClose<HTMLDivElement>({ closeOnScroll: true })
   const inputRef = useRef<HTMLInputElement>(null)
   const { lists, loading, error, refreshLists } = userLists
 
@@ -102,8 +102,12 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
 
             <DropdownMenu.Content
               ref={contentRef}
+              avoidCollisions
+              collisionPadding={8}
               align="start"
-              className="z-50 bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width)"
+              sideOffset={4}
+              side="bottom"
+              className="z-50 bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width) max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto"
             >
               {isCreating ? (
                 <DropdownMenu.Item asChild>

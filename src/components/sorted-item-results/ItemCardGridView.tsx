@@ -50,7 +50,7 @@ const ItemCardGridView = ({ viewItem, isPriority }: ItemCardGridViewProps) => {
   }, [viewItem.itemName])
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative isolate h-full w-full">
       {urls.length > 0 && (
         <div className="absolute inset-0 rounded overflow-hidden">
           <Image

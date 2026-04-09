@@ -15,7 +15,7 @@ interface ListFilterProps {
 }
 
 export function ListFilter({ filteredListIds, onChange, selectedListId, userLists, followInputList, onToggleFollowInputList }: ListFilterProps) {
-  const { open, setOpen, ref } = useOutsidePointerDownClose<HTMLDivElement>()
+  const { open, setOpen, ref } = useOutsidePointerDownClose<HTMLDivElement>({ closeOnScroll: true })
 
   const { lists, loading, error } = userLists
 
@@ -65,11 +65,12 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           ref={ref}
-          avoidCollisions={false}
+          avoidCollisions
+          collisionPadding={8}
           align="start"
-          sideOffset={0}
+          sideOffset={4}
           side="bottom"
-          className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width)"
+          className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width) max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto"
         >
           <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
             <label className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer">

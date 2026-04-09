@@ -8,7 +8,7 @@ interface SortOrderSelectProps {
 }
 
 export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => {
-  const { open, setOpen, ref } = useOutsidePointerDownClose<HTMLDivElement>()
+  const { open, setOpen, ref } = useOutsidePointerDownClose<HTMLDivElement>({ closeOnScroll: true })
 
   return (
     <DropdownMenu.Root open={open} modal={false} onOpenChange={setOpen}>
@@ -18,7 +18,15 @@ export const SortOrderSelect = ({ sortAsc, onChange }: SortOrderSelectProps) => 
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
-        <DropdownMenu.Content ref={ref} className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width)">
+        <DropdownMenu.Content
+          ref={ref}
+          avoidCollisions
+          collisionPadding={8}
+          align="start"
+          sideOffset={4}
+          side="bottom"
+          className="bg-black text-white rounded shadow-lg border border-white w-(--radix-dropdown-menu-trigger-width) max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto"
+        >
           <DropdownMenu.Item
             onSelect={() => onChange(false)}
             className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
