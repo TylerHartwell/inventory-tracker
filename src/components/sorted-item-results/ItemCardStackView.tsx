@@ -5,9 +5,10 @@ import { LocalItem } from "../ItemManager"
 type ItemCardStackViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
+  useContainImageFit: boolean
 }
 
-const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => {
+const ItemCardStackView = ({ viewItem, isPriority, useContainImageFit }: ItemCardStackViewProps) => {
   const urls = viewItem.signedUrls
   const visibleUrls = urls.slice(0, 4)
   const hasMoreImages = urls.length > 4
@@ -45,7 +46,7 @@ const ItemCardStackView = ({ viewItem, isPriority }: ItemCardStackViewProps) => 
                 loading={isPriority && imageIndex === 0 ? "eager" : "lazy"}
                 sizes="(max-width: 640px) 50vw, 160px"
                 quality={70}
-                className="object-contain rounded"
+                className={`${useContainImageFit ? "object-contain" : "object-cover"} rounded`}
               />
             </div>
           ))}

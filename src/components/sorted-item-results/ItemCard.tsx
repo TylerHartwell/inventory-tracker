@@ -25,6 +25,7 @@ interface ItemCardProps {
   onOpenPreviousDetails: () => void
   onOpenNextDetails: () => void
   isGridMode?: boolean
+  useContainImageFit: boolean
   showUnsetItemFields: boolean
   onShowUnsetItemFieldsChange: (value: boolean) => void
 }
@@ -60,6 +61,7 @@ export const ItemCard = ({
   onOpenPreviousDetails,
   onOpenNextDetails,
   isGridMode = false,
+  useContainImageFit,
   showUnsetItemFields,
   onShowUnsetItemFieldsChange
 }: ItemCardProps) => {
@@ -343,7 +345,7 @@ export const ItemCard = ({
     >
       <div className={`flex-1 min-w-0${isGridMode ? " h-full" : ""}`}>
         {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
-        <ItemCardView viewItem={displayItem} isPriority={isPriority} isGridMode={isGridMode} />
+        <ItemCardView viewItem={displayItem} isPriority={isPriority} isGridMode={isGridMode} useContainImageFit={useContainImageFit} />
       </div>
       {isGridMode && displayItem.signedUrls.length > 1 && (
         <Images size={20} className="absolute bottom-1 right-1 bg-black/30 rounded p-1 text-white pointer-events-none" />
@@ -375,6 +377,7 @@ export const ItemCard = ({
           onNextItem={onOpenNextDetails}
           onClose={onCloseDetails}
           onOpenEdit={handleOpenEditModal}
+          useContainImageFit={useContainImageFit}
         />
       )}
 

@@ -6,14 +6,15 @@ type ItemCardViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
   isGridMode?: boolean
+  useContainImageFit: boolean
 }
 
-const ItemCardView = ({ viewItem, isPriority, isGridMode = false }: ItemCardViewProps) => {
+const ItemCardView = ({ viewItem, isPriority, isGridMode = false, useContainImageFit }: ItemCardViewProps) => {
   if (isGridMode) {
-    return <ItemCardGridView viewItem={viewItem} isPriority={isPriority} />
+    return <ItemCardGridView viewItem={viewItem} isPriority={isPriority} useContainImageFit={useContainImageFit} />
   }
 
-  return <ItemCardStackView viewItem={viewItem} isPriority={isPriority} />
+  return <ItemCardStackView viewItem={viewItem} isPriority={isPriority} useContainImageFit={useContainImageFit} />
 }
 
 export default ItemCardView

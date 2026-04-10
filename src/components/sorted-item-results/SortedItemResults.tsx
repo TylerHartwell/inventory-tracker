@@ -14,6 +14,7 @@ interface Props {
   onToggleSelectedItem: (id: string) => void
   displayMode: "stack" | "grid"
   gridColumns: 1 | 2 | 3 | 4
+  useContainImageFit: boolean
   showUnsetItemFields: boolean
   onShowUnsetItemFieldsChange: (value: boolean) => void
 }
@@ -28,6 +29,7 @@ const SortedItemResults = ({
   onToggleSelectedItem,
   displayMode,
   gridColumns,
+  useContainImageFit,
   showUnsetItemFields,
   onShowUnsetItemFieldsChange
 }: Props) => {
@@ -85,6 +87,7 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
+                useContainImageFit={useContainImageFit}
                 showUnsetItemFields={showUnsetItemFields}
                 onShowUnsetItemFieldsChange={onShowUnsetItemFieldsChange}
               />
@@ -113,6 +116,7 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
+                useContainImageFit={useContainImageFit}
                 showUnsetItemFields={showUnsetItemFields}
                 onShowUnsetItemFieldsChange={onShowUnsetItemFieldsChange}
               />

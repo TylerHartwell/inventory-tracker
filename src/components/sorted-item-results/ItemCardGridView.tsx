@@ -5,9 +5,10 @@ import { LocalItem } from "../ItemManager"
 type ItemCardGridViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
+  useContainImageFit: boolean
 }
 
-const ItemCardGridView = ({ viewItem, isPriority }: ItemCardGridViewProps) => {
+const ItemCardGridView = ({ viewItem, isPriority, useContainImageFit }: ItemCardGridViewProps) => {
   const [gridTitleLines, setGridTitleLines] = useState(1)
   const gridTitleFrameRef = useRef<HTMLParagraphElement>(null)
   const gridTitleTextRef = useRef<HTMLSpanElement>(null)
@@ -62,7 +63,7 @@ const ItemCardGridView = ({ viewItem, isPriority }: ItemCardGridViewProps) => {
             loading={isPriority ? "eager" : "lazy"}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             quality={25}
-            className="object-cover object-center rounded"
+            className={`${useContainImageFit ? "object-contain" : "object-cover"} object-center rounded`}
           />
         </div>
       )}

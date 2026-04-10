@@ -22,6 +22,7 @@ interface ItemCardDetailsModalProps {
   hasNextItem: boolean
   onPreviousItem: () => void
   onNextItem: () => void
+  useContainImageFit: boolean
   onClose: () => void
   onOpenEdit: () => void
 }
@@ -38,6 +39,7 @@ const ItemCardDetailsModal = ({
   hasNextItem,
   onPreviousItem,
   onNextItem,
+  useContainImageFit,
   onClose,
   onOpenEdit
 }: ItemCardDetailsModalProps) => {
@@ -166,7 +168,7 @@ const ItemCardDetailsModal = ({
                     loading={isPriority && imageIndex === 0 ? "eager" : "lazy"}
                     sizes="(max-width: 640px) 50vw, 320px"
                     quality={70}
-                    className="object-contain rounded"
+                    className={`${useContainImageFit ? "object-contain" : "object-cover"} rounded`}
                   />
                 </button>
               ))}
