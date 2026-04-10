@@ -2,8 +2,7 @@ import { Session } from "@supabase/supabase-js"
 import { ItemInput } from "./item-input/ItemInput"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
 import { useEffect, useMemo, useState } from "react"
-import { SortOrderSelect } from "./SortOrderSelect"
-import { ListFilter } from "./ListFilter"
+import { SortOrderSelect, SortField } from "./SortOrderSelect"
 import { Database } from "@/types/supabase"
 import { useUserLists } from "@/hooks/useUserLists"
 import { Header } from "./header/Header"
@@ -15,6 +14,7 @@ import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
 import BulkDeleteControl from "./BulkDeleteControl"
 import DisplayControl from "./DisplayControl"
+import FilterSection, { ImageFilterMode } from "./FilterSection"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -53,6 +53,9 @@ const SESSION_KEYS = {
   selectedListId: "selectedListId",
   followInputList: "followInputList",
   sortAsc: "sortAsc",
+  sortField: "sortField",
+  imageFilterMode: "imageFilterMode",
+  useCompositiveFiltering: "useCompositiveFiltering",
   displayMode: "displayMode",
   gridColumns: "gridColumns",
   useContainImageFit: "useContainImageFit",
@@ -66,6 +69,13 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [selectedListId, setSelectedListId] = useSessionStorage<string | null>(SESSION_KEYS.selectedListId, null, session.user.id)
   const [followInputList, setFollowInputList] = useSessionStorage<boolean>(SESSION_KEYS.followInputList, true, session.user.id)
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
+  const [sortField, setSortField] = useSessionStorage<SortField>(SESSION_KEYS.sortField, "createdAt", session.user.id)
+  const [imageFilterMode, setImageFilterMode] = useSessionStorage<ImageFilterMode>(SESSION_KEYS.imageFilterMode, "all", session.user.id)
+  const [useCompositiveFiltering, setUseCompositiveFiltering] = useSessionStorage<boolean>(
+    SESSION_KEYS.useCompositiveFiltering,
+    false,
+    session.user.id
+  )
   const [displayMode, setDisplayMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.displayMode, "stack", session.user.id)
   const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
   const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, true, session.user.id)
@@ -76,7 +86,13 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [bulkDeleteError, setBulkDeleteError] = useState<string | null>(null)
   const userLists = useUserLists(session.user.id)
 
-  const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
+  const allListIds = useMemo<(string | null)[]>(() => [null, ...userLists.lists.map(list => list.id)], [userLists.lists])
+
+  const trackedListIds = useMemo<(string | null)[]>(() => {
+    return useCompositiveFiltering ? allListIds : filteredListIds
+  }, [allListIds, filteredListIds, useCompositiveFiltering])
+
+  const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, trackedListIds)
 
   useEffect(() => {
     if (userLists.loading) return
@@ -100,13 +116,63 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     }
   }, [filteredListIds, selectedListId, setFilteredListIds, setSelectedListId, userLists.lists, userLists.loading])
 
-  const sortedItems = useMemo(() => {
-    return [...items].sort((a, b) => {
-      const timeA = new Date(a.createdAt).getTime()
-      const timeB = new Date(b.createdAt).getTime()
-      return sortAsc ? timeA - timeB : timeB - timeA
+  const filteredItems = useMemo(() => {
+    const selectedListIds = new Set(filteredListIds)
+    const isListFilterActive = allListIds.some(id => !selectedListIds.has(id))
+    const isImageFilterActive = imageFilterMode !== "all"
+
+    const matchesListFilter = (listId: string | null) => selectedListIds.has(listId)
+    const matchesImageFilter = (imageIds: string[]) => {
+      if (imageFilterMode === "with-images") {
+        return imageIds.length > 0
+      }
+
+      if (imageFilterMode === "without-images") {
+        return imageIds.length === 0
+      }
+
+      return true
+    }
+
+    if (!isListFilterActive && !isImageFilterActive) {
+      return items
+    }
+
+    return items.filter(item => {
+      const matchesList = matchesListFilter(item.listId ?? null)
+      const matchesImage = matchesImageFilter(item.imageIds)
+
+      if (useCompositiveFiltering) {
+        if (!isListFilterActive) return matchesImage
+        if (!isImageFilterActive) return matchesList
+        return matchesList || matchesImage
+      }
+
+      return (!isListFilterActive || matchesList) && (!isImageFilterActive || matchesImage)
     })
-  }, [items, sortAsc])
+  }, [allListIds, filteredListIds, imageFilterMode, items, useCompositiveFiltering])
+
+  const sortedItems = useMemo(() => {
+    return [...filteredItems].sort((a, b) => {
+      const dir = sortAsc ? 1 : -1
+      switch (sortField) {
+        case "createdAt":
+          return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir
+        case "lastUpdatedAt":
+          return (new Date(a.lastUpdatedAt).getTime() - new Date(b.lastUpdatedAt).getTime()) * dir
+        case "expirationDate": {
+          if (!a.expirationDate && !b.expirationDate) return 0
+          if (!a.expirationDate) return 1
+          if (!b.expirationDate) return -1
+          return (new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime()) * dir
+        }
+        case "itemName":
+          return a.itemName.localeCompare(b.itemName) * dir
+        default:
+          return 0
+      }
+    })
+  }, [filteredItems, sortAsc, sortField])
 
   const selectableItemIds = useMemo(() => {
     return new Set(sortedItems.filter(item => item.canEdit !== false).map(item => item.id))
@@ -199,18 +265,29 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         userLists={userLists}
         onUpsert={onUpsert}
       />
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(min-content,25%)] justify-center items-center gap-1">
-        <ListFilter
+      <div className="flex flex-col gap-1">
+        <FilterSection
           filteredListIds={filteredListIds}
-          onChange={setFilteredListIds}
+          onFilteredListIdsChange={setFilteredListIds}
           selectedListId={selectedListId}
           userLists={userLists}
           followInputList={followInputList}
           onToggleFollowInputList={handleToggleFollowInputList}
+          imageFilterMode={imageFilterMode}
+          onImageFilterModeChange={setImageFilterMode}
+          useCompositiveFiltering={useCompositiveFiltering}
+          onUseCompositiveFilteringChange={setUseCompositiveFiltering}
         />
-        <SortOrderSelect sortAsc={sortAsc} onChange={setSortAsc} />
+        <SortOrderSelect
+          sortField={sortField}
+          sortAsc={sortAsc}
+          onChange={(field, asc) => {
+            setSortField(field)
+            setSortAsc(asc)
+          }}
+        />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <DisplayControl
           displayMode={displayMode}
           gridColumns={gridColumns}
@@ -219,19 +296,18 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onGridColumnsChange={setGridColumns}
           onUseContainImageFitChange={setUseContainImageFit}
         />
-        <div className="flex-1 min-w-0">
-          <BulkDeleteControl
-            isMultiSelectMode={isMultiSelectMode}
-            canStartMultiSelect={selectableItemIds.size > 0}
-            eligibleSelectedCount={eligibleSelectedItemIds.length}
-            allSelected={allSelected}
-            bulkDeleteError={bulkDeleteError}
-            onStartMultiSelect={handleStartMultiSelect}
-            onCancelMultiSelect={handleCancelMultiSelect}
-            onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
-            onSelectAllChange={handleSelectAllChange}
-          />
-        </div>
+
+        <BulkDeleteControl
+          isMultiSelectMode={isMultiSelectMode}
+          canStartMultiSelect={selectableItemIds.size > 0}
+          eligibleSelectedCount={eligibleSelectedItemIds.length}
+          allSelected={allSelected}
+          bulkDeleteError={bulkDeleteError}
+          onStartMultiSelect={handleStartMultiSelect}
+          onCancelMultiSelect={handleCancelMultiSelect}
+          onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
+          onSelectAllChange={handleSelectAllChange}
+        />
       </div>
       <SortedItemResults
         loading={loading}

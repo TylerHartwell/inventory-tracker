@@ -119,7 +119,7 @@ export const ItemInput = ({
   }
 
   return (
-    <div className="flex flex-col gap-2 p-1 relative border-2">
+    <div className={`flex flex-col gap-2 p-1 relative ${isExpanded ? "border-2" : "border border-gray-700"}`}>
       <div
         className="relative flex items-center justify-end cursor-pointer"
         onClick={() => setIsExpanded(prev => !prev)}

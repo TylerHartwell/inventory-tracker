@@ -43,24 +43,26 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
-      <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full h-full flex justify-between items-center min-w-0 cursor-pointer">
-        <span className="flex-1 text-left truncate">
-          <span className="text-sm">Filter:</span>
-          {filteredListIds.length > 0 && (
-            <span className="ml-1 text-gray-500 text-sm">
-              {filteredListIds
-                .map(id => {
-                  if (id === null) return nullListName
-                  const list = lists.find(l => l.id === id)
-                  return list ? list.name : ""
-                })
-                .filter(Boolean)
-                .join(", ")}
-            </span>
-          )}
-        </span>
-        {open ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-      </DropdownMenu.Trigger>
+      <div className="flex items-center gap-1 min-w-0">
+        <span className="text-sm whitespace-nowrap">Lists:</span>
+        <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full h-full flex justify-between items-center min-w-0 cursor-pointer">
+          <span className="flex-1 text-left truncate">
+            {filteredListIds.length > 0 && (
+              <span className="text-gray-500 text-sm">
+                {filteredListIds
+                  .map(id => {
+                    if (id === null) return nullListName
+                    const list = lists.find(l => l.id === id)
+                    return list ? list.name : ""
+                  })
+                  .filter(Boolean)
+                  .join(", ")}
+              </span>
+            )}
+          </span>
+          {open ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+        </DropdownMenu.Trigger>
+      </div>
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content

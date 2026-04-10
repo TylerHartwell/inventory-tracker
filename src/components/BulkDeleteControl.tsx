@@ -24,11 +24,11 @@ function BulkDeleteControl({
   onSelectAllChange
 }: BulkDeleteControlProps) {
   return (
-    <div className="rounded p-2 flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-end gap-2">
+    <div className="rounded  flex flex-col gap-2 mr-2">
+      <div className="flex items-center justify-end gap-2">
         {!isMultiSelectMode ? (
-          <div className="flex flex-wrap items-center  text-sm">
-            <span className="text-sm text-gray-500">Bulk Delete:</span>
+          <div className="flex items-center  text-sm">
+            <span className="text-sm text-nowrap text-gray-500">Bulk Delete:</span>
             <button
               type="button"
               className="h-6 px-3 py-1 bg-red-500 text-white rounded hover-fine:outline-1 active:outline-1"

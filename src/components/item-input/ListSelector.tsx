@@ -137,7 +137,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
 
               <DropdownMenu.Item
                 onSelect={() => handleItemInputListChange(null)}
-                className="flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
+                className={`flex justify-between items-baseline px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer ${selectedListId === null ? "bg-white/15" : ""}`}
               >
                 <span>{nullListName}</span>
               </DropdownMenu.Item>
@@ -146,7 +146,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
                 <DropdownMenu.Item
                   key={list.id}
                   onSelect={() => handleItemInputListChange(list.id)}
-                  className="flex justify-between items-center px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
+                  className={`flex justify-between items-center px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer ${list.id === selectedListId ? "bg-white/15" : ""}`}
                 >
                   <span>{list.name}</span>
                   <button
