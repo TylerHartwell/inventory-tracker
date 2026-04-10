@@ -26,6 +26,7 @@ interface ItemCardProps {
   onOpenNextDetails: () => void
   isGridMode?: boolean
   useContainImageFit: boolean
+  onUseContainImageFitChange: (value: boolean) => void
   showUnsetItemFields: boolean
   onShowUnsetItemFieldsChange: (value: boolean) => void
 }
@@ -62,6 +63,7 @@ export const ItemCard = ({
   onOpenNextDetails,
   isGridMode = false,
   useContainImageFit,
+  onUseContainImageFitChange,
   showUnsetItemFields,
   onShowUnsetItemFieldsChange
 }: ItemCardProps) => {
@@ -378,6 +380,7 @@ export const ItemCard = ({
           onClose={onCloseDetails}
           onOpenEdit={handleOpenEditModal}
           useContainImageFit={useContainImageFit}
+          onUseContainImageFitChange={onUseContainImageFitChange}
         />
       )}
 

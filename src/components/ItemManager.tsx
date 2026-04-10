@@ -68,7 +68,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const [displayMode, setDisplayMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.displayMode, "stack", session.user.id)
   const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
-  const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, false, session.user.id)
+  const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, true, session.user.id)
   const [showUnsetItemFields, setShowUnsetItemFields] = useSessionStorage<boolean>(SESSION_KEYS.showUnsetItemFields, false, session.user.id)
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
@@ -244,6 +244,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         displayMode={displayMode}
         gridColumns={gridColumns}
         useContainImageFit={useContainImageFit}
+        onUseContainImageFitChange={setUseContainImageFit}
         showUnsetItemFields={showUnsetItemFields}
         onShowUnsetItemFieldsChange={setShowUnsetItemFields}
       />

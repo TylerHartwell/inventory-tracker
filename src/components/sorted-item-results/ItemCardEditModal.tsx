@@ -19,14 +19,17 @@ interface ItemCardEditModalProps {
 const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit, showUnsetFields, onShowUnsetFieldsChange }: ItemCardEditModalProps) => {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center"
       onPointerDown={e => {
         if (e.target === e.currentTarget) {
           onCancelEdit()
         }
       }}
     >
-      <div className="w-full max-w-2xl m-4 border rounded-xl bg-black p-3 shadow-lg" onClick={e => e.stopPropagation()}>
+      <div
+        className="w-full max-w-2xl border rounded-xl bg-black p-3 shadow-lg max-h-[calc(100vh-2rem)] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <ItemCardForm
           item={item}
           onCancelEdit={onCancelEdit}

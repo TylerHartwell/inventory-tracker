@@ -2,6 +2,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight, Pencil } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { LocalItem } from "../ItemManager"
+import ContainImageFitToggle from "../ContainImageFitToggle"
 import ImageLightbox from "./ImageLightbox"
 
 type DetailDisplayField = {
@@ -23,6 +24,7 @@ interface ItemCardDetailsModalProps {
   onPreviousItem: () => void
   onNextItem: () => void
   useContainImageFit: boolean
+  onUseContainImageFitChange: (value: boolean) => void
   onClose: () => void
   onOpenEdit: () => void
 }
@@ -40,6 +42,7 @@ const ItemCardDetailsModal = ({
   onPreviousItem,
   onNextItem,
   useContainImageFit,
+  onUseContainImageFitChange,
   onClose,
   onOpenEdit
 }: ItemCardDetailsModalProps) => {
@@ -81,10 +84,20 @@ const ItemCardDetailsModal = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80  pt-4 cursor-default"
-      onClick={e => e.stopPropagation()}
+      onClick={e => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+          onClose()
+          return
+        }
+
+        e.stopPropagation()
+      }}
       onPointerDown={e => {
         if (e.target === e.currentTarget) {
-          onClose()
+          e.preventDefault()
+          e.stopPropagation()
         }
       }}
       title="Close item details"
@@ -112,6 +125,12 @@ const ItemCardDetailsModal = ({
       >
         <div className="sticky top-0 z-20  flex items-center justify-between border-b border-gray-700 bg-black p-2">
           <h3 className="text-lg font-semibold">Item Details</h3>
+          <ContainImageFitToggle
+            id="use-contain-image-fit-details"
+            useContainImageFit={useContainImageFit}
+            onUseContainImageFitChange={onUseContainImageFitChange}
+            className="justify-start"
+          />
           <div className="flex items-center gap-2">
             {!!displayItem.canEdit && (
               <button

@@ -161,7 +161,7 @@ export const ItemInput = ({
                   setFeedback(null)
                   setNewItem(prev => ({ ...prev, itemName: e.target.value }))
                 }}
-                className="w-full p-1 border border-gray-300 rounded"
+                className="w-full p-1 border border-gray-400 rounded"
               />
               <textarea
                 placeholder="Extra Details"
@@ -172,7 +172,7 @@ export const ItemInput = ({
                   setFeedback(null)
                   setNewItem(prev => ({ ...prev, extraDetails: e.target.value }))
                 }}
-                className="w-full p-1 border border-gray-300 rounded min-h-min"
+                className="w-full p-1 border border-gray-400 rounded min-h-min"
               />
 
               <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} onFileInputClick={() => setFeedback(null)} />
