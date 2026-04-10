@@ -48,7 +48,7 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
         <DropdownMenu.Trigger className="border px-2 py-1 rounded w-full h-full flex justify-between items-center min-w-0 cursor-pointer">
           <span className="flex-1 text-left truncate">
             {filteredListIds.length > 0 && (
-              <span className="text-gray-500 text-sm">
+              <span className="text-sm">
                 {filteredListIds
                   .map(id => {
                     if (id === null) return nullListName

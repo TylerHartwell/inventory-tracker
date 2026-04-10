@@ -10,11 +10,12 @@ type ContainImageFitToggleProps = {
 const ContainImageFitToggle = ({ useContainImageFit, onUseContainImageFitChange, className, id }: ContainImageFitToggleProps) => {
   return (
     <label className={`flex gap-1 items-center justify-center cursor-pointer ${className ?? ""}`}>
-      <span className="text-xs select-none text-nowrap text-center text-gray-300">Fit Full Image</span>
+      <span className="text-xs select-none text-nowrap text-center text-gray-300">Contain Full Image</span>
       <Switch.Root
         id={id}
         checked={useContainImageFit}
         onCheckedChange={onUseContainImageFitChange}
+        aria-label={useContainImageFit ? "Image fit: contain" : "Image fit: cover"}
         className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 flex items-center justify-between cursor-pointer"
         title={useContainImageFit ? "Contain fit enabled - toggle to use cover" : "Cover fit enabled - toggle to use contain"}
       >
