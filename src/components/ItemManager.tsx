@@ -14,7 +14,7 @@ import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
 import BulkDeleteControl from "./BulkDeleteControl"
 import DisplayControl from "./DisplayControl"
-import FilterSection, { ImageFilterMode } from "./FilterSection"
+import FilterSection, { ImageFilterMode, OptionalFilterType } from "./FilterSection"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -54,6 +54,7 @@ const SESSION_KEYS = {
   followInputList: "followInputList",
   sortAsc: "sortAsc",
   sortField: "sortField",
+  optionalFilterType: "optionalFilterType",
   imageFilterMode: "imageFilterMode",
   useCompositiveFiltering: "useCompositiveFiltering",
   displayMode: "displayMode",
@@ -70,7 +71,12 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [followInputList, setFollowInputList] = useSessionStorage<boolean>(SESSION_KEYS.followInputList, true, session.user.id)
   const [sortAsc, setSortAsc] = useSessionStorage<boolean>(SESSION_KEYS.sortAsc, false, session.user.id)
   const [sortField, setSortField] = useSessionStorage<SortField>(SESSION_KEYS.sortField, "createdAt", session.user.id)
-  const [imageFilterMode, setImageFilterMode] = useSessionStorage<ImageFilterMode>(SESSION_KEYS.imageFilterMode, "all", session.user.id)
+  const [optionalFilterType, setOptionalFilterType] = useSessionStorage<OptionalFilterType | null>(
+    SESSION_KEYS.optionalFilterType,
+    null,
+    session.user.id
+  )
+  const [imageFilterMode, setImageFilterMode] = useSessionStorage<ImageFilterMode>(SESSION_KEYS.imageFilterMode, "with-images", session.user.id)
   const [useCompositiveFiltering, setUseCompositiveFiltering] = useSessionStorage<boolean>(
     SESSION_KEYS.useCompositiveFiltering,
     false,
@@ -87,12 +93,18 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const userLists = useUserLists(session.user.id)
 
   const allListIds = useMemo<(string | null)[]>(() => [null, ...userLists.lists.map(list => list.id)], [userLists.lists])
+  const canUseCompositiveFiltering = useCompositiveFiltering && optionalFilterType !== null
 
   const trackedListIds = useMemo<(string | null)[]>(() => {
-    return useCompositiveFiltering ? allListIds : filteredListIds
-  }, [allListIds, filteredListIds, useCompositiveFiltering])
+    return canUseCompositiveFiltering ? allListIds : filteredListIds
+  }, [allListIds, canUseCompositiveFiltering, filteredListIds])
 
   const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, trackedListIds)
+
+  useEffect(() => {
+    if (optionalFilterType !== null || !useCompositiveFiltering) return
+    setUseCompositiveFiltering(false)
+  }, [optionalFilterType, setUseCompositiveFiltering, useCompositiveFiltering])
 
   useEffect(() => {
     if (userLists.loading) return
@@ -119,7 +131,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const filteredItems = useMemo(() => {
     const selectedListIds = new Set(filteredListIds)
     const isListFilterActive = allListIds.some(id => !selectedListIds.has(id))
-    const isImageFilterActive = imageFilterMode !== "all"
+    const isImageFilterActive = optionalFilterType === "images"
 
     const matchesListFilter = (listId: string | null) => selectedListIds.has(listId)
     const matchesImageFilter = (imageIds: string[]) => {
@@ -131,7 +143,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         return imageIds.length === 0
       }
 
-      return true
+      return false
     }
 
     if (!isListFilterActive && !isImageFilterActive) {
@@ -142,7 +154,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       const matchesList = matchesListFilter(item.listId ?? null)
       const matchesImage = matchesImageFilter(item.imageIds)
 
-      if (useCompositiveFiltering) {
+      if (canUseCompositiveFiltering) {
         if (!isListFilterActive) return matchesImage
         if (!isImageFilterActive) return matchesList
         return matchesList || matchesImage
@@ -150,7 +162,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
       return (!isListFilterActive || matchesList) && (!isImageFilterActive || matchesImage)
     })
-  }, [allListIds, filteredListIds, imageFilterMode, items, useCompositiveFiltering])
+  }, [allListIds, canUseCompositiveFiltering, filteredListIds, imageFilterMode, items, optionalFilterType])
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
@@ -192,6 +204,16 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     if (!followInputList) {
       setFilteredListIds([selectedListId])
     }
+  }
+
+  const handleAddOptionalFilter = (filterType: OptionalFilterType) => {
+    setOptionalFilterType(filterType)
+    setUseCompositiveFiltering(false)
+  }
+
+  const handleRemoveOptionalFilter = () => {
+    setOptionalFilterType(null)
+    setUseCompositiveFiltering(false)
   }
 
   const handleStartMultiSelect = () => {
@@ -273,6 +295,9 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           userLists={userLists}
           followInputList={followInputList}
           onToggleFollowInputList={handleToggleFollowInputList}
+          optionalFilterType={optionalFilterType}
+          onAddOptionalFilter={handleAddOptionalFilter}
+          onRemoveOptionalFilter={handleRemoveOptionalFilter}
           imageFilterMode={imageFilterMode}
           onImageFilterModeChange={setImageFilterMode}
           useCompositiveFiltering={useCompositiveFiltering}

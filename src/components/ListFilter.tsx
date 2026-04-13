@@ -29,6 +29,10 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
     onChange(nextLists.length === 0 ? [null] : nextLists)
   }
 
+  const handleSelectOnly = (id: string | null) => {
+    onChange([id])
+  }
+
   const handleFilterAll = () => {
     // e: MouseEvent<HTMLButtonElement>
     // e.currentTarget.blur()
@@ -107,16 +111,20 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
             </label>
           </div>
           <DropdownMenu.Item asChild key={"default"} onSelect={e => e.preventDefault()}>
-            <label className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer">
+            <div
+              className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
+              onClick={() => handleSelectOnly(null)}
+            >
               <input
                 type="checkbox"
                 name="default"
                 checked={filteredListIds.includes(null)}
                 onChange={() => handleToggle(null)}
+                onClick={e => e.stopPropagation()}
                 className={`w-4 h-4 accent-blue-500 cursor-pointer ${onlyNullListSelected && "accent-gray-700"}`}
               />
               <span className={selectedListId === null ? "font-semibold underline" : ""}>{nullListName}</span>
-            </label>
+            </div>
           </DropdownMenu.Item>
 
           {loading ? (
@@ -126,16 +134,20 @@ export function ListFilter({ filteredListIds, onChange, selectedListId, userList
           ) : (
             lists.map(list => (
               <DropdownMenu.Item asChild key={list.id} onSelect={e => e.preventDefault()}>
-                <label className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer">
+                <div
+                  className="flex items-center gap-2 px-2 py-1 outline-white hover-fine:outline-1 active:outline-1 cursor-pointer"
+                  onClick={() => handleSelectOnly(list.id)}
+                >
                   <input
                     type="checkbox"
                     name={list.id}
                     checked={filteredListIds.includes(list.id)}
                     onChange={() => handleToggle(list.id)}
+                    onClick={e => e.stopPropagation()}
                     className="w-4 h-4 accent-blue-500 cursor-pointer"
                   />
                   <span className={list.id === selectedListId ? "font-semibold underline" : ""}>{list.name}</span>
-                </label>
+                </div>
               </DropdownMenu.Item>
             ))
           )}
