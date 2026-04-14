@@ -1,5 +1,4 @@
 import { LayoutGrid, LayoutList } from "lucide-react"
-import ContainImageFitToggle from "./ContainImageFitToggle"
 
 type LayoutMode = "stack" | "grid"
 type GridColumns = 1 | 2 | 3 | 4
@@ -7,24 +6,15 @@ type GridColumns = 1 | 2 | 3 | 4
 type LayoutControlProps = {
   layoutMode: LayoutMode
   gridColumns: GridColumns
-  useContainImageFit: boolean
   onLayoutModeChange: (mode: LayoutMode) => void
   onGridColumnsChange: (cols: GridColumns) => void
-  onUseContainImageFitChange: (value: boolean) => void
 }
 
-function LayoutControl({
-  layoutMode,
-  gridColumns,
-  useContainImageFit,
-  onLayoutModeChange,
-  onGridColumnsChange,
-  onUseContainImageFitChange
-}: LayoutControlProps) {
+function LayoutControl({ layoutMode, gridColumns, onLayoutModeChange, onGridColumnsChange }: LayoutControlProps) {
   return (
     <>
       <div className=" rounded flex items-center gap-2 text-sm flex-1">
-        <label className="flex items-center gap-1 pl-2">
+        <label className="flex items-center gap-1">
           Layout
           <span aria-hidden="true" className="text-gray-600">
             {layoutMode === "grid" ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
@@ -70,12 +60,6 @@ function LayoutControl({
           </label>
         )}
       </div>
-      <ContainImageFitToggle
-        id="use-contain-image-fit"
-        useContainImageFit={useContainImageFit}
-        onUseContainImageFitChange={onUseContainImageFitChange}
-        className="ml-auto pr-2"
-      />
     </>
   )
 }

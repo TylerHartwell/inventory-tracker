@@ -28,10 +28,13 @@ export const SortOrderSelect = ({ sortField, sortAsc, onChange }: SortOrderSelec
 
   return (
     <DropdownMenu.Root open={open} modal={false} onOpenChange={setOpen}>
-      <DropdownMenu.Trigger className="border px-2 py-1 w-full h-full rounded flex justify-between items-center text-sm text-nowrap cursor-pointer">
-        {currentLabel}
-        {open ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-      </DropdownMenu.Trigger>
+      <div className="flex items-center gap-1 flex-1">
+        <span className="text-sm whitespace-nowrap">Sort:</span>
+        <DropdownMenu.Trigger className="border px-2 py-1 w-full h-full rounded flex justify-between items-center text-sm text-nowrap cursor-pointer">
+          {currentLabel}
+          {open ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+        </DropdownMenu.Trigger>
+      </div>
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content

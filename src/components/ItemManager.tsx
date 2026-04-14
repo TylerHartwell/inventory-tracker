@@ -2,7 +2,7 @@ import { Session } from "@supabase/supabase-js"
 import { ItemInput } from "./item-input/ItemInput"
 import { useItemsRealtime } from "@/hooks/useItemsRealtime"
 import { useEffect, useMemo, useState } from "react"
-import { SortOrderSelect, SortField } from "./SortOrderSelect"
+import { SortField } from "./SortOrderSelect"
 import { Database } from "@/types/supabase"
 import { useUserLists } from "@/hooks/useUserLists"
 import { Header } from "./header/Header"
@@ -12,9 +12,8 @@ import ScrollToTopBtn from "./ScrollToTopBtn"
 import useSessionStorage from "@/hooks/useSessionStorage"
 import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
-import BulkDeleteControl from "./BulkDeleteControl"
-import LayoutControl from "./LayoutControl"
 import FilterSection, { ImageFilterMode, OptionalFilterType } from "./FilterSection"
+import DisplaySection from "./DisplaySection"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -276,26 +275,20 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           imageFilterMode={imageFilterMode}
           onImageFilterModeChange={setImageFilterMode}
         />
-        <SortOrderSelect
+
+        <DisplaySection
           sortField={sortField}
           sortAsc={sortAsc}
-          onChange={(field, asc) => {
+          onSortChange={(field, asc) => {
             setSortField(field)
             setSortAsc(asc)
           }}
-        />
-      </div>
-      <div className="flex flex-wrap justify-end gap-2">
-        <LayoutControl
           layoutMode={layoutMode}
           gridColumns={gridColumns}
           useContainImageFit={useContainImageFit}
           onLayoutModeChange={setLayoutMode}
           onGridColumnsChange={setGridColumns}
           onUseContainImageFitChange={setUseContainImageFit}
-        />
-
-        <BulkDeleteControl
           isMultiSelectMode={isMultiSelectMode}
           canStartMultiSelect={selectableItemIds.size > 0}
           eligibleSelectedCount={eligibleSelectedItemIds.length}
@@ -307,6 +300,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onSelectAllChange={handleSelectAllChange}
         />
       </div>
+
       <SortedItemResults
         loading={loading}
         hasCompletedInitialLoad={hasCompletedInitialLoad}

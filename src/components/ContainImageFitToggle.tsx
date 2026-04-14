@@ -9,7 +9,7 @@ type ContainImageFitToggleProps = {
 
 const ContainImageFitToggle = ({ useContainImageFit, onUseContainImageFitChange, className, id }: ContainImageFitToggleProps) => {
   return (
-    <label className={`flex gap-1 items-center justify-center cursor-pointer ${className ?? ""}`}>
+    <label className={`flex gap-1 items-center justify-end cursor-pointer${className ?? ""}`}>
       <span className="text-xs select-none text-nowrap text-center text-gray-300">Contain Full Image</span>
       <Switch.Root
         id={id}
