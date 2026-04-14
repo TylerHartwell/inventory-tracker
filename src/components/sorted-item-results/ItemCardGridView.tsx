@@ -1,19 +1,24 @@
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
+import { ImageDisplayMode } from "../DisplaySection"
 import { LocalItem } from "../ItemManager"
 
 type ItemCardGridViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
+  imageDisplayMode: ImageDisplayMode
   useContainImageFit: boolean
 }
 
-const ItemCardGridView = ({ viewItem, isPriority, useContainImageFit }: ItemCardGridViewProps) => {
+const ItemCardGridView = ({ viewItem, isPriority, imageDisplayMode, useContainImageFit }: ItemCardGridViewProps) => {
   const [gridTitleLines, setGridTitleLines] = useState(1)
   const gridTitleFrameRef = useRef<HTMLParagraphElement>(null)
   const gridTitleTextRef = useRef<HTMLSpanElement>(null)
   const urls = viewItem.signedUrls
   const heroUrl = urls[0]
+  const shouldShowImages = imageDisplayMode !== "hide"
+  const shouldShowOnlyImages = imageDisplayMode === "only"
+  const shouldShowTitle = !shouldShowOnlyImages
   const isBlobUrl = Boolean(heroUrl?.startsWith("blob:"))
   const isLocalDevUrl = Boolean(heroUrl?.startsWith("http://127.0.0.1:") || heroUrl?.startsWith("http://localhost:"))
 
@@ -52,7 +57,7 @@ const ItemCardGridView = ({ viewItem, isPriority, useContainImageFit }: ItemCard
 
   return (
     <div className="relative isolate h-full w-full">
-      {urls.length > 0 && (
+      {shouldShowImages && urls.length > 0 && (
         <div className="absolute inset-0 rounded overflow-hidden">
           <Image
             src={heroUrl!}
@@ -67,22 +72,29 @@ const ItemCardGridView = ({ viewItem, isPriority, useContainImageFit }: ItemCard
           />
         </div>
       )}
-      <p
-        ref={gridTitleFrameRef}
-        className="absolute inset-0 z-10 flex items-center justify-center px-2 text-center text-sm font-medium text-white pointer-events-none overflow-hidden"
-      >
-        <span
-          ref={gridTitleTextRef}
-          className="max-w-full overflow-hidden wrap-break-word whitespace-normal bg-black/30 rounded px-2 py-1"
-          style={{
-            display: "-webkit-box",
-            WebkitBoxOrient: "vertical",
-            WebkitLineClamp: gridTitleLines
-          }}
+      {shouldShowTitle && (
+        <p
+          ref={gridTitleFrameRef}
+          className="absolute inset-0 z-10 flex items-center justify-center px-2 text-center text-sm font-medium text-white pointer-events-none overflow-hidden"
         >
-          {viewItem.itemName}
-        </span>
-      </p>
+          <span
+            ref={gridTitleTextRef}
+            className="max-w-full overflow-hidden wrap-break-word whitespace-normal bg-black/30 rounded px-2 py-1"
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: gridTitleLines
+            }}
+          >
+            {viewItem.itemName}
+          </span>
+        </p>
+      )}
+      {shouldShowOnlyImages && urls.length === 0 && (
+        <p className="absolute inset-0 z-10 flex items-center justify-center px-2 text-center text-sm font-medium text-gray-300 pointer-events-none">
+          No Image
+        </p>
+      )}
     </div>
   )
 }

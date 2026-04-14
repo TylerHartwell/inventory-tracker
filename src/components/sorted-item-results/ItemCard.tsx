@@ -2,6 +2,7 @@ import { Images } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import useDeepCompare from "@/hooks/useDeepCompare"
 import { Item, LocalItem } from "../ItemManager"
+import { ImageDisplayMode } from "../DisplaySection"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
 import ItemCardView from "./ItemCardView"
@@ -25,6 +26,7 @@ interface ItemCardProps {
   onOpenPreviousDetails: () => void
   onOpenNextDetails: () => void
   isGridMode?: boolean
+  imageDisplayMode: ImageDisplayMode
   useContainImageFit: boolean
   onUseContainImageFitChange: (value: boolean) => void
   showUnsetItemFields: boolean
@@ -62,6 +64,7 @@ export const ItemCard = ({
   onOpenPreviousDetails,
   onOpenNextDetails,
   isGridMode = false,
+  imageDisplayMode,
   useContainImageFit,
   onUseContainImageFitChange,
   showUnsetItemFields,
@@ -347,9 +350,15 @@ export const ItemCard = ({
     >
       <div className={`flex-1 min-w-0${isGridMode ? " h-full" : ""}`}>
         {feedback && <p className={`mb-2 rounded border px-2 py-1 text-sm ${feedbackClass}`}>{feedback.message}</p>}
-        <ItemCardView viewItem={displayItem} isPriority={isPriority} isGridMode={isGridMode} useContainImageFit={useContainImageFit} />
+        <ItemCardView
+          viewItem={displayItem}
+          isPriority={isPriority}
+          isGridMode={isGridMode}
+          imageDisplayMode={imageDisplayMode}
+          useContainImageFit={useContainImageFit}
+        />
       </div>
-      {isGridMode && displayItem.signedUrls.length > 1 && (
+      {isGridMode && imageDisplayMode !== "hide" && displayItem.signedUrls.length > 1 && (
         <Images size={20} className="absolute bottom-1 right-1 bg-black/30 rounded p-1 text-white pointer-events-none" />
       )}
       {isMultiSelectMode && (

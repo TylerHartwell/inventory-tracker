@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { LocalItem } from "../ItemManager"
+import { ImageDisplayMode } from "../DisplaySection"
 import { ItemCard } from "./ItemCard"
 import ItemCardsSkeleton from "./ItemCardsSkeleton"
 import LoadingSpinner from "./LoadingSpinner"
@@ -14,6 +15,7 @@ interface Props {
   onToggleSelectedItem: (id: string) => void
   layoutMode: "stack" | "grid"
   gridColumns: 1 | 2 | 3 | 4
+  imageDisplayMode: ImageDisplayMode
   useContainImageFit: boolean
   onUseContainImageFitChange: (value: boolean) => void
   showUnsetItemFields: boolean
@@ -30,6 +32,7 @@ const SortedItemResults = ({
   onToggleSelectedItem,
   layoutMode,
   gridColumns,
+  imageDisplayMode,
   useContainImageFit,
   onUseContainImageFitChange,
   showUnsetItemFields,
@@ -89,6 +92,7 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
+                imageDisplayMode={imageDisplayMode}
                 useContainImageFit={useContainImageFit}
                 onUseContainImageFitChange={onUseContainImageFitChange}
                 showUnsetItemFields={showUnsetItemFields}
@@ -119,6 +123,7 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
+                imageDisplayMode={imageDisplayMode}
                 useContainImageFit={useContainImageFit}
                 onUseContainImageFitChange={onUseContainImageFitChange}
                 showUnsetItemFields={showUnsetItemFields}
