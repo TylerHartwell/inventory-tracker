@@ -13,7 +13,7 @@ import useSessionStorage from "@/hooks/useSessionStorage"
 import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
 import BulkDeleteControl from "./BulkDeleteControl"
-import DisplayControl from "./DisplayControl"
+import LayoutControl from "./LayoutControl"
 import FilterSection, { ImageFilterMode, OptionalFilterType } from "./FilterSection"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
@@ -56,7 +56,7 @@ const SESSION_KEYS = {
   sortField: "sortField",
   optionalFilterType: "optionalFilterType",
   imageFilterMode: "imageFilterMode",
-  displayMode: "displayMode",
+  layoutMode: "layoutMode",
   gridColumns: "gridColumns",
   useContainImageFit: "useContainImageFit",
   showUnsetItemFields: "showUnsetItemFields"
@@ -76,7 +76,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     session.user.id
   )
   const [imageFilterMode, setImageFilterMode] = useSessionStorage<ImageFilterMode>(SESSION_KEYS.imageFilterMode, "with-images", session.user.id)
-  const [displayMode, setDisplayMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.displayMode, "stack", session.user.id)
+  const [layoutMode, setLayoutMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.layoutMode, "stack", session.user.id)
   const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
   const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, true, session.user.id)
   const [showUnsetItemFields, setShowUnsetItemFields] = useSessionStorage<boolean>(SESSION_KEYS.showUnsetItemFields, false, session.user.id)
@@ -286,11 +286,11 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         />
       </div>
       <div className="flex flex-wrap justify-end gap-2">
-        <DisplayControl
-          displayMode={displayMode}
+        <LayoutControl
+          layoutMode={layoutMode}
           gridColumns={gridColumns}
           useContainImageFit={useContainImageFit}
-          onDisplayModeChange={setDisplayMode}
+          onLayoutModeChange={setLayoutMode}
           onGridColumnsChange={setGridColumns}
           onUseContainImageFitChange={setUseContainImageFit}
         />
@@ -315,7 +315,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         isMultiSelectMode={isMultiSelectMode}
         selectedItemIds={selectedItemIds}
         onToggleSelectedItem={handleToggleSelectedItem}
-        displayMode={displayMode}
+        layoutMode={layoutMode}
         gridColumns={gridColumns}
         useContainImageFit={useContainImageFit}
         onUseContainImageFitChange={setUseContainImageFit}

@@ -12,7 +12,7 @@ interface Props {
   isMultiSelectMode: boolean
   selectedItemIds: string[]
   onToggleSelectedItem: (id: string) => void
-  displayMode: "stack" | "grid"
+  layoutMode: "stack" | "grid"
   gridColumns: 1 | 2 | 3 | 4
   useContainImageFit: boolean
   onUseContainImageFitChange: (value: boolean) => void
@@ -28,7 +28,7 @@ const SortedItemResults = ({
   isMultiSelectMode,
   selectedItemIds,
   onToggleSelectedItem,
-  displayMode,
+  layoutMode,
   gridColumns,
   useContainImageFit,
   onUseContainImageFitChange,
@@ -38,7 +38,7 @@ const SortedItemResults = ({
   const [openDetailsItemId, setOpenDetailsItemId] = useState<string | null>(null)
   const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
   const selectedIdSet = new Set(selectedItemIds)
-  const isGridMode = displayMode === "grid"
+  const isGridMode = layoutMode === "grid"
   const gridColumnClass = gridColumns === 1 ? "grid-cols-1" : gridColumns === 2 ? "grid-cols-2" : gridColumns === 3 ? "grid-cols-3" : "grid-cols-4"
   const openDetailsIndex = useMemo(() => {
     if (!openDetailsItemId) {
