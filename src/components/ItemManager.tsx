@@ -56,7 +56,6 @@ const SESSION_KEYS = {
   sortField: "sortField",
   optionalFilterType: "optionalFilterType",
   imageFilterMode: "imageFilterMode",
-  useCompositiveFiltering: "useCompositiveFiltering",
   displayMode: "displayMode",
   gridColumns: "gridColumns",
   useContainImageFit: "useContainImageFit",
@@ -77,11 +76,6 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     session.user.id
   )
   const [imageFilterMode, setImageFilterMode] = useSessionStorage<ImageFilterMode>(SESSION_KEYS.imageFilterMode, "with-images", session.user.id)
-  const [useCompositiveFiltering, setUseCompositiveFiltering] = useSessionStorage<boolean>(
-    SESSION_KEYS.useCompositiveFiltering,
-    false,
-    session.user.id
-  )
   const [displayMode, setDisplayMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.displayMode, "stack", session.user.id)
   const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
   const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, true, session.user.id)
@@ -93,18 +87,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const userLists = useUserLists(session.user.id)
 
   const allListIds = useMemo<(string | null)[]>(() => [null, ...userLists.lists.map(list => list.id)], [userLists.lists])
-  const canUseCompositiveFiltering = useCompositiveFiltering && optionalFilterType !== null
-
-  const trackedListIds = useMemo<(string | null)[]>(() => {
-    return canUseCompositiveFiltering ? allListIds : filteredListIds
-  }, [allListIds, canUseCompositiveFiltering, filteredListIds])
-
-  const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, trackedListIds)
-
-  useEffect(() => {
-    if (optionalFilterType !== null || !useCompositiveFiltering) return
-    setUseCompositiveFiltering(false)
-  }, [optionalFilterType, setUseCompositiveFiltering, useCompositiveFiltering])
+  const { items, loading, hasCompletedInitialLoad, refreshItems, onDelete, onUpsert } = useItemsRealtime(session.user.id, filteredListIds)
 
   useEffect(() => {
     if (userLists.loading) return
@@ -154,15 +137,9 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       const matchesList = matchesListFilter(item.listId ?? null)
       const matchesImage = matchesImageFilter(item.imageIds)
 
-      if (canUseCompositiveFiltering) {
-        if (!isListFilterActive) return matchesImage
-        if (!isImageFilterActive) return matchesList
-        return matchesList || matchesImage
-      }
-
       return (!isListFilterActive || matchesList) && (!isImageFilterActive || matchesImage)
     })
-  }, [allListIds, canUseCompositiveFiltering, filteredListIds, imageFilterMode, items, optionalFilterType])
+  }, [allListIds, filteredListIds, imageFilterMode, items, optionalFilterType])
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
@@ -208,12 +185,10 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
   const handleAddOptionalFilter = (filterType: OptionalFilterType) => {
     setOptionalFilterType(filterType)
-    setUseCompositiveFiltering(false)
   }
 
   const handleRemoveOptionalFilter = () => {
     setOptionalFilterType(null)
-    setUseCompositiveFiltering(false)
   }
 
   const handleStartMultiSelect = () => {
@@ -287,7 +262,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         userLists={userLists}
         onUpsert={onUpsert}
       />
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2">
         <FilterSection
           filteredListIds={filteredListIds}
           onFilteredListIdsChange={setFilteredListIds}
@@ -300,8 +275,6 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onRemoveOptionalFilter={handleRemoveOptionalFilter}
           imageFilterMode={imageFilterMode}
           onImageFilterModeChange={setImageFilterMode}
-          useCompositiveFiltering={useCompositiveFiltering}
-          onUseCompositiveFilteringChange={setUseCompositiveFiltering}
         />
         <SortOrderSelect
           sortField={sortField}

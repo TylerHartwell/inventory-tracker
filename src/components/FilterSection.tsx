@@ -17,8 +17,6 @@ type FilterSectionProps = {
   onRemoveOptionalFilter: () => void
   imageFilterMode: ImageFilterMode
   onImageFilterModeChange: (mode: ImageFilterMode) => void
-  useCompositiveFiltering: boolean
-  onUseCompositiveFilteringChange: (value: boolean) => void
 }
 
 function FilterSection({
@@ -32,15 +30,37 @@ function FilterSection({
   onAddOptionalFilter,
   onRemoveOptionalFilter,
   imageFilterMode,
-  onImageFilterModeChange,
-  useCompositiveFiltering,
-  onUseCompositiveFilteringChange
+  onImageFilterModeChange
 }: FilterSectionProps) {
   return (
     <section className="rounded border border-gray-700 p-2 flex flex-col gap-2">
-      <div className="text-sm font-medium">Filters</div>
-      <div className="flex items-center gap-2 min-w-0">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col gap-3 min-w-0">
+        <div className="flex items-end justify-between gap-3 min-w-0">
+          <h2 className="text-sm font-medium border-b border-r rounded border-gray-600 w-min pr-2 pb-1">Filters</h2>
+          <select
+            name="add-filter-type"
+            value=""
+            onChange={e => {
+              const nextFilterType = e.target.value as OptionalFilterType | ""
+              if (!nextFilterType) return
+              if (optionalFilterType === nextFilterType) return
+              onAddOptionalFilter(nextFilterType)
+            }}
+            className="h-7 rounded border border-gray-300 bg-black text-sm text-white"
+            title="Add one optional filter to combine with Lists"
+          >
+            <option value="" className="bg-black text-white">
+              + Add Filter Type
+            </option>
+            {optionalFilterType !== "images" && (
+              <option value="images" className="bg-black text-white">
+                Images
+              </option>
+            )}
+          </select>
+        </div>
+
+        <div className="min-w-0">
           <ListFilter
             filteredListIds={filteredListIds}
             onChange={onFilteredListIdsChange}
@@ -51,19 +71,8 @@ function FilterSection({
           />
         </div>
 
-        {optionalFilterType ? (
-          <div className="relative rounded border border-gray-600 p-2 flex items-center gap-2 overflow-visible">
-            <button
-              type="button"
-              onClick={() => onUseCompositiveFilteringChange(!useCompositiveFiltering)}
-              className="flex items-center gap-1 text-xs font-semibold select-none cursor-pointer"
-              title={useCompositiveFiltering ? "OR: items that match any active filter are included" : "AND: items must pass all active filters"}
-            >
-              <span className={`text-gray-300 transition-opacity ${!useCompositiveFiltering ? "opacity-100" : "opacity-30"}`}>AND</span>
-              <span className="text-gray-500">/</span>
-              <span className={`text-gray-300 transition-opacity ${useCompositiveFiltering ? "opacity-100" : "opacity-30"}`}>OR</span>
-            </button>
-
+        {optionalFilterType && (
+          <div className="flex w-min items-center gap-2">
             {optionalFilterType === "images" && (
               <label className="flex items-center gap-1 text-sm whitespace-nowrap">
                 Images:
@@ -87,31 +96,13 @@ function FilterSection({
             <button
               type="button"
               onClick={onRemoveOptionalFilter}
-              className="absolute -right-2 -top-2 h-4 w-4 rounded-sm bg-red-600 hover:bg-red-500 text-white flex items-center justify-center cursor-pointer"
+              className="h-5 w-5 rounded-sm bg-red-600 hover:bg-red-500 text-white flex items-center justify-center cursor-pointer"
               title="Remove filter"
               aria-label="Remove filter"
             >
               <X size={12} strokeWidth={2.5} />
             </button>
           </div>
-        ) : (
-          <select
-            defaultValue=""
-            onChange={e => {
-              const nextFilterType = e.target.value as OptionalFilterType | ""
-              if (!nextFilterType) return
-              onAddOptionalFilter(nextFilterType)
-            }}
-            className="h-7 rounded border border-gray-300 bg-black text-sm text-white"
-            title="Add one optional filter to combine with Lists"
-          >
-            <option value="" className="bg-black text-white">
-              + Add Filter Type
-            </option>
-            <option value="images" className="bg-black text-white">
-              Images
-            </option>
-          </select>
         )}
       </div>
     </section>
