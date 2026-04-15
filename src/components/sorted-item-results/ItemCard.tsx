@@ -338,7 +338,7 @@ export const ItemCard = ({
 
   return (
     <li
-      className={`border border-gray-300 rounded p-1${isGridMode ? " aspect-square w-full" : " mb-1"} flex items-center gap-2 relative cursor-pointer`}
+      className={`border border-gray-700 rounded p-1${isGridMode ? " aspect-square w-full" : " mb-1"} flex items-center gap-2 relative cursor-pointer`}
       onClick={handleOpenDetails}
       onPointerDownCapture={() => {
         if (feedback) clearFeedback()

@@ -63,7 +63,7 @@ function DisplaySection({
               className="h-7 rounded border border-gray-500 px-2 text-xs text-white hover-fine:border-gray-300 active:border-gray-300 text-nowrap"
               title="Apply image-present filter"
             >
-              Add Image Only Filter
+              + Image Presence Filter
             </button>
           )}
         </div>

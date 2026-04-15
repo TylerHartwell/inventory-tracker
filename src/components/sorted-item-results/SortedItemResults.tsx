@@ -55,7 +55,9 @@ const SortedItemResults = ({
           key: `${item.id}-image-hidden`,
           url: null,
           itemName: item.itemName,
-          listName: item.listName
+          listName: item.listName,
+          itemImageNumber: null,
+          itemImageTotal: null
         })
 
         return acc
@@ -66,7 +68,9 @@ const SortedItemResults = ({
           key: `${item.id}-no-image`,
           url: null,
           itemName: item.itemName,
-          listName: item.listName
+          listName: item.listName,
+          itemImageNumber: null,
+          itemImageTotal: null
         })
 
         return acc
@@ -77,7 +81,9 @@ const SortedItemResults = ({
           key: `${item.id}-${imageIndex}-${signedUrl}`,
           url: signedUrl,
           itemName: item.itemName,
-          listName: item.listName
+          listName: item.listName,
+          itemImageNumber: imageIndex + 1,
+          itemImageTotal: item.signedUrls.length
         })
       })
       return acc
@@ -191,7 +197,7 @@ const SortedItemResults = ({
           </>
         ))}
       {sortedItems.length !== 0 && (
-        <div className={`h-10 flex items-center text-center justify-center${isGridMode ? " col-span-full" : ""}`}>- End -</div>
+        <div className={`h-10 flex items-center text-center justify-center${isGridMode ? " col-span-full" : ""}`}>---</div>
       )}
     </ul>
   )

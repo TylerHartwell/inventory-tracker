@@ -8,6 +8,8 @@ export type GalleryImage = {
   url: string | null
   itemName: string
   listName: string
+  itemImageNumber: number | null
+  itemImageTotal: number | null
 }
 
 type GridColumns = 1 | 2 | 3 | 4
@@ -41,9 +43,11 @@ const ItemImageGallery = ({ images, gridColumns, visibilityMode, useContainImage
                   <p className="text-sm text-gray-300">No Image</p>
                 </div>
                 {!shouldHideOverlay && (
-                  <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-left">
-                    <p className="truncate text-xs text-white">{image.itemName}</p>
-                    <p className="truncate text-[11px] text-gray-300">{image.listName}</p>
+                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-black/60 px-2 py-1">
+                    <div className="min-w-0 text-left">
+                      <p className="truncate text-xs text-white">{image.itemName}</p>
+                      <p className="truncate text-[11px] text-gray-300">{image.listName}</p>
+                    </div>
                   </div>
                 )}
               </li>
@@ -75,9 +79,16 @@ const ItemImageGallery = ({ images, gridColumns, visibilityMode, useContainImage
                   />
                 </div>
                 {!shouldHideOverlay && (
-                  <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-left">
-                    <p className="truncate text-xs text-white">{image.itemName}</p>
-                    <p className="truncate text-[11px] text-gray-300">{image.listName}</p>
+                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-black/60 px-2 py-1">
+                    <div className="min-w-0 text-left">
+                      <p className="truncate text-xs text-white">{image.itemName}</p>
+                      <p className="truncate text-[11px] text-gray-300">{image.listName}</p>
+                    </div>
+                    {image.itemImageNumber !== null && image.itemImageTotal !== null && image.itemImageTotal > 1 && (
+                      <p className="shrink-0 text-[11px] font-medium text-gray-100">
+                        {image.itemImageNumber}/{image.itemImageTotal}
+                      </p>
+                    )}
                   </div>
                 )}
               </button>

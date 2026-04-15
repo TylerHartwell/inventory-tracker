@@ -27,7 +27,7 @@ function BulkDeleteControl({
     <div className="rounded  flex flex-col gap-2 mr-2">
       <div className="flex items-center justify-end gap-2">
         {!isMultiSelectMode ? (
-          <div className="flex items-center  text-sm">
+          <div className="flex items-center gap-1 text-sm">
             <span className="text-sm text-nowrap text-gray-500">Bulk Delete:</span>
             <button
               type="button"
