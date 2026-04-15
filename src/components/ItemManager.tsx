@@ -13,7 +13,7 @@ import useSessionStorage from "@/hooks/useSessionStorage"
 import { deleteItem } from "@/utils/item/deleteItem"
 import BulkDeleteModal from "./BulkDeleteModal"
 import FilterSection, { ImageFilterMode, OptionalFilterType } from "./FilterSection"
-import DisplaySection, { ImageDisplayMode } from "./DisplaySection"
+import DisplaySection, { VisibilityMode } from "./DisplaySection"
 import ActionSection from "./ActionSection"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
@@ -58,7 +58,10 @@ const SESSION_KEYS = {
   imageFilterMode: "imageFilterMode",
   layoutMode: "layoutMode",
   gridColumns: "gridColumns",
-  imageDisplayMode: "imageDisplayMode",
+  galleryColumns: "galleryColumns",
+  visibilityMode: "visibilityMode",
+  gridVisibilityMode: "gridVisibilityMode",
+  galleryVisibilityMode: "galleryVisibilityMode",
   useContainImageFit: "useContainImageFit",
   showUnsetItemFields: "showUnsetItemFields"
 } as const
@@ -77,9 +80,19 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     session.user.id
   )
   const [imageFilterMode, setImageFilterMode] = useSessionStorage<ImageFilterMode>(SESSION_KEYS.imageFilterMode, "with-images", session.user.id)
-  const [layoutMode, setLayoutMode] = useSessionStorage<"stack" | "grid">(SESSION_KEYS.layoutMode, "stack", session.user.id)
+  const [layoutMode, setLayoutMode] = useSessionStorage<"stack" | "grid" | "gallery">(SESSION_KEYS.layoutMode, "stack", session.user.id)
   const [gridColumns, setGridColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.gridColumns, 3, session.user.id)
-  const [imageDisplayMode, setImageDisplayMode] = useSessionStorage<ImageDisplayMode>(SESSION_KEYS.imageDisplayMode, "show", session.user.id)
+  const [galleryColumns, setGalleryColumns] = useSessionStorage<1 | 2 | 3 | 4>(SESSION_KEYS.galleryColumns, 3, session.user.id)
+  const [visibilityMode, setVisibilityMode] = useSessionStorage<VisibilityMode>(SESSION_KEYS.visibilityMode, "default", session.user.id)
+  const [gridVisibilityMode, setGridVisibilityMode] = useSessionStorage<VisibilityMode>(SESSION_KEYS.gridVisibilityMode, "default", session.user.id)
+  const [galleryVisibilityMode, setGalleryVisibilityMode] = useSessionStorage<VisibilityMode>(
+    SESSION_KEYS.galleryVisibilityMode,
+    "default",
+    session.user.id
+  )
+  const activeVisibilityMode = layoutMode === "grid" ? gridVisibilityMode : layoutMode === "gallery" ? galleryVisibilityMode : visibilityMode
+  const setActiveVisibilityMode =
+    layoutMode === "grid" ? setGridVisibilityMode : layoutMode === "gallery" ? setGalleryVisibilityMode : setVisibilityMode
   const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, true, session.user.id)
   const [showUnsetItemFields, setShowUnsetItemFields] = useSessionStorage<boolean>(SESSION_KEYS.showUnsetItemFields, false, session.user.id)
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
@@ -165,6 +178,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     })
   }, [filteredItems, sortAsc, sortField])
 
+  const hasPresentImagesFilterActive = optionalFilterType === "images" && imageFilterMode === "with-images"
+
   const selectableItemIds = useMemo(() => {
     return new Set(sortedItems.filter(item => item.canEdit !== false).map(item => item.id))
   }, [sortedItems])
@@ -191,6 +206,11 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
 
   const handleRemoveOptionalFilter = () => {
     setOptionalFilterType(null)
+  }
+
+  const handleFilterToImagesOnly = () => {
+    setOptionalFilterType("images")
+    setImageFilterMode("with-images")
   }
 
   const handleStartMultiSelect = () => {
@@ -288,11 +308,15 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           }}
           layoutMode={layoutMode}
           gridColumns={gridColumns}
-          imageDisplayMode={imageDisplayMode}
+          galleryColumns={galleryColumns}
+          visibilityMode={activeVisibilityMode}
+          showFilterToImagesOnlyAction={!hasPresentImagesFilterActive}
           useContainImageFit={useContainImageFit}
           onLayoutModeChange={setLayoutMode}
           onGridColumnsChange={setGridColumns}
-          onImageDisplayModeChange={setImageDisplayMode}
+          onGalleryColumnsChange={setGalleryColumns}
+          onVisibilityModeChange={setActiveVisibilityMode}
+          onFilterToImagesOnly={handleFilterToImagesOnly}
           onUseContainImageFitChange={setUseContainImageFit}
         />
 
@@ -319,7 +343,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onToggleSelectedItem={handleToggleSelectedItem}
         layoutMode={layoutMode}
         gridColumns={gridColumns}
-        imageDisplayMode={imageDisplayMode}
+        galleryColumns={galleryColumns}
+        visibilityMode={activeVisibilityMode}
         useContainImageFit={useContainImageFit}
         onUseContainImageFitChange={setUseContainImageFit}
         showUnsetItemFields={showUnsetItemFields}

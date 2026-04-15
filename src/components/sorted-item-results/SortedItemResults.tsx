@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react"
 import { LocalItem } from "../ItemManager"
-import { ImageDisplayMode } from "../DisplaySection"
+import { VisibilityMode } from "../DisplaySection"
 import { ItemCard } from "./ItemCard"
+import ItemImageGallery from "./ItemImageGallery"
+import type { GalleryImage } from "./ItemImageGallery"
 import ItemCardsSkeleton from "./ItemCardsSkeleton"
 import LoadingSpinner from "./LoadingSpinner"
 
@@ -13,9 +15,10 @@ interface Props {
   isMultiSelectMode: boolean
   selectedItemIds: string[]
   onToggleSelectedItem: (id: string) => void
-  layoutMode: "stack" | "grid"
+  layoutMode: "stack" | "grid" | "gallery"
   gridColumns: 1 | 2 | 3 | 4
-  imageDisplayMode: ImageDisplayMode
+  galleryColumns: 1 | 2 | 3 | 4
+  visibilityMode: VisibilityMode
   useContainImageFit: boolean
   onUseContainImageFitChange: (value: boolean) => void
   showUnsetItemFields: boolean
@@ -32,7 +35,8 @@ const SortedItemResults = ({
   onToggleSelectedItem,
   layoutMode,
   gridColumns,
-  imageDisplayMode,
+  galleryColumns,
+  visibilityMode,
   useContainImageFit,
   onUseContainImageFitChange,
   showUnsetItemFields,
@@ -41,8 +45,44 @@ const SortedItemResults = ({
   const [openDetailsItemId, setOpenDetailsItemId] = useState<string | null>(null)
   const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
   const selectedIdSet = new Set(selectedItemIds)
+  const isGalleryMode = layoutMode === "gallery"
   const isGridMode = layoutMode === "grid"
   const gridColumnClass = gridColumns === 1 ? "grid-cols-1" : gridColumns === 2 ? "grid-cols-2" : gridColumns === 3 ? "grid-cols-3" : "grid-cols-4"
+  const galleryImages = useMemo<GalleryImage[]>(() => {
+    return sortedItems.reduce<GalleryImage[]>((acc, item) => {
+      if (visibilityMode === "hide-images") {
+        acc.push({
+          key: `${item.id}-image-hidden`,
+          url: null,
+          itemName: item.itemName,
+          listName: item.listName
+        })
+
+        return acc
+      }
+
+      if (item.signedUrls.length === 0) {
+        acc.push({
+          key: `${item.id}-no-image`,
+          url: null,
+          itemName: item.itemName,
+          listName: item.listName
+        })
+
+        return acc
+      }
+
+      item.signedUrls.forEach((signedUrl, imageIndex) => {
+        acc.push({
+          key: `${item.id}-${imageIndex}-${signedUrl}`,
+          url: signedUrl,
+          itemName: item.itemName,
+          listName: item.listName
+        })
+      })
+      return acc
+    }, [])
+  }, [sortedItems, visibilityMode])
   const openDetailsIndex = useMemo(() => {
     if (!openDetailsItemId) {
       return -1
@@ -65,6 +105,24 @@ const SortedItemResults = ({
     }
 
     setOpenDetailsItemId(sortedItems[openDetailsIndex + 1]?.id ?? null)
+  }
+
+  if (isGalleryMode) {
+    return (
+      <div className="relative">
+        {showInitialSkeleton ? (
+          <ItemCardsSkeleton />
+        ) : (
+          <ItemImageGallery
+            images={galleryImages}
+            gridColumns={galleryColumns}
+            visibilityMode={visibilityMode}
+            useContainImageFit={useContainImageFit}
+          />
+        )}
+        {loading && !showInitialSkeleton && <LoadingSpinner />}
+      </div>
+    )
   }
 
   return (
@@ -92,7 +150,7 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
-                imageDisplayMode={imageDisplayMode}
+                visibilityMode={visibilityMode}
                 useContainImageFit={useContainImageFit}
                 onUseContainImageFitChange={onUseContainImageFitChange}
                 showUnsetItemFields={showUnsetItemFields}
@@ -123,7 +181,7 @@ const SortedItemResults = ({
                 onOpenPreviousDetails={handleOpenPreviousDetails}
                 onOpenNextDetails={handleOpenNextDetails}
                 isGridMode={isGridMode}
-                imageDisplayMode={imageDisplayMode}
+                visibilityMode={visibilityMode}
                 useContainImageFit={useContainImageFit}
                 onUseContainImageFitChange={onUseContainImageFitChange}
                 showUnsetItemFields={showUnsetItemFields}

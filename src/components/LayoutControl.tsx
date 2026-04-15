@@ -1,23 +1,34 @@
-import { LayoutGrid, LayoutList } from "lucide-react"
+import { Images, LayoutGrid, LayoutList } from "lucide-react"
 
-type LayoutMode = "stack" | "grid"
+type LayoutMode = "stack" | "grid" | "gallery"
 type GridColumns = 1 | 2 | 3 | 4
 
 type LayoutControlProps = {
   layoutMode: LayoutMode
   gridColumns: GridColumns
+  galleryColumns: GridColumns
   onLayoutModeChange: (mode: LayoutMode) => void
   onGridColumnsChange: (cols: GridColumns) => void
+  onGalleryColumnsChange: (cols: GridColumns) => void
 }
 
-function LayoutControl({ layoutMode, gridColumns, onLayoutModeChange, onGridColumnsChange }: LayoutControlProps) {
+function LayoutControl({
+  layoutMode,
+  gridColumns,
+  galleryColumns,
+  onLayoutModeChange,
+  onGridColumnsChange,
+  onGalleryColumnsChange
+}: LayoutControlProps) {
+  const activeColumns = layoutMode === "gallery" ? galleryColumns : gridColumns
+  const onActiveColumnsChange = layoutMode === "gallery" ? onGalleryColumnsChange : onGridColumnsChange
   return (
     <>
       <div className=" rounded flex items-center gap-2 text-sm flex-1">
         <label className="flex items-center gap-1">
           Layout
           <span aria-hidden="true" className="text-gray-600">
-            {layoutMode === "grid" ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
+            {layoutMode === "grid" ? <LayoutGrid size={16} /> : layoutMode === "gallery" ? <Images size={16} /> : <LayoutList size={16} />}
           </span>
           <select
             value={layoutMode}
@@ -32,15 +43,18 @@ function LayoutControl({ layoutMode, gridColumns, onLayoutModeChange, onGridColu
             <option value="grid" className="bg-black text-white">
               Grid
             </option>
+            <option value="gallery" className="bg-black text-white">
+              Gallery
+            </option>
           </select>
         </label>
-        {layoutMode === "grid" && (
+        {(layoutMode === "grid" || layoutMode === "gallery") && (
           <label className="text-xs text-gray-600 flex items-center gap-1">
             Cols
             <select
-              value={gridColumns}
+              value={activeColumns}
               name="grid-cols"
-              onChange={e => onGridColumnsChange(Number(e.target.value) as GridColumns)}
+              onChange={e => onActiveColumnsChange(Number(e.target.value) as GridColumns)}
               className="h-7 rounded border border-gray-300 bg-black text-sm text-white"
               title="Grid columns"
             >

@@ -1,21 +1,21 @@
 import { Images, List } from "lucide-react"
 import Image from "next/image"
-import { ImageDisplayMode } from "../DisplaySection"
+import { VisibilityMode } from "../DisplaySection"
 import { LocalItem } from "../ItemManager"
 
 type ItemCardStackViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
-  imageDisplayMode: ImageDisplayMode
+  visibilityMode: VisibilityMode
   useContainImageFit: boolean
 }
 
-const ItemCardStackView = ({ viewItem, isPriority, imageDisplayMode, useContainImageFit }: ItemCardStackViewProps) => {
+const ItemCardStackView = ({ viewItem, isPriority, visibilityMode, useContainImageFit }: ItemCardStackViewProps) => {
   const urls = viewItem.signedUrls
   const visibleUrls = urls.slice(0, 4)
   const hasMoreImages = urls.length > 4
-  const shouldShowImages = imageDisplayMode !== "hide"
-  const shouldShowOnlyImages = imageDisplayMode === "only"
+  const shouldShowImages = visibilityMode !== "hide-images"
+  const shouldShowOnlyImages = visibilityMode === "hide-info"
 
   return (
     <div className="relative">

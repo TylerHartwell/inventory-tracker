@@ -2,7 +2,7 @@ import { Images } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import useDeepCompare from "@/hooks/useDeepCompare"
 import { Item, LocalItem } from "../ItemManager"
-import { ImageDisplayMode } from "../DisplaySection"
+import { VisibilityMode } from "../DisplaySection"
 import { deleteItem } from "@/utils/item/deleteItem"
 import { updateItem } from "@/utils/item/updateItem"
 import ItemCardView from "./ItemCardView"
@@ -26,7 +26,7 @@ interface ItemCardProps {
   onOpenPreviousDetails: () => void
   onOpenNextDetails: () => void
   isGridMode?: boolean
-  imageDisplayMode: ImageDisplayMode
+  visibilityMode: VisibilityMode
   useContainImageFit: boolean
   onUseContainImageFitChange: (value: boolean) => void
   showUnsetItemFields: boolean
@@ -64,7 +64,7 @@ export const ItemCard = ({
   onOpenPreviousDetails,
   onOpenNextDetails,
   isGridMode = false,
-  imageDisplayMode,
+  visibilityMode,
   useContainImageFit,
   onUseContainImageFitChange,
   showUnsetItemFields,
@@ -354,11 +354,11 @@ export const ItemCard = ({
           viewItem={displayItem}
           isPriority={isPriority}
           isGridMode={isGridMode}
-          imageDisplayMode={imageDisplayMode}
+          visibilityMode={visibilityMode}
           useContainImageFit={useContainImageFit}
         />
       </div>
-      {isGridMode && imageDisplayMode !== "hide" && displayItem.signedUrls.length > 1 && (
+      {isGridMode && visibilityMode !== "hide-images" && displayItem.signedUrls.length > 1 && (
         <Images size={20} className="absolute bottom-1 right-1 bg-black/30 rounded p-1 text-white pointer-events-none" />
       )}
       {isMultiSelectMode && (

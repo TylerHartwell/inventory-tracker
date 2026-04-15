@@ -1,23 +1,23 @@
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
-import { ImageDisplayMode } from "../DisplaySection"
+import { VisibilityMode } from "../DisplaySection"
 import { LocalItem } from "../ItemManager"
 
 type ItemCardGridViewProps = {
   viewItem: LocalItem
   isPriority?: boolean
-  imageDisplayMode: ImageDisplayMode
+  visibilityMode: VisibilityMode
   useContainImageFit: boolean
 }
 
-const ItemCardGridView = ({ viewItem, isPriority, imageDisplayMode, useContainImageFit }: ItemCardGridViewProps) => {
+const ItemCardGridView = ({ viewItem, isPriority, visibilityMode, useContainImageFit }: ItemCardGridViewProps) => {
   const [gridTitleLines, setGridTitleLines] = useState(1)
   const gridTitleFrameRef = useRef<HTMLParagraphElement>(null)
   const gridTitleTextRef = useRef<HTMLSpanElement>(null)
   const urls = viewItem.signedUrls
   const heroUrl = urls[0]
-  const shouldShowImages = imageDisplayMode !== "hide"
-  const shouldShowOnlyImages = imageDisplayMode === "only"
+  const shouldShowImages = visibilityMode !== "hide-images"
+  const shouldShowOnlyImages = visibilityMode === "hide-info"
   const shouldShowTitle = !shouldShowOnlyImages
   const isBlobUrl = Boolean(heroUrl?.startsWith("blob:"))
   const isLocalDevUrl = Boolean(heroUrl?.startsWith("http://127.0.0.1:") || heroUrl?.startsWith("http://localhost:"))
