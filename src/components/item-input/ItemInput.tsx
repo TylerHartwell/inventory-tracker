@@ -175,6 +175,32 @@ export const ItemInput = ({
                 className="w-full p-1 border border-gray-400 rounded min-h-min"
               />
 
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <input
+                  type="text"
+                  placeholder="Category"
+                  name="category"
+                  value={newItem.category ?? ""}
+                  onKeyDown={handleKeyDown}
+                  onChange={e => {
+                    setFeedback(null)
+                    setNewItem(prev => ({ ...prev, category: e.target.value }))
+                  }}
+                  className="w-full p-1 border border-gray-400 rounded"
+                />
+                <input
+                  type="date"
+                  name="expirationDate"
+                  value={newItem.expirationDate ?? ""}
+                  onChange={e => {
+                    setFeedback(null)
+                    setNewItem(prev => ({ ...prev, expirationDate: e.target.value || null }))
+                  }}
+                  className={`w-full p-1 border border-gray-400 rounded scheme-dark ${newItem.expirationDate ? "text-white" : "text-gray-400"}`}
+                  title="Expiration date"
+                />
+              </div>
+
               <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} onFileInputClick={() => setFeedback(null)} />
 
               <div className="flex justify-between items-center">
