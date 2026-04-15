@@ -24,7 +24,7 @@ function LayoutControl({
   const onActiveColumnsChange = layoutMode === "gallery" ? onGalleryColumnsChange : onGridColumnsChange
   return (
     <>
-      <div className=" rounded flex items-center gap-2 text-sm flex-1">
+      <div className=" rounded flex items-center gap-2 text-sm ">
         <label className="flex items-center gap-1">
           Layout
           <span aria-hidden="true" className="text-gray-600">
