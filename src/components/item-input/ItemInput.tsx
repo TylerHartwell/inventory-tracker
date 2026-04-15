@@ -3,6 +3,7 @@ import { Session } from "@supabase/supabase-js"
 import ImageSelector from "../ImageSelector"
 import { insertItem } from "@/utils/item/insertItem"
 import { ListSelector } from "./ListSelector"
+import { CategorySelect } from "./CategorySelect"
 import { UserLists } from "@/hooks/useUserLists"
 import { InsertableItem, LocalItem } from "../ItemManager"
 import { useToast } from "@/hooks/useToast"
@@ -16,7 +17,8 @@ export const ItemInput = ({
   selectedListId,
   onItemInputListChange,
   userLists,
-  onUpsert
+  onUpsert,
+  availableCategories
 }: {
   session: Session
   refreshItems: () => Promise<void>
@@ -24,6 +26,7 @@ export const ItemInput = ({
   onItemInputListChange: (listId: string | null) => void
   userLists: UserLists
   onUpsert: (item: LocalItem) => void
+  availableCategories: string[]
 }) => {
   const [newItem, setNewItem] = useState<InsertableItem>({ itemName: "", listId: selectedListId })
   const [itemImages, setItemImages] = useState<File[]>([])
@@ -176,17 +179,13 @@ export const ItemInput = ({
               />
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <input
-                  type="text"
-                  placeholder="Category"
-                  name="category"
-                  value={newItem.category ?? ""}
-                  onKeyDown={handleKeyDown}
-                  onChange={e => {
+                <CategorySelect
+                  value={newItem.category}
+                  availableCategories={availableCategories}
+                  onChange={value => {
                     setFeedback(null)
-                    setNewItem(prev => ({ ...prev, category: e.target.value }))
+                    setNewItem(prev => ({ ...prev, category: value }))
                   }}
-                  className="w-full p-1 border border-gray-400 rounded"
                 />
                 <input
                   type="date"

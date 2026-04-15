@@ -14,6 +14,7 @@ import { generateSignedUrls } from "@/utils/generateSignedUrl"
 interface ItemCardProps {
   item: LocalItem
   isPriority: boolean
+  categoriesByListId: Map<string | null, string[]>
   onDelete: (id: string) => void
   isMultiSelectMode: boolean
   isSelected: boolean
@@ -52,6 +53,7 @@ const pendingUsernameLoads = new Map<string, Promise<void>>()
 export const ItemCard = ({
   item,
   isPriority,
+  categoriesByListId,
   onDelete,
   isMultiSelectMode,
   isSelected,
@@ -105,6 +107,8 @@ export const ItemCard = ({
       return hasDisplayFieldValue(displayValue)
     })
   }, [displayItem])
+
+  const availableCategories = useMemo(() => categoriesByListId.get(displayItem.listId ?? null) ?? [], [categoriesByListId, displayItem.listId])
 
   const createdByName = useMemo(() => {
     return resolveUserLabel(displayItem.userId, usernamesById)
@@ -396,6 +400,7 @@ export const ItemCard = ({
       {isEditing && (
         <ItemCardEditModal
           item={displayItem}
+          availableCategories={availableCategories}
           onCancelEdit={handleCancelEdit}
           onDeleteItem={handleDeleteItem}
           onSubmit={handleUpdateItem}

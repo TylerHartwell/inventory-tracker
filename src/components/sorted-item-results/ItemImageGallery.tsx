@@ -79,7 +79,7 @@ const ItemImageGallery = ({ images, gridColumns, visibilityMode, useContainImage
                   />
                 </div>
                 {!shouldHideOverlay && (
-                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-black/60 px-2 py-1">
+                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-black/40 px-2 py-1">
                     <div className="min-w-0 text-left">
                       <p className="truncate text-xs text-white">{image.itemName}</p>
                       <p className="truncate text-[11px] text-gray-300">{image.listName}</p>

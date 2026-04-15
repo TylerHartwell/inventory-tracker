@@ -1,11 +1,13 @@
 import { Trash2 } from "lucide-react"
 import ImageSelector from "../ImageSelector"
+import { CategorySelect } from "../item-input/CategorySelect"
 import { Item, LocalItem } from "../ItemManager"
 import { ChangeEvent, useState } from "react"
 import { ItemUpdateBundle } from "./ItemCard"
 
 interface ItemCardFormProps {
   item: LocalItem
+  availableCategories: string[]
   onSubmit: (updates: ItemUpdateBundle) => Promise<void>
   onCancelEdit: () => void
   onDeleteItem: () => Promise<void>
@@ -13,7 +15,15 @@ interface ItemCardFormProps {
   onShowUnsetFieldsChange: (value: boolean) => void
 }
 
-const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem, showUnsetFields, onShowUnsetFieldsChange }: ItemCardFormProps) => {
+const ItemCardForm = ({
+  item,
+  availableCategories,
+  onSubmit,
+  onCancelEdit,
+  onDeleteItem,
+  showUnsetFields,
+  onShowUnsetFieldsChange
+}: ItemCardFormProps) => {
   const initialFormItem = {
     itemName: item.itemName,
     extraDetails: item.extraDetails,
@@ -126,12 +136,10 @@ const ItemCardForm = ({ item, onSubmit, onCancelEdit, onDeleteItem, showUnsetFie
           {(hadCategory || showUnsetFields) && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-gray-300">Category</span>
-              <input
-                name="category"
-                value={formItem.category ?? ""}
-                onChange={handleChange}
-                placeholder="Category"
-                className="w-full px-1 rounded text-base font-normal border border-gray-300 bg-gray-900"
+              <CategorySelect
+                value={formItem.category}
+                availableCategories={availableCategories}
+                onChange={value => setFormItem(prev => ({ ...prev, category: value }))}
               />
             </label>
           )}

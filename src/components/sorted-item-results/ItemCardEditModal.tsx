@@ -9,6 +9,7 @@ type ItemUpdateBundle = {
 
 interface ItemCardEditModalProps {
   item: LocalItem
+  availableCategories: string[]
   onCancelEdit: () => void
   onDeleteItem: () => Promise<void>
   onSubmit: ({ updatedFields, itemImages, deletedImageIds }: ItemUpdateBundle) => Promise<void>
@@ -16,7 +17,15 @@ interface ItemCardEditModalProps {
   onShowUnsetFieldsChange: (value: boolean) => void
 }
 
-const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit, showUnsetFields, onShowUnsetFieldsChange }: ItemCardEditModalProps) => {
+const ItemCardEditModal = ({
+  item,
+  availableCategories,
+  onCancelEdit,
+  onDeleteItem,
+  onSubmit,
+  showUnsetFields,
+  onShowUnsetFieldsChange
+}: ItemCardEditModalProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center"
@@ -32,6 +41,7 @@ const ItemCardEditModal = ({ item, onCancelEdit, onDeleteItem, onSubmit, showUns
       >
         <ItemCardForm
           item={item}
+          availableCategories={availableCategories}
           onCancelEdit={onCancelEdit}
           onDeleteItem={onDeleteItem}
           onSubmit={onSubmit}

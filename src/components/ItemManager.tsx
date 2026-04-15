@@ -178,6 +178,33 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     })
   }, [filteredItems, sortAsc, sortField])
 
+  const categoriesByListId = useMemo(() => {
+    const map = new Map<string | null, Set<string>>()
+
+    for (const item of items) {
+      const category = item.category?.trim()
+      if (!category) {
+        continue
+      }
+
+      const listId = item.listId ?? null
+      const existingCategories = map.get(listId)
+
+      if (existingCategories) {
+        existingCategories.add(category)
+        continue
+      }
+
+      map.set(listId, new Set([category]))
+    }
+
+    return new Map<string | null, string[]>(
+      [...map.entries()].map(([listId, categories]) => [listId, [...categories].sort((a, b) => a.localeCompare(b))])
+    )
+  }, [items])
+
+  const availableCategories = useMemo(() => categoriesByListId.get(selectedListId ?? null) ?? [], [categoriesByListId, selectedListId])
+
   const hasPresentImagesFilterActive = optionalFilterType === "images" && imageFilterMode === "with-images"
 
   const selectableItemIds = useMemo(() => {
@@ -283,6 +310,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onItemInputListChange={handleItemInputListSelection}
         userLists={userLists}
         onUpsert={onUpsert}
+        availableCategories={availableCategories}
       />
       <div className="flex flex-col gap-2">
         <FilterSection
@@ -337,6 +365,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         loading={loading}
         hasCompletedInitialLoad={hasCompletedInitialLoad}
         sortedItems={sortedItems}
+        categoriesByListId={categoriesByListId}
         onDelete={id => onDelete(id)}
         isMultiSelectMode={isMultiSelectMode}
         selectedItemIds={selectedItemIds}
