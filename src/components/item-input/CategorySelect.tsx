@@ -45,6 +45,7 @@ export const CategorySelect = ({ value, availableCategories, onChange }: Categor
     return (
       <input
         ref={customInputRef}
+        name="new-category"
         type="text"
         value={customCategory}
         onChange={e => setCustomCategory(e.target.value)}

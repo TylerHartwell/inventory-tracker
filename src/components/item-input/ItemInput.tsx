@@ -179,25 +179,34 @@ export const ItemInput = ({
               />
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <CategorySelect
-                  value={newItem.category}
-                  availableCategories={availableCategories}
-                  onChange={value => {
-                    setFeedback(null)
-                    setNewItem(prev => ({ ...prev, category: value }))
-                  }}
-                />
-                <input
-                  type="date"
-                  name="expirationDate"
-                  value={newItem.expirationDate ?? ""}
-                  onChange={e => {
-                    setFeedback(null)
-                    setNewItem(prev => ({ ...prev, expirationDate: e.target.value || null }))
-                  }}
-                  className={`w-full p-1 border border-gray-400 rounded scheme-dark ${newItem.expirationDate ? "text-white" : "text-gray-400"}`}
-                  title="Expiration date"
-                />
+                <div className="flex gap-1 items-center">
+                  <span className="text-sm text-end">Category</span>
+                  <CategorySelect
+                    value={newItem.category}
+                    availableCategories={availableCategories}
+                    onChange={value => {
+                      setFeedback(null)
+                      setNewItem(prev => ({ ...prev, category: value }))
+                    }}
+                  />
+                </div>
+                <div className="flex gap-1 items-center">
+                  <label htmlFor="expirationDate" className="text-sm text-end">
+                    Expiration Date
+                  </label>
+                  <input
+                    id="expirationDate"
+                    type="date"
+                    name="expirationDate"
+                    value={newItem.expirationDate ?? ""}
+                    onChange={e => {
+                      setFeedback(null)
+                      setNewItem(prev => ({ ...prev, expirationDate: e.target.value || null }))
+                    }}
+                    className={`w-full p-1 border border-gray-400 rounded scheme-dark ${newItem.expirationDate ? "text-white" : "text-gray-400"}`}
+                    title="Expiration date"
+                  />
+                </div>
               </div>
 
               <ImageSelector onImageFileChange={handleItemImageFile} key={resetId} onFileInputClick={() => setFeedback(null)} />
