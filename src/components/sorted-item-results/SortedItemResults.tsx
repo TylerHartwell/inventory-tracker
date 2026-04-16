@@ -14,6 +14,7 @@ interface Props {
   sortedItems: LocalItem[]
   categoriesByListId: Map<string | null, string[]>
   onDelete: (id: string) => void
+  onUpsert: (item: LocalItem) => void
   isMultiSelectMode: boolean
   selectedItemIds: string[]
   onToggleSelectedItem: (id: string) => void
@@ -35,6 +36,7 @@ const SortedItemResults = ({
   sortedItems,
   categoriesByListId,
   onDelete,
+  onUpsert,
   isMultiSelectMode,
   selectedItemIds,
   onToggleSelectedItem,
@@ -157,6 +159,7 @@ const SortedItemResults = ({
               isPriority={false}
               categoriesByListId={categoriesByListId}
               onDelete={onDelete}
+              onUpsert={onUpsert}
               isMultiSelectMode={false}
               isSelected={false}
               onToggleSelect={() => {}}
@@ -207,6 +210,7 @@ const SortedItemResults = ({
                 isPriority={index <= 3}
                 categoriesByListId={categoriesByListId}
                 onDelete={onDelete}
+                onUpsert={onUpsert}
                 isMultiSelectMode={isMultiSelectMode}
                 isSelected={selectedIdSet.has(item.id)}
                 onToggleSelect={onToggleSelectedItem}
@@ -239,6 +243,7 @@ const SortedItemResults = ({
                 isPriority={index <= 3}
                 categoriesByListId={categoriesByListId}
                 onDelete={onDelete}
+                onUpsert={onUpsert}
                 isMultiSelectMode={isMultiSelectMode}
                 isSelected={selectedIdSet.has(item.id)}
                 onToggleSelect={onToggleSelectedItem}

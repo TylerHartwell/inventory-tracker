@@ -2,6 +2,7 @@ import { Images, List } from "lucide-react"
 import Image from "next/image"
 import { VisibilityMode } from "../DisplaySection"
 import { LocalItem } from "../ItemManager"
+import { formatDateOnly } from "@/utils/dateOnly"
 
 type ItemCardStackViewProps = {
   viewItem: LocalItem
@@ -69,16 +70,7 @@ const ItemCardStackView = ({ viewItem, isPriority, visibilityMode, useContainIma
 }
 
 const formatStackDate = (rawValue: string) => {
-  const parsed = new Date(rawValue)
-  if (Number.isNaN(parsed.getTime())) {
-    return rawValue
-  }
-
-  return parsed.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  })
+  return formatDateOnly(rawValue)
 }
 
 export default ItemCardStackView

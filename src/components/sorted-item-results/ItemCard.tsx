@@ -10,12 +10,14 @@ import ItemCardDetailsModal from "./ItemCardDetailsModal"
 import ItemCardEditModal from "./ItemCardEditModal"
 import { supabase } from "@/supabase-client"
 import { generateSignedUrls } from "@/utils/generateSignedUrl"
+import { formatDateOnly as formatDateOnlyForDisplay } from "@/utils/dateOnly"
 
 interface ItemCardProps {
   item: LocalItem
   isPriority: boolean
   categoriesByListId: Map<string | null, string[]>
   onDelete: (id: string) => void
+  onUpsert: (item: LocalItem) => void
   isMultiSelectMode: boolean
   isSelected: boolean
   onToggleSelect: (id: string) => void
@@ -55,6 +57,7 @@ export const ItemCard = ({
   isPriority,
   categoriesByListId,
   onDelete,
+  onUpsert,
   isMultiSelectMode,
   isSelected,
   onToggleSelect,
@@ -288,7 +291,13 @@ export const ItemCard = ({
       signedUrls: [...remainingExistingImages, ...newImageBlobUrls]
     }
 
+    const optimisticUpsertItem: LocalItem = {
+      ...optimisticItem,
+      canEdit: item.canEdit
+    }
+
     setDisplayItem(optimisticItem)
+    onUpsert(optimisticUpsertItem)
     clearFeedback()
     setIsEditing(false)
     onCloseDetails()
@@ -305,12 +314,15 @@ export const ItemCard = ({
     if (error || !updatedItem) {
       console.error("Failed to update item:", error)
       setDisplayItem(item)
+      onUpsert(item)
       setFeedback({ tone: "error", message: "Failed to update item. Please try again." })
 
       return
     }
 
-    setDisplayItem({ ...updatedItem, canEdit: item.canEdit })
+    const upsertedUpdatedItem: LocalItem = { ...updatedItem, canEdit: item.canEdit }
+    setDisplayItem(upsertedUpdatedItem)
+    onUpsert(upsertedUpdatedItem)
   }
 
   const handleOpenDetails = async () => {
@@ -492,16 +504,7 @@ const formatTimestamp = (rawValue: string) => {
 }
 
 const formatDateOnly = (rawValue: string) => {
-  const parsed = new Date(rawValue)
-  if (Number.isNaN(parsed.getTime())) {
-    return rawValue
-  }
-
-  const month = parsed.toLocaleString("en-US", { month: "long" })
-  const dd = parsed.getDate().toString().padStart(2, "0")
-  const yyyy = parsed.getFullYear().toString().padStart(4, "0")
-
-  return `${month} ${dd}, ${yyyy}`
+  return formatDateOnlyForDisplay(rawValue)
 }
 
 const collectUserIds = (item: LocalItem): string[] => {

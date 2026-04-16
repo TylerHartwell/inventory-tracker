@@ -15,6 +15,7 @@ import BulkDeleteModal from "./BulkDeleteModal"
 import FilterSection, { ImageFilterMode, OptionalFilterType } from "./FilterSection"
 import DisplaySection, { VisibilityMode } from "./DisplaySection"
 import ActionSection from "./ActionSection"
+import { getDateOnlySortValue } from "@/utils/dateOnly"
 
 export type DBProfile = Database["public"]["Tables"]["profiles"]["Row"]
 export type DBList = Database["public"]["Tables"]["lists"]["Row"]
@@ -169,7 +170,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           if (!a.expirationDate && !b.expirationDate) return 0
           if (!a.expirationDate) return 1
           if (!b.expirationDate) return -1
-          return (new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime()) * dir
+          return (getDateOnlySortValue(a.expirationDate) - getDateOnlySortValue(b.expirationDate)) * dir
         }
         case "itemName":
           return a.itemName.localeCompare(b.itemName) * dir
@@ -376,6 +377,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         sortedItems={sortedItems}
         categoriesByListId={categoriesByListId}
         onDelete={id => onDelete(id)}
+        onUpsert={onUpsert}
         isMultiSelectMode={isMultiSelectMode}
         selectedItemIds={selectedItemIds}
         onToggleSelectedItem={handleToggleSelectedItem}
