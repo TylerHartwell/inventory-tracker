@@ -63,6 +63,7 @@ const SortedItemResults = ({
           key: `${item.id}-image-hidden`,
           url: null,
           itemId: item.id,
+          canEdit: item.canEdit !== false,
           itemName: item.itemName,
           listName: item.listName,
           itemImageNumber: null,
@@ -77,6 +78,7 @@ const SortedItemResults = ({
           key: `${item.id}-no-image`,
           url: null,
           itemId: item.id,
+          canEdit: item.canEdit !== false,
           itemName: item.itemName,
           listName: item.listName,
           itemImageNumber: null,
@@ -91,6 +93,7 @@ const SortedItemResults = ({
           key: `${item.id}-${imageIndex}-${signedUrl}`,
           url: signedUrl,
           itemId: item.id,
+          canEdit: item.canEdit !== false,
           itemName: item.itemName,
           listName: item.listName,
           itemImageNumber: imageIndex + 1,
@@ -139,12 +142,15 @@ const SortedItemResults = ({
             visibilityMode={visibilityMode}
             useContainImageFit={useContainImageFit}
             onOpenItem={setOpenDetailsItemId}
+            isMultiSelectMode={isMultiSelectMode}
+            selectedItemIds={selectedIdSet}
+            onToggleSelectedItem={onToggleSelectedItem}
           />
         )}
         {loading && !showInitialSkeleton && <LoadingSpinner />}
 
         {openDetailsItem && (
-          <ul className="h-0 overflow-hidden" aria-hidden="true">
+          <ul className="h-0 overflow-hidden">
             <ItemCard
               item={openDetailsItem}
               key={openDetailsItemId!}

@@ -75,11 +75,11 @@ const ItemCardGridView = ({ viewItem, isPriority, visibilityMode, useContainImag
       {shouldShowTitle && (
         <p
           ref={gridTitleFrameRef}
-          className="absolute inset-0 z-10 flex items-center justify-center px-2 text-center text-sm font-medium text-white pointer-events-none overflow-hidden"
+          className="absolute inset-0 z-10 flex items-center justify-center  text-center text-xs sm:text-sm font-medium text-white pointer-events-none overflow-hidden"
         >
           <span
             ref={gridTitleTextRef}
-            className="max-w-full overflow-hidden wrap-break-word whitespace-normal bg-black/30 rounded px-2 py-1"
+            className="max-w-full overflow-hidden wrap-break-word whitespace-normal bg-black/30 rounded"
             style={{
               display: "-webkit-box",
               WebkitBoxOrient: "vertical",
