@@ -99,6 +99,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
   const [bulkDeleteError, setBulkDeleteError] = useState<string | null>(null)
+  const [isImageSlidesOpen, setIsImageSlidesOpen] = useState(false)
   const userLists = useUserLists(session.user.id)
 
   const allListIds = useMemo<(string | null)[]>(() => [null, ...userLists.lists.map(list => list.id)], [userLists.lists])
@@ -206,6 +207,11 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
   const availableCategories = useMemo(() => categoriesByListId.get(selectedListId ?? null) ?? [], [categoriesByListId, selectedListId])
 
   const hasPresentImagesFilterActive = optionalFilterType === "images" && imageFilterMode === "with-images"
+
+  const hasGalleryImages = useMemo(() => {
+    if (activeVisibilityMode === "hide-images") return false
+    return sortedItems.some(item => item.signedUrls.length > 0)
+  }, [sortedItems, activeVisibilityMode])
 
   const selectableItemIds = useMemo(() => {
     return new Set(sortedItems.filter(item => item.canEdit !== false).map(item => item.id))
@@ -354,10 +360,13 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           eligibleSelectedCount={eligibleSelectedItemIds.length}
           allSelected={allSelected}
           bulkDeleteError={bulkDeleteError}
+          isGalleryMode={layoutMode === "gallery"}
+          hasGalleryImages={hasGalleryImages}
           onStartMultiSelect={handleStartMultiSelect}
           onCancelMultiSelect={handleCancelMultiSelect}
           onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
           onSelectAllChange={handleSelectAllChange}
+          onOpenImageSlides={() => setIsImageSlidesOpen(true)}
         />
       </div>
 
@@ -378,6 +387,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
         onUseContainImageFitChange={setUseContainImageFit}
         showUnsetItemFields={showUnsetItemFields}
         onShowUnsetItemFieldsChange={setShowUnsetItemFields}
+        isImageSlidesOpen={isImageSlidesOpen}
+        onCloseImageSlides={() => setIsImageSlidesOpen(false)}
       />
       <ScrollToTopBtn />
 

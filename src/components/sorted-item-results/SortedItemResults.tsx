@@ -6,6 +6,7 @@ import ItemImageGallery from "./ItemImageGallery"
 import type { GalleryImage } from "./ItemImageGallery"
 import ItemCardsSkeleton from "./ItemCardsSkeleton"
 import LoadingSpinner from "./LoadingSpinner"
+import ImageLightbox from "./ImageLightbox"
 
 interface Props {
   loading: boolean
@@ -24,6 +25,8 @@ interface Props {
   onUseContainImageFitChange: (value: boolean) => void
   showUnsetItemFields: boolean
   onShowUnsetItemFieldsChange: (value: boolean) => void
+  isImageSlidesOpen: boolean
+  onCloseImageSlides: () => void
 }
 
 const SortedItemResults = ({
@@ -42,9 +45,12 @@ const SortedItemResults = ({
   useContainImageFit,
   onUseContainImageFitChange,
   showUnsetItemFields,
-  onShowUnsetItemFieldsChange
+  onShowUnsetItemFieldsChange,
+  isImageSlidesOpen,
+  onCloseImageSlides
 }: Props) => {
   const [openDetailsItemId, setOpenDetailsItemId] = useState<string | null>(null)
+  const [imageSlidesIndex, setImageSlidesIndex] = useState(0)
   const showInitialSkeleton = loading && sortedItems.length === 0 && !hasCompletedInitialLoad
   const selectedIdSet = new Set(selectedItemIds)
   const isGalleryMode = layoutMode === "gallery"
@@ -56,6 +62,7 @@ const SortedItemResults = ({
         acc.push({
           key: `${item.id}-image-hidden`,
           url: null,
+          itemId: item.id,
           itemName: item.itemName,
           listName: item.listName,
           itemImageNumber: null,
@@ -69,6 +76,7 @@ const SortedItemResults = ({
         acc.push({
           key: `${item.id}-no-image`,
           url: null,
+          itemId: item.id,
           itemName: item.itemName,
           listName: item.listName,
           itemImageNumber: null,
@@ -82,6 +90,7 @@ const SortedItemResults = ({
         acc.push({
           key: `${item.id}-${imageIndex}-${signedUrl}`,
           url: signedUrl,
+          itemId: item.id,
           itemName: item.itemName,
           listName: item.listName,
           itemImageNumber: imageIndex + 1,
@@ -116,6 +125,9 @@ const SortedItemResults = ({
   }
 
   if (isGalleryMode) {
+    const openDetailsItem = openDetailsItemId ? (sortedItems.find(item => item.id === openDetailsItemId) ?? null) : null
+    const lightboxUrls = galleryImages.map(image => image.url).filter((url): url is string => url !== null)
+
     return (
       <div className="relative">
         {showInitialSkeleton ? (
@@ -126,9 +138,50 @@ const SortedItemResults = ({
             gridColumns={galleryColumns}
             visibilityMode={visibilityMode}
             useContainImageFit={useContainImageFit}
+            onOpenItem={setOpenDetailsItemId}
           />
         )}
         {loading && !showInitialSkeleton && <LoadingSpinner />}
+
+        {openDetailsItem && (
+          <ul className="h-0 overflow-hidden" aria-hidden="true">
+            <ItemCard
+              item={openDetailsItem}
+              key={openDetailsItemId!}
+              isPriority={false}
+              categoriesByListId={categoriesByListId}
+              onDelete={onDelete}
+              isMultiSelectMode={false}
+              isSelected={false}
+              onToggleSelect={() => {}}
+              isDetailsOpen={true}
+              hasPreviousItem={openDetailsIndex > 0}
+              hasNextItem={openDetailsIndex >= 0 && openDetailsIndex < sortedItems.length - 1}
+              onOpenDetails={() => {}}
+              onCloseDetails={() => setOpenDetailsItemId(null)}
+              onOpenPreviousDetails={handleOpenPreviousDetails}
+              onOpenNextDetails={handleOpenNextDetails}
+              isGridMode={false}
+              visibilityMode={visibilityMode}
+              useContainImageFit={useContainImageFit}
+              onUseContainImageFitChange={onUseContainImageFitChange}
+              showUnsetItemFields={showUnsetItemFields}
+              onShowUnsetItemFieldsChange={onShowUnsetItemFieldsChange}
+            />
+          </ul>
+        )}
+
+        {isImageSlidesOpen && lightboxUrls.length > 0 && (
+          <ImageLightbox
+            urls={lightboxUrls}
+            index={imageSlidesIndex}
+            onClose={() => {
+              onCloseImageSlides()
+              setImageSlidesIndex(0)
+            }}
+            onNavigate={setImageSlidesIndex}
+          />
+        )}
       </div>
     )
   }
