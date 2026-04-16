@@ -1,5 +1,5 @@
 import { UserLists } from "@/hooks/useUserLists"
-import { X } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { ListFilter } from "./ListFilter"
 
 export type ImageFilterMode = "with-images" | "without-images"
@@ -17,6 +17,8 @@ type FilterSectionProps = {
   onRemoveOptionalFilter: () => void
   imageFilterMode: ImageFilterMode
   onImageFilterModeChange: (mode: ImageFilterMode) => void
+  textSearch: string
+  onTextSearchChange: (value: string) => void
 }
 
 function FilterSection({
@@ -30,7 +32,9 @@ function FilterSection({
   onAddOptionalFilter,
   onRemoveOptionalFilter,
   imageFilterMode,
-  onImageFilterModeChange
+  onImageFilterModeChange,
+  textSearch,
+  onTextSearchChange
 }: FilterSectionProps) {
   return (
     <section className="rounded border border-gray-700 p-2 flex flex-col gap-2">
@@ -69,6 +73,28 @@ function FilterSection({
             followInputList={followInputList}
             onToggleFollowInputList={onToggleFollowInputList}
           />
+        </div>
+
+        <div className="relative flex items-center min-w-0">
+          <Search size={14} className="absolute left-2 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={textSearch}
+            onChange={e => onTextSearchChange(e.target.value)}
+            placeholder="Search items…"
+            className="h-7 w-full rounded border border-gray-300 bg-black pl-7 pr-7 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-100"
+          />
+          {textSearch && (
+            <button
+              type="button"
+              onClick={() => onTextSearchChange("")}
+              className="absolute right-1.5 h-4 w-4 rounded-sm text-gray-400 hover:text-white flex items-center justify-center cursor-pointer"
+              title="Clear search"
+              aria-label="Clear search"
+            >
+              <X size={12} strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         {optionalFilterType && (

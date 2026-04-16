@@ -64,7 +64,8 @@ const SESSION_KEYS = {
   gridVisibilityMode: "gridVisibilityMode",
   galleryVisibilityMode: "galleryVisibilityMode",
   useContainImageFit: "useContainImageFit",
-  showUnsetItemFields: "showUnsetItemFields"
+  showUnsetItemFields: "showUnsetItemFields",
+  textSearch: "textSearch"
 } as const
 
 export type SessionKey = (typeof SESSION_KEYS)[keyof typeof SESSION_KEYS]
@@ -96,6 +97,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     layoutMode === "grid" ? setGridVisibilityMode : layoutMode === "gallery" ? setGalleryVisibilityMode : setVisibilityMode
   const [useContainImageFit, setUseContainImageFit] = useSessionStorage<boolean>(SESSION_KEYS.useContainImageFit, true, session.user.id)
   const [showUnsetItemFields, setShowUnsetItemFields] = useSessionStorage<boolean>(SESSION_KEYS.showUnsetItemFields, false, session.user.id)
+  const [textSearch, setTextSearch] = useSessionStorage<string>(SESSION_KEYS.textSearch, "", session.user.id)
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false)
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
@@ -132,6 +134,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
     const selectedListIds = new Set(filteredListIds)
     const isListFilterActive = allListIds.some(id => !selectedListIds.has(id))
     const isImageFilterActive = optionalFilterType === "images"
+    const normalizedSearch = textSearch.trim().toLowerCase()
+    const isTextSearchActive = normalizedSearch.length > 0
 
     const matchesListFilter = (listId: string | null) => selectedListIds.has(listId)
     const matchesImageFilter = (imageIds: string[]) => {
@@ -146,17 +150,26 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
       return false
     }
 
-    if (!isListFilterActive && !isImageFilterActive) {
+    const matchesTextSearch = (item: LocalItem) => {
+      return (
+        item.itemName.toLowerCase().includes(normalizedSearch) ||
+        (item.category?.toLowerCase().includes(normalizedSearch) ?? false) ||
+        (item.extraDetails?.toLowerCase().includes(normalizedSearch) ?? false)
+      )
+    }
+
+    if (!isListFilterActive && !isImageFilterActive && !isTextSearchActive) {
       return items
     }
 
     return items.filter(item => {
       const matchesList = matchesListFilter(item.listId ?? null)
       const matchesImage = matchesImageFilter(item.imageIds)
+      const matchesText = matchesTextSearch(item)
 
-      return (!isListFilterActive || matchesList) && (!isImageFilterActive || matchesImage)
+      return (!isListFilterActive || matchesList) && (!isImageFilterActive || matchesImage) && (!isTextSearchActive || matchesText)
     })
-  }, [allListIds, filteredListIds, imageFilterMode, items, optionalFilterType])
+  }, [allListIds, filteredListIds, imageFilterMode, items, optionalFilterType, textSearch])
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
@@ -332,6 +345,8 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onRemoveOptionalFilter={handleRemoveOptionalFilter}
           imageFilterMode={imageFilterMode}
           onImageFilterModeChange={setImageFilterMode}
+          textSearch={textSearch}
+          onTextSearchChange={setTextSearch}
         />
 
         <DisplaySection
