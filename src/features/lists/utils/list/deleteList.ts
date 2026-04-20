@@ -1,0 +1,34 @@
+import { supabase } from "@/supabase-client"
+import { deleteItem } from "@/features/items/utils/item/deleteItem"
+import { List } from "@/features/items/components/ItemManager"
+import { camelize } from "@/shared/utils/caseChanger"
+
+interface DeleteList {
+  listId: List["id"]
+}
+
+export const deleteList = async ({ listId }: DeleteList) => {
+  const { data: itemsDb, error: getItemsError } = await supabase.from("items").select("*").eq("list_id", listId)
+
+  if (getItemsError) {
+    return { data: null, error: getItemsError.message }
+  }
+
+  const items = camelize(itemsDb)
+
+  for (const item of items || []) {
+    const { error } = await deleteItem({ itemId: item.id })
+
+    if (error) {
+      return { data: null, error: error }
+    }
+  }
+
+  const { error: deleteListError } = await supabase.from("lists").delete().eq("id", listId)
+
+  if (deleteListError) {
+    return { data: null, error: deleteListError.message }
+  }
+
+  return { data: null, error: null }
+}

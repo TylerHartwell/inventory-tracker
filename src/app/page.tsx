@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { ErrorBoundary } from "react-error-boundary"
-import ItemManager from "@/components/ItemManager"
+import ItemManager from "@/features/items/components/ItemManager"
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
-import Auth from "@/components/AuthForm"
+import Auth from "@/features/user/components/AuthForm"
 
 async function validateSessionOrClear(session: Session | null): Promise<Session | null> {
   if (!session) return null
