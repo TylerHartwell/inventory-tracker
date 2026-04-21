@@ -4,6 +4,7 @@ import { CategorySelect } from "@/features/lists/components/list-input/CategoryS
 import { Item, LocalItem } from "@/features/items/components/ItemManager"
 import { ChangeEvent, useState } from "react"
 import { ItemUpdateBundle } from "./ItemCard"
+import DateField from "@/shared/components/DateField"
 
 interface ItemCardFormProps {
   item: LocalItem
@@ -111,7 +112,7 @@ const ItemCardForm = ({
       className="flex flex-col gap-2 text-white"
     >
       {(hasExistingImages || showUnsetFields) && (
-        <div className="flex items-center mb-2">
+        <div className="flex items-center">
           <ImageSelector onImageFileChange={handleImageFileChange} signedUrls={item.signedUrls} imageIds={item.imageIds} />
         </div>
       )}
@@ -134,8 +135,8 @@ const ItemCardForm = ({
       {(hadCategory || hadExpirationDate || showUnsetFields) && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {(hadCategory || showUnsetFields) && (
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-gray-300">Category</span>
+            <label className="flex items-center gap-1 text-sm">
+              <span className="text-gray-300">Category:</span>
               <CategorySelect
                 value={formItem.category}
                 availableCategories={availableCategories}
@@ -144,18 +145,12 @@ const ItemCardForm = ({
             </label>
           )}
           {(hadExpirationDate || showUnsetFields) && (
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-gray-300">Expiration Date</span>
-              <input
-                type="date"
-                name="expirationDate"
-                value={formItem.expirationDate ?? ""}
-                onChange={handleChange}
-                className={`w-full px-1 rounded text-base font-normal border border-gray-300 bg-gray-900 scheme-dark ${
-                  formItem.expirationDate ? "text-white" : "text-gray-400"
-                }`}
-              />
-            </label>
+            <DateField
+              name="expirationDate"
+              label="Expiration Date"
+              value={formItem.expirationDate}
+              onChange={value => setFormItem(prev => ({ ...prev, expirationDate: value }))}
+            />
           )}
         </div>
       )}
@@ -169,11 +164,11 @@ const ItemCardForm = ({
           {showUnsetFields ? "Hide unset fields" : "Show unset fields"}
         </button>
       )}
-      <div className="flex justify-between">
+      <div className="flex items-center justify-between">
         <button
           type="button"
           name="cancelEdit"
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1"
+          className="px-2 py-1 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1"
           onClick={handleCancelEdit}
           title="Cancel editing"
         >
@@ -182,13 +177,13 @@ const ItemCardForm = ({
         <button
           type="button"
           name="deleteItem"
-          className="px-4 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1"
+          className="px-2 py-2 bg-red-600 text-white rounded hover-fine:outline-1 active:outline-1"
           onClick={() => setIsDeleteModalOpen(true)}
           title="Delete item"
         >
           <Trash2 size={16} />
         </button>
-        <button type="submit" className="px-4 py-2 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" title="Save changes">
+        <button type="submit" className="px-2 py-1 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" title="Save changes">
           Save Changes
         </button>
       </div>

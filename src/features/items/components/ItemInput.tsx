@@ -8,6 +8,7 @@ import { UserLists } from "@/features/lists/hooks/useUserLists"
 import { InsertableItem, LocalItem } from "@/features/items/components/ItemManager"
 import { useToast } from "@/shared/hooks/useToast"
 import { Eye, EyeOff, Plus } from "lucide-react"
+import DateField from "@/shared/components/DateField"
 
 type Feedback = { type: "error" | "success"; message: string }
 
@@ -191,20 +192,18 @@ export const ItemInput = ({
                   />
                 </div>
                 <div className="flex gap-1 items-center">
-                  <label htmlFor="expirationDate" className="text-sm text-end">
-                    Expiration Date
-                  </label>
-                  <input
-                    id="expirationDate"
-                    type="date"
+                  <DateField
                     name="expirationDate"
-                    value={newItem.expirationDate ?? ""}
-                    onChange={e => {
+                    label="Expiration Date"
+                    value={newItem.expirationDate}
+                    onChange={value => {
                       setFeedback(null)
-                      setNewItem(prev => ({ ...prev, expirationDate: e.target.value || null }))
+                      setNewItem(prev => ({ ...prev, expirationDate: value }))
                     }}
-                    className={`w-full p-1 border border-gray-400 rounded scheme-dark ${newItem.expirationDate ? "text-white" : "text-gray-400"}`}
                     title="Expiration date"
+                    wrapperClassName="flex items-center gap-1"
+                    labelClassName="text-sm text-end text-inherit"
+                    inputClassName="border-gray-400 p-1"
                   />
                 </div>
               </div>
