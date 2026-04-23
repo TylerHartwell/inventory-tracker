@@ -295,6 +295,11 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
     const channel = supabase.channel(`item-images-${userId}`)
 
     channel.on("postgres_changes", { event: "*", schema: "public", table: "item_images" }, payload => {
+      if (payload.eventType === "DELETE") {
+        scheduleRefresh()
+        return
+      }
+
       const oldRow = (payload.old ?? {}) as Record<string, unknown>
       const newRow = (payload.new ?? {}) as Record<string, unknown>
       const oldItemId = typeof oldRow["item_id"] === "string" ? oldRow["item_id"] : null
