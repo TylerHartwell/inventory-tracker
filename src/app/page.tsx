@@ -6,46 +6,8 @@ import ItemManager from "@/features/items/components/ItemManager"
 import { supabase } from "@/supabase-client"
 import { Session } from "@supabase/supabase-js"
 import Auth from "@/features/user/components/AuthForm"
-
-async function validateSessionOrClear(session: Session | null): Promise<Session | null> {
-  if (!session) return null
-
-  const {
-    data: { user },
-    error
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("Clearing invalid persisted session", error)
-    }
-    await supabase.auth.signOut({ scope: "local" })
-    return null
-  }
-
-  return session
-}
-
-function ErrorFallback({ error, resetErrorBoundary }: { error: unknown; resetErrorBoundary: () => void }) {
-  const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-      <p className="text-gray-600 mb-4">{errorMessage}</p>
-      <button
-        onClick={() => {
-          resetErrorBoundary()
-          window.location.reload()
-        }}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        title="Reload the page to recover from the error"
-      >
-        Reload Page
-      </button>
-    </div>
-  )
-}
+import { validateSessionOrClear } from "@/features/user/utils/session/validateSessionOrClear"
+import ErrorFallback from "@/shared/components/ErrorFallback"
 
 function Home() {
   const [session, setSession] = useState<Session | null>(null)
