@@ -120,7 +120,7 @@ const ItemCardDetailsModal = ({
 
       <div
         ref={modalScrollRef}
-        className="w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto pl-3 [scrollbar-gutter:stable] border rounded-xl bg-black  text-white shadow-lg"
+        className="w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto [scrollbar-gutter:stable] border rounded-xl bg-black  text-white shadow-lg"
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 z-20  flex items-center justify-between border-b border-gray-700 bg-black p-2">

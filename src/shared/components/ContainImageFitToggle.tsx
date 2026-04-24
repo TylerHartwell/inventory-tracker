@@ -1,4 +1,5 @@
 import * as Switch from "@radix-ui/react-switch"
+import { twMerge } from "tailwind-merge"
 
 type ContainImageFitToggleProps = {
   useContainImageFit: boolean
@@ -9,8 +10,8 @@ type ContainImageFitToggleProps = {
 
 const ContainImageFitToggle = ({ useContainImageFit, onUseContainImageFitChange, className, id }: ContainImageFitToggleProps) => {
   return (
-    <label className={`flex gap-1 items-center justify-end cursor-pointer ${className ?? ""}`}>
-      <span className="text-xs select-none text-nowrap text-center text-gray-300">Contain Full Image</span>
+    <label className={twMerge(`flex gap-1 items-center justify-end cursor-pointer`, className)}>
+      <span className="text-xs select-none text-center text-gray-300">Contain Full Image</span>
       <Switch.Root
         id={id}
         checked={useContainImageFit}

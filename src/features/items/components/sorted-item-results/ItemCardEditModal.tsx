@@ -28,7 +28,7 @@ const ItemCardEditModal = ({
 }: ItemCardEditModalProps) => {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/80"
       onPointerDown={e => {
         if (e.target === e.currentTarget) {
           onCancelEdit()
@@ -36,7 +36,7 @@ const ItemCardEditModal = ({
       }}
     >
       <div
-        className="w-full max-w-2xl border rounded-xl bg-black p-3 shadow-lg max-h-[calc(100vh-2rem)] overflow-y-auto"
+        className="w-full m-4 max-w-2xl border rounded-xl bg-black p-3 shadow-lg max-h-[calc(100vh-2rem)] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <ItemCardForm

@@ -181,7 +181,7 @@ export const ItemInput = ({
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="flex gap-1 items-center">
-                  <span className="text-sm text-end">Category</span>
+                  <span className="text-xs text-end">Category</span>
                   <CategorySelect
                     value={newItem.category}
                     availableCategories={availableCategories}
@@ -202,7 +202,7 @@ export const ItemInput = ({
                     }}
                     title="Expiration date"
                     wrapperClassName="flex items-center gap-1"
-                    labelClassName="text-sm text-end text-inherit"
+                    labelClassName="text-xs text-end text-inherit"
                     inputClassName="border-gray-400 p-1"
                   />
                 </div>

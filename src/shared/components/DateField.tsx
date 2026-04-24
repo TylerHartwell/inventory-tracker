@@ -1,3 +1,5 @@
+import { twMerge } from "tailwind-merge"
+
 interface DateFieldProps {
   name: string
   value: string | null | undefined
@@ -25,24 +27,15 @@ const DateField = ({
 }: DateFieldProps) => {
   const inputId = id ?? name
   const normalizedValue = value ?? ""
-  const resolvedWrapperClassName = wrapperClassName ?? " flex items-center gap-1 text-sm"
-  const resolvedLabelClassName = labelClassName ?? "text-gray-300 w-min sm:w-auto"
-  const resolvedInputClassName = [
-    "border border-gray-300 bg-gray-900 px-1 text-sm font-normal scheme-dark",
-    normalizedValue ? "text-white" : "text-gray-400",
-    inputClassName
-  ]
-    .filter(Boolean)
-    .join(" ")
 
   return (
-    <div className={resolvedWrapperClassName}>
+    <div className={twMerge("flex items-center gap-1 text-sm", wrapperClassName)}>
       {label && (
-        <label htmlFor={inputId} className={resolvedLabelClassName}>
+        <label htmlFor={inputId} className={twMerge("text-gray-300 text-xs w-auto", labelClassName)}>
           {label}:
         </label>
       )}
-      <div className="flex gap-1 overflow-x-auto text-xs whitespace-nowrap">
+      <div className="flex gap-1 text-xs whitespace-nowrap">
         <input
           id={inputId}
           type="date"
@@ -51,7 +44,11 @@ const DateField = ({
           onChange={event => onChange(event.target.value || null)}
           disabled={disabled}
           title={title}
-          className={resolvedInputClassName}
+          className={twMerge(
+            "border border-gray-300 bg-gray-900 px-1 text-sm font-normal scheme-dark",
+            normalizedValue ? "text-white" : "text-gray-400",
+            inputClassName
+          )}
         />
         <button
           type="button"

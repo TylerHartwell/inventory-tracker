@@ -136,7 +136,7 @@ const ItemCardForm = ({
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {(hadCategory || showUnsetFields) && (
             <label className="flex items-center gap-1 text-sm">
-              <span className="text-gray-300">Category:</span>
+              <span className="text-gray-300 text-xs">Category:</span>
               <CategorySelect
                 value={formItem.category}
                 availableCategories={availableCategories}
@@ -157,7 +157,7 @@ const ItemCardForm = ({
       {hasCollapsedUnsetFields && (
         <button
           type="button"
-          className="self-start px-3 py-1 bg-gray-700 text-white rounded hover-fine:outline-1 active:outline-1"
+          className="self-start px-2 py-1 bg-gray-700 text-white text-xs rounded hover-fine:outline-1 active:outline-1"
           onClick={() => onShowUnsetFieldsChange(!showUnsetFields)}
           title={showUnsetFields ? "Hide unset fields" : "Show unset fields"}
         >
@@ -183,7 +183,11 @@ const ItemCardForm = ({
         >
           <Trash2 size={16} />
         </button>
-        <button type="submit" className="px-2 py-1 bg-yellow-500 text-white rounded hover-fine:outline-1 active:outline-1" title="Save changes">
+        <button
+          type="submit"
+          className="px-2 py-1 bg-yellow-500 text-white text-nowrap rounded hover-fine:outline-1 active:outline-1"
+          title="Save changes"
+        >
           Save Changes
         </button>
       </div>
