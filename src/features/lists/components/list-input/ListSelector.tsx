@@ -70,7 +70,7 @@ export function ListSelector({ selectedListId, onItemInputListChange, session, u
 
   const getTriggerLabel = () => {
     if (!selectedListId) return nullListName
-    return lists.find(list => list.id === selectedListId)?.name ?? selectedListId
+    return lists.find(list => list.id === selectedListId)?.name ?? "Unavailable list"
   }
 
   return (

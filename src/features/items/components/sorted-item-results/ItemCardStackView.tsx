@@ -30,7 +30,7 @@ const ItemCardStackView = ({ viewItem, isPriority, visibilityMode, useContainIma
             </span>
           </div>
           {(viewItem.category?.trim() || viewItem.expirationDate) && (
-            <div className="mt-1 flex flex-wrap gap-1 text-xs text-gray-200">
+            <div className="flex flex-wrap gap-1 text-xs text-gray-200">
               {viewItem.category?.trim() && (
                 <span className="rounded border border-gray-600 bg-gray-900 px-2 py-0.5">Category: {viewItem.category.trim()}</span>
               )}
