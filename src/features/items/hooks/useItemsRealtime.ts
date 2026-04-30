@@ -17,6 +17,7 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
   const stableFilteredListIds = useDeepCompare(filteredListIds)
 
   const itemsRef = useRef<Map<string, LocalItem>>(itemsMap) // Keep ref for interval
+  const recentlySavedTimestamps = useRef<Map<string, string>>(new Map())
 
   const startLoading = useCallback(() => {
     pendingRequestsRef.current += 1
@@ -32,6 +33,15 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
   }, [])
 
   const handleUpsert = (item: LocalItem) => {
+    if (item.lastUpdatedAt) {
+      recentlySavedTimestamps.current.set(item.id, item.lastUpdatedAt)
+      setTimeout(() => {
+        if (recentlySavedTimestamps.current.get(item.id) === item.lastUpdatedAt) {
+          recentlySavedTimestamps.current.delete(item.id)
+        }
+      }, 15000)
+    }
+
     setItemsMap(prev => {
       const newMap = new Map(prev)
       newMap.set(item.id, item) // inserts or replaces
@@ -203,7 +213,12 @@ export function useItemsRealtime(userId: string, filteredListIds: (string | null
       const oldRow = camelize(payload.old ?? {}) as Partial<Item>
       const newRow = camelize(payload.new ?? {}) as Partial<Item>
 
-      if ((payload.eventType === "INSERT" || payload.eventType === "UPDATE") && newRow.lastUpdatedBy === userId) {
+      if (
+        (payload.eventType === "INSERT" || payload.eventType === "UPDATE") &&
+        newRow.id &&
+        newRow.lastUpdatedAt &&
+        recentlySavedTimestamps.current.get(newRow.id) === newRow.lastUpdatedAt
+      ) {
         return
       }
 
