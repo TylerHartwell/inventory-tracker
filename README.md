@@ -138,12 +138,15 @@ Local project data remains in Docker volumes across stop/start cycles.
 
 1. In Supabase Dashboard, go to `Authentication > Providers` and enable `Google`.
 2. Add Google OAuth credentials from Google Cloud to Supabase Auth provider settings.
-3. In Supabase URL configuration, add all exact redirect URLs you use:
+3. In Google Cloud OAuth client settings, add the Supabase callback URI used by your local API port:
+   - local callback: `http://127.0.0.1:15421/auth/v1/callback`
+   - if you use `localhost` instead of `127.0.0.1`, add `http://localhost:15421/auth/v1/callback` as well.
+4. In Supabase URL configuration, add all exact redirect URLs you use:
    - local: `http://127.0.0.1:3000`
    - local: `http://localhost:3000`
    - production: your deployed app URL(s)
-4. Enable manual identity linking in auth settings (required for linking providers to an already-signed-in account).
-5. In the app:
+5. Enable manual identity linking in auth settings (required for linking providers to an already-signed-in account).
+6. In the app:
    - logged out users can use the `Google` button on the auth form.
    - logged in users can link providers in `User Settings > Linked Sign-In Methods`.
 
