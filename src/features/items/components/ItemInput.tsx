@@ -9,6 +9,8 @@ import { InsertableItem, LocalItem } from "@/features/items/components/ItemManag
 import { useToast } from "@/shared/hooks/useToast"
 import { Eye, EyeOff } from "lucide-react"
 import DateField from "@/shared/components/DateField"
+import useSessionStorage from "@/shared/hooks/useSessionStorage"
+import { SESSION_KEYS } from "@/shared/types/session"
 
 type Feedback = { type: "error" | "success"; message: string }
 
@@ -32,7 +34,7 @@ export const ItemInput = ({
   const [newItem, setNewItem] = useState<InsertableItem>({ itemName: "", listId: selectedListId })
   const [itemImages, setItemImages] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useSessionStorage<boolean>(SESSION_KEYS.itemInputExpanded, true, session.user.id)
   const [resetId, setResetId] = useState(0)
   const {
     toast: feedback,
@@ -49,7 +51,7 @@ export const ItemInput = ({
   const isViewer = selectedList?.role === "viewer"
 
   const handleIsExpandedChange = () => {
-    setIsExpanded(prev => !prev)
+    setIsExpanded(!isExpanded)
   }
 
   const resetForm = () => {

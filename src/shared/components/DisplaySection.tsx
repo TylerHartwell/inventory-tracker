@@ -1,8 +1,9 @@
-import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import ContainImageFitToggle from "./ContainImageFitToggle"
 import LayoutControl from "./LayoutControl"
 import { SortField, SortOrderSelect } from "@/shared/components/SortOrderSelect"
+import useSessionStorage from "@/shared/hooks/useSessionStorage"
+import { SESSION_KEYS } from "@/shared/types/session"
 
 type LayoutMode = "stack" | "grid" | "gallery"
 type GridColumns = 1 | 2 | 3 | 4
@@ -25,6 +26,7 @@ type DisplaySectionProps = {
   onVisibilityModeChange: (value: VisibilityMode) => void
   onFilterToImagesOnly: () => void
   onUseContainImageFitChange: (value: boolean) => void
+  userId: string
 }
 
 function DisplaySection({
@@ -42,9 +44,10 @@ function DisplaySection({
   onGalleryColumnsChange,
   onVisibilityModeChange,
   onFilterToImagesOnly,
-  onUseContainImageFitChange
+  onUseContainImageFitChange,
+  userId
 }: DisplaySectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useSessionStorage<boolean>(SESSION_KEYS.displaySectionExpanded, false, userId)
 
   return (
     <section className="rounded border border-gray-700 p-2 flex flex-col gap-2">
@@ -52,7 +55,7 @@ function DisplaySection({
         <h2 className="text-sm font-medium border-b border-r rounded border-gray-600 w-min pr-2 pb-1">Display</h2>
         <button
           type="button"
-          onClick={() => setIsExpanded(prev => !prev)}
+          onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
           aria-controls="display-section-controls"
           aria-label={isExpanded ? "Collapse display controls" : "Expand display controls"}

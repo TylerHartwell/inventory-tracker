@@ -1,6 +1,7 @@
-import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import BulkDeleteControl from "./BulkDeleteControl"
+import useSessionStorage from "@/shared/hooks/useSessionStorage"
+import { SESSION_KEYS } from "@/shared/types/session"
 
 type ActionSectionProps = {
   isMultiSelectMode: boolean
@@ -15,6 +16,7 @@ type ActionSectionProps = {
   onOpenBulkDeleteModal: () => void
   onSelectAllChange: (checked: boolean) => void
   onOpenImageSlides: () => void
+  userId: string
 }
 
 function ActionSection({
@@ -29,9 +31,10 @@ function ActionSection({
   onCancelMultiSelect,
   onOpenBulkDeleteModal,
   onSelectAllChange,
-  onOpenImageSlides
+  onOpenImageSlides,
+  userId
 }: ActionSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useSessionStorage<boolean>(SESSION_KEYS.actionSectionExpanded, false, userId)
 
   return (
     <section className="rounded border border-gray-700 p-2 flex flex-col gap-2">
@@ -39,7 +42,7 @@ function ActionSection({
         <h2 className="text-sm font-medium border-b border-r rounded border-gray-600 w-min pr-2 pb-1">Actions</h2>
         <button
           type="button"
-          onClick={() => setIsExpanded(prev => !prev)}
+          onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
           aria-controls="action-section-controls"
           aria-label={isExpanded ? "Collapse action controls" : "Expand action controls"}

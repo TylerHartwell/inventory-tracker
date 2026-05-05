@@ -14,7 +14,11 @@ export const SESSION_KEYS = {
   galleryVisibilityMode: "galleryVisibilityMode",
   useContainImageFit: "useContainImageFit",
   showUnsetItemFields: "showUnsetItemFields",
-  textSearch: "textSearch"
+  textSearch: "textSearch",
+  itemInputExpanded: "itemInputExpanded",
+  filterSectionExpanded: "filterSectionExpanded",
+  displaySectionExpanded: "displaySectionExpanded",
+  actionSectionExpanded: "actionSectionExpanded"
 } as const
 
 export type SessionKey = (typeof SESSION_KEYS)[keyof typeof SESSION_KEYS]

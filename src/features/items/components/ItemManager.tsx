@@ -327,6 +327,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onImageFilterModeChange={setImageFilterMode}
           textSearch={textSearch}
           onTextSearchChange={setTextSearch}
+          userId={session.user.id}
         />
 
         <DisplaySection
@@ -348,6 +349,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onVisibilityModeChange={setActiveVisibilityMode}
           onFilterToImagesOnly={handleFilterToImagesOnly}
           onUseContainImageFitChange={setUseContainImageFit}
+          userId={session.user.id}
         />
 
         <ActionSection
@@ -363,6 +365,7 @@ function ItemManager({ session, onLogout }: { session: Session; onLogout: () => 
           onOpenBulkDeleteModal={() => setIsBulkDeleteModalOpen(true)}
           onSelectAllChange={handleSelectAllChange}
           onOpenImageSlides={() => setIsImageSlidesOpen(true)}
+          userId={session.user.id}
         />
       </div>
 

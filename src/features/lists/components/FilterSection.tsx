@@ -1,7 +1,8 @@
-import { useState } from "react"
 import { UserLists } from "@/features/lists/hooks/useUserLists"
 import { Eye, EyeOff, Search, X } from "lucide-react"
 import { ListFilter } from "./ListFilter"
+import useSessionStorage from "@/shared/hooks/useSessionStorage"
+import { SESSION_KEYS } from "@/shared/types/session"
 
 export type ImageFilterMode = "with-images" | "without-images"
 export type OptionalFilterType = "images"
@@ -20,6 +21,7 @@ type FilterSectionProps = {
   onImageFilterModeChange: (mode: ImageFilterMode) => void
   textSearch: string
   onTextSearchChange: (value: string) => void
+  userId: string
 }
 
 function FilterSection({
@@ -35,9 +37,10 @@ function FilterSection({
   imageFilterMode,
   onImageFilterModeChange,
   textSearch,
-  onTextSearchChange
+  onTextSearchChange,
+  userId
 }: FilterSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useSessionStorage<boolean>(SESSION_KEYS.filterSectionExpanded, false, userId)
 
   return (
     <section className="rounded border border-gray-700 p-2 flex flex-col gap-2">
@@ -45,7 +48,7 @@ function FilterSection({
         <h2 className="text-sm font-medium border-b border-r rounded border-gray-600 w-min pr-2 pb-1">Filters</h2>
         <button
           type="button"
-          onClick={() => setIsExpanded(prev => !prev)}
+          onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
           aria-controls="filter-section-controls"
           aria-label={isExpanded ? "Collapse filter controls" : "Expand filter controls"}
