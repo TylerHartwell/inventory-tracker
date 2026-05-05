@@ -5,14 +5,15 @@ import { useUserInvites } from "@/features/invites/hooks/useUserInvites"
 import { useUserProfile } from "@/features/user/hooks/useUserProfile"
 
 interface HeaderProps {
-  userEmail: string
+  userId: string
+  userEmail: string | null
   onLogout: () => Promise<void>
 }
 
-export const Header = ({ userEmail, onLogout }: HeaderProps) => {
+export const Header = ({ userId, userEmail, onLogout }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false)
-  const invitesState = useUserInvites()
-  const userProfile = useUserProfile()
+  const invitesState = useUserInvites(userEmail)
+  const userProfile = useUserProfile(userId, userEmail)
 
   const showUser = !userProfile.loading
   const hasInvites = invitesState.invites.length > 0
@@ -30,7 +31,7 @@ export const Header = ({ userEmail, onLogout }: HeaderProps) => {
             }`}
           >
             <span className={`inline-block transition-transform duration-300 ease-out ${showUser ? "translate-x-0" : "translate-x-full"}`}>
-              {showUser ? (userProfile.profile?.username ?? userEmail) : null}
+              {showUser ? (userProfile.profile?.username ?? userEmail ?? "") : null}
             </span>
           </div>
           <button

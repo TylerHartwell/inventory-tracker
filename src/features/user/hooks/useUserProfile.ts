@@ -12,7 +12,7 @@ export interface UserProfile {
   setProfile: Dispatch<SetStateAction<UserProfileData | null>>
 }
 
-export function useUserProfile() {
+export function useUserProfile(userId: string, userEmail: string | null) {
   const [profile, setProfile] = useState<UserProfileData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -20,15 +20,7 @@ export function useUserProfile() {
     const fetchProfile = async () => {
       setLoading(true)
 
-      const {
-        data: { user }
-      } = await supabase.auth.getUser()
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      const { data: selectedProfile, error: selectProfileError } = await supabase.from("profiles").select("username").eq("id", user.id).single()
+      const { data: selectedProfile, error: selectProfileError } = await supabase.from("profiles").select("username").eq("id", userId).single()
 
       if (selectProfileError || !selectedProfile) {
         console.error("Error fetching profile:", selectProfileError)
@@ -36,12 +28,12 @@ export function useUserProfile() {
         return
       }
 
-      setProfile({ userId: user.id, username: selectedProfile.username, email: user.email ?? null })
+      setProfile({ userId, username: selectedProfile.username, email: userEmail })
       setLoading(false)
     }
 
     fetchProfile()
-  }, [])
+  }, [userEmail, userId])
 
   return { profile, loading, setProfile }
 }

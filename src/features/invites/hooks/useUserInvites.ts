@@ -15,22 +15,18 @@ type RefreshInvitesResult = {
   error: string | null
 }
 
-export function useUserInvites() {
+export function useUserInvites(userEmail: string | null) {
   const [invites, setInvites] = useState<InviteWithListName[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const normalizedEmail = userEmail?.trim().toLowerCase() ?? ""
 
   const refreshInvites = useCallback(async (): Promise<RefreshInvitesResult> => {
     setLoading(true)
     setError(null)
 
     try {
-      const {
-        data: { user },
-        error: userError
-      } = await supabase.auth.getUser()
-
-      if (userError || !user?.email) {
+      if (!normalizedEmail) {
         const errMsg = "Not authenticated"
         setInvites([])
         setError(errMsg)
@@ -51,7 +47,7 @@ export function useUserInvites() {
         )
       `
         )
-        .eq("email", user.email.toLowerCase())
+        .eq("email", normalizedEmail)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
 
@@ -89,7 +85,7 @@ export function useUserInvites() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [normalizedEmail])
 
   useEffect(() => {
     const fetchInvites = async () => {
@@ -116,16 +112,11 @@ export function useUserInvites() {
 
     const setupRealtime = async () => {
       try {
-        const {
-          data: { user },
-          error: userError
-        } = await supabase.auth.getUser()
-
-        if (userError || !user?.email) {
+        if (!normalizedEmail) {
           return
         }
 
-        subscribedEmail = user.email.toLowerCase()
+        subscribedEmail = normalizedEmail
         channel = supabase.channel(`user-invites-${subscribedEmail}`)
 
         channel.on("postgres_changes", { event: "*", schema: "public", table: "list_invites" }, payload => {
@@ -175,7 +166,7 @@ export function useUserInvites() {
         void channel.unsubscribe()
       }
     }
-  }, [refreshInvites])
+  }, [normalizedEmail, refreshInvites])
 
   return { invites, loading, error, refreshInvites }
 }
