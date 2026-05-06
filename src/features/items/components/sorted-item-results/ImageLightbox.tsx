@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import Image from "next/image"
 import { useEffect } from "react"
+import isUnoptimizedUrl from "@/shared/utils/isUnoptimizedUrl"
 
 type ImageLightboxProps = {
   urls: string[]
@@ -52,11 +54,13 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
 
       <div className="flex flex-col items-center gap-2 w-full max-w-4xl mx-14 h-[90vh]">
         <div className="relative w-full flex-1 min-h-0 flex items-center justify-center" onPointerDown={onClose}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={urls[index]!}
+            unoptimized={isUnoptimizedUrl(urls[index]!)}
             alt={`Image ${index + 1} of ${urls.length}`}
-            className="max-w-full max-h-full object-contain"
+            fill
+            sizes="(max-width: 1024px) calc(100vw - 7rem), 896px"
+            className="object-contain"
             onPointerDown={e => e.stopPropagation()}
           />
         </div>

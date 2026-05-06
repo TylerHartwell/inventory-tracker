@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Pencil } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { LocalItem } from "@/features/items/components/ItemManager"
 import ContainImageFitToggle from "@/shared/components/ContainImageFitToggle"
+import isUnoptimizedUrl from "@/shared/utils/isUnoptimizedUrl"
 import ImageLightbox from "./ImageLightbox"
 
 type DetailDisplayField = {
@@ -178,9 +179,7 @@ const ItemCardDetailsModal = ({
                 >
                   <Image
                     src={signedUrl}
-                    unoptimized={
-                      signedUrl.startsWith("blob:") || signedUrl.startsWith("http://127.0.0.1:") || signedUrl.startsWith("http://localhost:")
-                    }
+                    unoptimized={isUnoptimizedUrl(signedUrl)}
                     alt="Item image"
                     fill
                     priority={Boolean(isPriority && imageIndex === 0)}

@@ -1,5 +1,6 @@
 import Image from "next/image"
 import type { VisibilityMode } from "@/shared/components/DisplaySection"
+import isUnoptimizedUrl from "@/shared/utils/isUnoptimizedUrl"
 
 export type GalleryImage = {
   key: string
@@ -84,8 +85,6 @@ const ItemImageGallery = ({
           )
         }
 
-        const isBlobOrLocal = image.url.startsWith("blob:") || image.url.startsWith("http://127.0.0.1:") || image.url.startsWith("http://localhost:")
-
         return (
           <li key={image.key} className="relative">
             <button
@@ -98,7 +97,7 @@ const ItemImageGallery = ({
               <div className="relative aspect-square w-full">
                 <Image
                   src={image.url}
-                  unoptimized={isBlobOrLocal}
+                  unoptimized={isUnoptimizedUrl(image.url)}
                   alt={`${image.itemName} image`}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

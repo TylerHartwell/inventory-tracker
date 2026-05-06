@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { VisibilityMode } from "@/shared/components/DisplaySection"
+import isUnoptimizedUrl from "@/shared/utils/isUnoptimizedUrl"
 import { LocalItem } from "@/features/items/components/ItemManager"
 
 type ItemCardGridViewProps = {
@@ -15,12 +16,10 @@ const ItemCardGridView = ({ viewItem, isPriority, visibilityMode, useContainImag
   const gridTitleFrameRef = useRef<HTMLParagraphElement>(null)
   const gridTitleTextRef = useRef<HTMLSpanElement>(null)
   const urls = viewItem.signedUrls
-  const heroUrl = urls[0]
+  const heroUrl = urls[0] ?? ""
   const shouldShowImages = visibilityMode !== "hide-images"
   const shouldShowOnlyImages = visibilityMode === "hide-info"
   const shouldShowTitle = !shouldShowOnlyImages
-  const isBlobUrl = Boolean(heroUrl?.startsWith("blob:"))
-  const isLocalDevUrl = Boolean(heroUrl?.startsWith("http://127.0.0.1:") || heroUrl?.startsWith("http://localhost:"))
 
   useEffect(() => {
     const frame = gridTitleFrameRef.current
@@ -60,8 +59,8 @@ const ItemCardGridView = ({ viewItem, isPriority, visibilityMode, useContainImag
       {shouldShowImages && urls.length > 0 && (
         <div className="absolute inset-0 rounded overflow-hidden">
           <Image
-            src={heroUrl!}
-            unoptimized={isBlobUrl || isLocalDevUrl}
+            src={heroUrl}
+            unoptimized={isUnoptimizedUrl(heroUrl)}
             alt="Item image"
             fill
             priority={isPriority}

@@ -1,6 +1,7 @@
 import { Images, List } from "lucide-react"
 import Image from "next/image"
 import { VisibilityMode } from "@/shared/components/DisplaySection"
+import isUnoptimizedUrl from "@/shared/utils/isUnoptimizedUrl"
 import { LocalItem } from "@/features/items/components/ItemManager"
 import { formatDateOnly } from "@/shared/utils/dateOnly"
 
@@ -50,7 +51,7 @@ const ItemCardStackView = ({ viewItem, isPriority, visibilityMode, useContainIma
             <div key={`${viewItem.id}-${signedUrl}-${imageIndex}`} className="relative h-32 w-auto rounded">
               <Image
                 src={signedUrl}
-                unoptimized={signedUrl.startsWith("blob:") || signedUrl.startsWith("http://127.0.0.1:") || signedUrl.startsWith("http://localhost:")}
+                unoptimized={isUnoptimizedUrl(signedUrl)}
                 alt="Item image"
                 fill
                 priority={Boolean(isPriority && imageIndex === 0)}
