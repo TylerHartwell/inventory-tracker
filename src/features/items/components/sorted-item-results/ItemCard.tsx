@@ -9,7 +9,6 @@ import ItemCardView from "./ItemCardView"
 import ItemCardDetailsModal from "./ItemCardDetailsModal"
 import ItemCardEditModal from "./ItemCardEditModal"
 import { supabase } from "@/supabase-client"
-import { generateSignedUrls } from "@/shared/utils/generateSignedUrl"
 import { formatDateOnly as formatDateOnlyForDisplay } from "@/shared/utils/dateOnly"
 
 interface ItemCardProps {
@@ -325,18 +324,8 @@ export const ItemCard = ({
     onUpsert(upsertedUpdatedItem)
   }
 
-  const handleOpenDetails = async () => {
+  const handleOpenDetails = () => {
     if (isEditing) return
-
-    if (displayItem.imageUrls.length > 0) {
-      const refreshedSignedUrls = await generateSignedUrls(displayItem.imageUrls)
-
-      setDisplayItem(prev => ({
-        ...prev,
-        signedUrls: refreshedSignedUrls
-      }))
-    }
-
     onOpenDetails()
   }
 
