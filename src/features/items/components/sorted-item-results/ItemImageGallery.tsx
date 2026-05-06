@@ -102,7 +102,7 @@ const ItemImageGallery = ({
                   alt={`${image.itemName} image`}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  quality={70}
+                  quality={25}
                   className={useContainImageFit ? "object-contain" : "object-cover"}
                 />
               </div>

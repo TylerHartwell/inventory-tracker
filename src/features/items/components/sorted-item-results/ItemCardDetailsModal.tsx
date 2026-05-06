@@ -186,7 +186,7 @@ const ItemCardDetailsModal = ({
                     priority={Boolean(isPriority && imageIndex === 0)}
                     loading={isPriority && imageIndex === 0 ? "eager" : "lazy"}
                     sizes="(max-width: 640px) 50vw, 320px"
-                    quality={70}
+                    quality={25}
                     className={`${useContainImageFit ? "object-contain" : "object-cover"} rounded`}
                   />
                 </button>

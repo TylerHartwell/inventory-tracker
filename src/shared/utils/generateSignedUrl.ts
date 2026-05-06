@@ -7,7 +7,9 @@ export const generateSignedUrl = async (filePath: string): Promise<string | null
   if (!normalizedPath) return null
 
   const expirySeconds = 60 * 20 // 20 minutes
-  const { data, error } = await supabase.storage.from("images").createSignedUrl(normalizedPath, expirySeconds)
+  const { data, error } = await supabase.storage.from("images").createSignedUrl(normalizedPath, expirySeconds, {
+    transform: { width: 400, quality: 20 }
+  })
 
   if (error || !data) {
     if (error?.message !== "Object not found") {
