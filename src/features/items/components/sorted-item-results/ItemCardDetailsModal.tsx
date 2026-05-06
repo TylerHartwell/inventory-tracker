@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { ChevronLeft, ChevronRight, Pencil } from "lucide-react"
+import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { LocalItem } from "@/features/items/components/ItemManager"
 import ContainImageFitToggle from "@/shared/components/ContainImageFitToggle"
@@ -115,23 +115,26 @@ const ItemCardDetailsModal = ({
           aria-label="Previous item"
           title="View previous item"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={28} />
         </button>
       )}
 
       <div
         ref={modalScrollRef}
-        className="w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto [scrollbar-gutter:stable] border rounded-xl bg-black  text-white shadow-lg"
+        className="w-full max-w-2xl m-6 max-h-[90vh] overflow-y-auto [scrollbar-gutter:stable] border rounded-xl bg-black  text-white shadow-lg"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-20  flex items-center justify-between border-b border-gray-700 bg-black p-2">
+        <div className="sticky top-0 z-20  flex items-center justify-between border-b border-gray-700 bg-black p-2 gap-2">
           <h3 className="text-lg font-semibold">Item Details</h3>
-          <ContainImageFitToggle
-            id="use-contain-image-fit-details"
-            useContainImageFit={useContainImageFit}
-            onUseContainImageFitChange={onUseContainImageFitChange}
-            className="justify-start"
-          />
+          {displayItem.signedUrls.length > 0 && (
+            <ContainImageFitToggle
+              id="use-contain-image-fit-details"
+              useContainImageFit={useContainImageFit}
+              onUseContainImageFitChange={onUseContainImageFitChange}
+              className="justify-start"
+            />
+          )}
+
           <div className="flex items-center gap-2">
             {!!displayItem.canEdit && (
               <button
@@ -145,16 +148,16 @@ const ItemCardDetailsModal = ({
             )}
             <button
               type="button"
-              className="px-3 py-1 bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 cursor-pointer"
+              className="h-8 w-8 flex items-center justify-center bg-gray-600 text-white rounded hover-fine:outline-1 active:outline-1 cursor-pointer"
               onClick={onClose}
               title="Close details"
             >
-              Close
+              <X size={16} />
             </button>
           </div>
         </div>
 
-        <div className="grid gap-2 p-3">
+        <div className="grid gap-2 p-1">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="rounded border border-gray-600 bg-gray-900 px-2 py-1">
               <p className="text-xs uppercase tracking-wide text-gray-300">Item Name</p>
@@ -245,7 +248,7 @@ const ItemCardDetailsModal = ({
           aria-label="Next item"
           title="View next item"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={28} />
         </button>
       )}
     </div>

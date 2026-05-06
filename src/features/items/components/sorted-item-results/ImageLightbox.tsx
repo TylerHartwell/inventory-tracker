@@ -1,7 +1,9 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import Image from "next/image"
-import { useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import isUnoptimizedUrl from "@/shared/utils/isUnoptimizedUrl"
+
+const PREVIOUS_IMAGE_FADE_OUT_MS = 220
 
 type ImageLightboxProps = {
   urls: string[]
@@ -11,20 +13,53 @@ type ImageLightboxProps = {
 }
 
 const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps) => {
+  const [isImageLoading, setIsImageLoading] = useState(true)
+  const [previousUrl, setPreviousUrl] = useState<string | null>(null)
+  const [isPreviousFadingOut, setIsPreviousFadingOut] = useState(false)
+  const currentUrl = urls[index]!
+
+  const navigateTo = useCallback(
+    (nextIndex: number) => {
+      setPreviousUrl(currentUrl)
+      setIsPreviousFadingOut(false)
+      setIsImageLoading(true)
+      onNavigate(nextIndex)
+    },
+    [currentUrl, onNavigate]
+  )
+
+  useEffect(() => {
+    if (!previousUrl) return
+
+    const fadeRaf = requestAnimationFrame(() => {
+      setIsPreviousFadingOut(true)
+    })
+
+    const clearPreviousTimeout = window.setTimeout(() => {
+      setPreviousUrl(null)
+      setIsPreviousFadingOut(false)
+    }, PREVIOUS_IMAGE_FADE_OUT_MS)
+
+    return () => {
+      cancelAnimationFrame(fadeRaf)
+      clearTimeout(clearPreviousTimeout)
+    }
+  }, [previousUrl])
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose()
       } else if (e.key === "ArrowLeft") {
-        if (index > 0) onNavigate(index - 1)
+        if (index > 0) navigateTo(index - 1)
       } else if (e.key === "ArrowRight") {
-        if (index < urls.length - 1) onNavigate(index + 1)
+        if (index < urls.length - 1) navigateTo(index + 1)
       }
     }
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [index, urls.length, onClose, onNavigate])
+  }, [index, urls.length, onClose, navigateTo])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85" onPointerDown={onClose}>
@@ -43,7 +78,7 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
         <button
           type="button"
           className="absolute left-3 z-10 text-white rounded-full p-1 flex items-center justify-center hover-fine:scale-110 active:scale-110 transition-transform"
-          onClick={() => onNavigate(index - 1)}
+          onClick={() => navigateTo(index - 1)}
           onPointerDown={e => e.stopPropagation()}
           aria-label="Previous image"
           title="View previous image"
@@ -54,13 +89,33 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
 
       <div className="flex flex-col items-center gap-2 w-full max-w-4xl mx-14 h-[90vh]">
         <div className="relative w-full flex-1 min-h-0 flex items-center justify-center" onPointerDown={onClose}>
+          {isImageLoading && previousUrl && previousUrl !== currentUrl && (
+            <Image
+              src={previousUrl}
+              unoptimized={isUnoptimizedUrl(previousUrl)}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) calc(100vw - 7rem), 896px"
+              className={`pointer-events-none object-contain transition-opacity ${isPreviousFadingOut ? "opacity-0" : "opacity-100"}`}
+              style={{ transitionDuration: `${PREVIOUS_IMAGE_FADE_OUT_MS}ms` }}
+              onPointerDown={e => e.stopPropagation()}
+              aria-hidden="true"
+            />
+          )}
+
           <Image
-            src={urls[index]!}
-            unoptimized={isUnoptimizedUrl(urls[index]!)}
+            key={currentUrl}
+            src={currentUrl}
+            unoptimized={isUnoptimizedUrl(currentUrl)}
             alt={`Image ${index + 1} of ${urls.length}`}
             fill
             sizes="(max-width: 1024px) calc(100vw - 7rem), 896px"
-            className="object-contain"
+            className={`object-contain ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+            onLoad={() => {
+              setIsImageLoading(false)
+              setPreviousUrl(null)
+              setIsPreviousFadingOut(false)
+            }}
             onPointerDown={e => e.stopPropagation()}
           />
         </div>
@@ -75,7 +130,7 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
         <button
           type="button"
           className="absolute right-3 z-10 text-white rounded-full p-1 flex items-center justify-center hover-fine:scale-110 active:scale-110 transition-transform"
-          onClick={() => onNavigate(index + 1)}
+          onClick={() => navigateTo(index + 1)}
           onPointerDown={e => e.stopPropagation()}
           aria-label="Next image"
           title="View next image"

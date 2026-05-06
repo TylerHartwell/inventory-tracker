@@ -17,7 +17,7 @@ const ContainImageFitToggle = ({ useContainImageFit, onUseContainImageFitChange,
         checked={useContainImageFit}
         onCheckedChange={onUseContainImageFitChange}
         aria-label={useContainImageFit ? "Image fit: contain" : "Image fit: cover"}
-        className="group w-10 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 flex items-center justify-between cursor-pointer"
+        className="group w-10 shrink-0 h-5 rounded-full border-2 border-gray-400 bg-gray-400 relative data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 flex items-center justify-between cursor-pointer"
         title={useContainImageFit ? "Contain fit enabled - toggle to use cover" : "Cover fit enabled - toggle to use contain"}
       >
         <Switch.Thumb className="h-full aspect-square inline-block rounded-full bg-white transition-transform duration-300 ease-in-out translate-x-0 data-[state=checked]:translate-x-5" />
