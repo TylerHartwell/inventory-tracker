@@ -61,14 +61,8 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [index, urls.length, onClose, navigateTo])
 
-  useEffect(() => {
-    const preloadCandidates = [urls[index - 1], urls[index + 1]].filter((url): url is string => typeof url === "string")
-
-    preloadCandidates.forEach(url => {
-      const img = new window.Image()
-      img.src = url
-    })
-  }, [index, urls])
+  const prevUrl = urls[index - 1]
+  const nextUrl = urls[index + 1]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85" onPointerDown={onClose}>
@@ -127,6 +121,32 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
             }}
             onPointerDown={e => e.stopPropagation()}
           />
+
+          {prevUrl && (
+            <Image
+              key={`preload-prev-${prevUrl}`}
+              src={prevUrl}
+              unoptimized={isUnoptimizedUrl(prevUrl)}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) calc(100vw - 7rem), 896px"
+              className="pointer-events-none opacity-0"
+              aria-hidden="true"
+            />
+          )}
+
+          {nextUrl && (
+            <Image
+              key={`preload-next-${nextUrl}`}
+              src={nextUrl}
+              unoptimized={isUnoptimizedUrl(nextUrl)}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) calc(100vw - 7rem), 896px"
+              className="pointer-events-none opacity-0"
+              aria-hidden="true"
+            />
+          )}
         </div>
         {urls.length > 1 && (
           <span className="shrink-0 text-white text-sm bg-black/50 rounded px-2 py-0.5" onPointerDown={e => e.stopPropagation()}>
