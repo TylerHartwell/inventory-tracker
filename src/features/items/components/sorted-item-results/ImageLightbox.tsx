@@ -61,6 +61,15 @@ const ImageLightbox = ({ urls, index, onClose, onNavigate }: ImageLightboxProps)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [index, urls.length, onClose, navigateTo])
 
+  useEffect(() => {
+    const preloadCandidates = [urls[index - 1], urls[index + 1]].filter((url): url is string => typeof url === "string")
+
+    preloadCandidates.forEach(url => {
+      const img = new window.Image()
+      img.src = url
+    })
+  }, [index, urls])
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85" onPointerDown={onClose}>
       <button
