@@ -28,6 +28,9 @@ export const updateProfile = async ({
     if (error.code === "23505") {
       return { data: null, error: "Username already taken" }
     }
+    if (error.code === "23514") {
+      return { data: null, error: "Username must be at least 3 characters" }
+    }
     return { data: null, error: `Error updating invite role: ${error.message}` }
   }
 

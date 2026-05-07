@@ -11,8 +11,10 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const saveSucceededRef = useRef(false)
 
   const handleFinishSaving = useCallback(() => {
+    if (!saveSucceededRef.current) return
     setProfile(prev => (prev ? { ...prev, username: localUsername.trim() } : prev))
   }, [localUsername, setProfile])
 
@@ -48,6 +50,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
 
     setSaving(true)
     setError(null)
+    saveSucceededRef.current = false
 
     const { error } = await updateProfile({
       newUsername: trimmedUsername,
@@ -58,6 +61,7 @@ export function UsernameEditor({ userProfile }: { userProfile: UserProfile }) {
       setError(error)
       focusInput()
     } else {
+      saveSucceededRef.current = true
       setEditing(false)
     }
 
