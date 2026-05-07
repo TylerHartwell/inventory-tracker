@@ -330,7 +330,6 @@ export const ItemCard = ({
   }
 
   const handleOpenEditModal = () => {
-    onCloseDetails()
     clearFeedback()
     setIsEditing(true)
   }
@@ -378,7 +377,7 @@ export const ItemCard = ({
         />
       )}
 
-      {isDetailsOpen && (
+      {isDetailsOpen && !isEditing && (
         <ItemCardDetailsModal
           displayItem={displayItem}
           isPriority={isPriority}

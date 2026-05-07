@@ -196,17 +196,27 @@ const Auth = () => {
         </div>
 
         <div className="flex flex-col gap-8 mt-4 items-center">
+          {/*
+            Previous copy for reference:
+            Create structured lists with rich item details, invite others, and control who can view or edit-perfect for cataloging, tracking, and collaborating.
+            - Names, Descriptions, Details
+            - Images & Icons
+            - Dates (Purchase, Expiration, Warranty)
+            - Prices & Quantitites
+            - Categories & Tags
+            - And More...
+          */}
           <h3 className="max-w-lg">
-            Create <strong>structured lists</strong> with rich item details, <strong>invite others</strong>, and control who can{" "}
-            <strong>view or edit</strong>—perfect for cataloging, tracking, and collaborating.
+            Your personal inventory, organized and shared. Build lists with rich item details, collaborate with teammates, and keep everyone on the
+            same page—all in one place.
           </h3>
           <ul className="list-disc ml-8">
-            <li>Names, Descriptions, Details</li>
-            <li>Images & Icons</li>
-            <li>Dates (Purchase, Expiration, Warranty)</li>
-            <li>Prices & Quantitites</li>
-            <li>Categories & Tags</li>
-            <li>And More...</li>
+            <li>Item Names & Extra Details</li>
+            <li>Images</li>
+            <li>Expiration Dates</li>
+            <li>Categories</li>
+            <li>Shared Lists & Invites</li>
+            <li>Owner/Editor/Viewer Access Control</li>
           </ul>
         </div>
       </div>
